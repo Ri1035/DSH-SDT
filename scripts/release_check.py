@@ -80,11 +80,18 @@ def check_forbidden_versions() -> None:
                         hits.append(f"{rel}:{line_no} 声明 {clean}")
 
     pkg = os.path.join(ROOT, "package.json")
+    pkg = os.path.join(ROOT, "plugin", "package.json")
     if os.path.exists(pkg):
         with open(pkg, encoding="utf-8") as fh:
             version = re.search(r'"version"\s*:\s*"([^"]+)"', fh.read())
-        if version and version.group(1) != read("VERSION").strip():
-            hits.append(f"package.json version {version.group(1)} != VERSION")
+        project = read("VERSION").strip()
+        if version:
+            # npm/pnpm require a three-segment semver in the manifest; the project
+            # version stays two-segment. Map 1.1.0 -> v1.1 and compare.
+            manifest = version.group(1)
+            mapped = ".".join(manifest.split(".")[:2])
+            if mapped != project.lstrip("v"):
+                hits.append(f"plugin/package.json {manifest} != VERSION {project}")
 
     record(not hits, "声明的项目版本一律 vX.Y（无三段 / 两位小数）", "; ".join(hits[:6]))
 

@@ -1,0 +1,13 @@
+# dsh-sdt bundle patch
+#
+# 这一层是 package.json 里 `dsh.bundle.patch` 指向的文件：
+# 官方 CLI 安装时 ——
+#
+#   dsh plugin --profile web add link:<repo>/plugin
+#
+# —— 会把本包追加进 `dsh.profile.bundles`，profile 启动时把这条 insert
+# 合进插件树。同一行也是 `dsh.client` 在浏览器侧名册里的表项
+# （exports["./client"] -> client.js）。
+- insert:
+    - id: sdt
+      name: 'dsh-sdt'

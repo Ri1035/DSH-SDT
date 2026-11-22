@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="DSH-SDT">
+  <defs>
+    <linearGradient id="sdt-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22303f"/>
+      <stop offset="1" stop-color="#101820"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#sdt-bg)"/>
+  <path d="M20 44c6-2 8-8 8-14s4-10 8-10" fill="none" stroke="#d8a94a" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="38" cy="20" r="3.4" fill="none" stroke="#d8a94a" stroke-width="2.2"/>
+  <path d="M22 46l-3.2 3.2M18.8 49.2l-2.4 2.4" stroke="#e9ebee" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M44 40c-2.6 0-4.6 2-4.6 4.6S41.4 49.2 44 49.2s4.6-2 4.6-4.6S46.6 40 44 40z" fill="none" stroke="#e9ebee" stroke-width="1.6"/>
+</svg>

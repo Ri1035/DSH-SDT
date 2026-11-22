@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "DSH-SDT 灵衣缝制",
+    "description": "DeepSeek Harness 的外观层：主题 token、素材路由，以及 $DSH_HOME/sdt/ 下的配置文件。"
+  }
+}

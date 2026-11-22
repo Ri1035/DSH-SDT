@@ -12,7 +12,7 @@
 ```
 [■■■■■■■■■■] 调研     ✅ 完成
 [■■■■■■■■■■] 计划     ✅ 完成（含框架目标与版本策略）
-[          ] P0 环境+配置  ⬜ 未开始
+[■■■■■■■■■■] P0 骨架+配置   ✅ v1.1 完成
 [          ] P1 token       ⬜ 未开始
 [          ] P2 开屏        ⬜ 未开始
 [          ] P3 氛围        ⬜ 未开始
@@ -55,23 +55,23 @@
 
 ### P0 — 隔离环境 + 插件骨架 + 素材路由 + 配置系统（预估 2–3 天）
 
-- [ ] **T0.1** 在 `C:\Users\Administrator\.dsh\profiles\web` 基础上建立隔离验证流程
+- [x] **T0.1** 在 `C:\Users\Administrator\.dsh\profiles\web` 基础上建立隔离验证流程
   - 验收：`dsh --profile web --no-open --port 0` 能起来，浏览器能看到原生 DSH UI
   - 风险：低。**绝不碰 `desktop` profile**
-- [ ] **T0.2** 建立插件包骨架目录结构（`package.json` / `cordis.patch.yml` / `src/index.js` / `src/client/index.jsx`）
-- [ ] **T0.3** 实现 host 素材路由（`inject: ['webServer']` + `webServer.register({kind:'prefix'})` + 白名单 Map + `ctx.effect`）
+- [x] **T0.2** 建立插件包骨架目录结构（`package.json` / `cordis.patch.yml` / `src/index.js` / `src/client/index.jsx`）
+- [x] **T0.3** 实现 host 素材路由（`inject: ['webServer']` + `webServer.register({kind:'prefix'})` + 白名单 Map + `ctx.effect`）
   - 验收：`curl /sdt/asset/<file>` 返回 200 与正确 content-type；未知路径返回 404
   - 注意：白名单写法，防路径穿越；只暴露已知扩展名
   - 🆕 **必须在 handler 开头调 `ctx.connection.requestRejection(req)`** —— 自定义路由**不继承**宿主鉴权与 Host/Origin 栅栏（见 `AGENTS.md` R10）
-- [ ] 🆕 **T0.3b** 素材路由安全自检：路径穿越（`..`）、非法扩展名、超大文件、跨源请求 四项各写一个用例
-- [ ] 🆕 **T0.3c** `package.json` 声明 `peerDependencies["@deepseek-ai/dsh"]`（范围取真实验证过的下界）与 `dsh.client.inject: []`
+- [~] 🆕 **T0.3b**（3/4：穿越 / 扩展名 / 跨源已过；超大文件用例待补） 素材路由安全自检：路径穿越（`..`）、非法扩展名、超大文件、跨源请求 四项各写一个用例
+- [x] 🆕 **T0.3c** `package.json` 声明 `peerDependencies["@deepseek-ai/dsh"]`（范围取真实验证过的下界）与 `dsh.client.inject: []`
   - 验收：用 `--dump-config` 确认插件层正常；用一个超范围版本验证宿主确实会跳过
-- [ ] **T0.4** 装进 `web` profile，验证插件被加载（`dsh --profile web --dump-config` 出现插件层）
-- [ ] 🆕 **T0.5 配置系统**：读取 `$DSH_HOME/sdt/sdt.config.json`（不存在则全用默认）
-- [ ] 🆕 **T0.6 配置校验**：字段类型/范围/颜色格式校验，错误要**带行号的人话报错**，单项失败不拖垮整体
-- [ ] 🆕 **T0.7 默认值合并**：配置与内置默认的深度合并（用户值优先）
-- [ ] 🆕 **T0.8 素材解析层**：用户目录优先、缺失回退内置的"逐项覆盖"逻辑
-- [ ] 🆕 **T0.9 配置运行时视图**：`GET /sdt/config.json` 供 client 读取
+- [x] **T0.4** 装进 `web` profile，验证插件被加载（`dsh --profile web --dump-config` 出现插件层）
+- [x] 🆕 **T0.5 配置系统**：读取 `$DSH_HOME/sdt/sdt.config.json`（不存在则全用默认）
+- [x] 🆕 **T0.6 配置校验**：字段类型/范围/颜色格式校验，错误要**带行号的人话报错**，单项失败不拖垮整体
+- [x] 🆕 **T0.7 默认值合并**：配置与内置默认的深度合并（用户值优先）
+- [x] 🆕 **T0.8 素材解析层**：用户目录优先、缺失回退内置的"逐项覆盖"逻辑
+- [x] 🆕 **T0.9 配置运行时视图**：`GET /sdt/config.json` 供 client 读取
 
 ### P1 — A 层：主题 token（预估 1–2 天）
 
@@ -183,6 +183,8 @@
 | **D21** | **`D17` 修正：14 项只是 `Theme.listTokens` 的 inspect 白名单，`overrideTokens` 实际可覆盖 129 个 `--dsw-*`** | 生态实测：`dsh-client-ui-theme-pack` 以官方 API 覆盖 129 项（117 alias + 11 specific），且 `validateOverrides` 不校验名字白名单。→ P1 先把 129 项按「是否真被消费」筛一遍 | ⏳ 待本机探针验证 |
 | **D22** | **版本号改为 `vX.Y`、逢 10 进 1**，与 DSH 版本解耦，单一真相源为 `VERSION` | 用户明确要求；三段版本号与两位小数一律禁止；发版必须自带验证报告 | ✅ 已定 |
 | **D23** | **项目更名 `DSH-SDT` / 灵衣缝制**，叙事改为"主题是缝出来的" | 用户指定；生态 170 个外观类项目中 FGO/衣柜叙事 0 个 → 概念位是空白 | ✅ 已定 |
+| **D24** | **项目版本 `vX.Y` 与 manifest 三段 semver 分离** | npm/pnpm 强制 `package.json` 版本为 `x.y.z`；项目对外版本仍是 `vX.Y`（`VERSION` / 标签 / 文档一律两段），校验器按 `1.1.0 → v1.1` 映射比对 | ✅ 已定（平台约束） |
+| **D25** | **host 插件必须 `inject: ['webServer', 'connection']`** | 实测：cordis 禁止访问未声明注入的服务，`ctx.connection` 会直接抛错；宿主把所有 handler 异常统一回 400，症状是「所有路由都 400」 | ✅ 已定（实测教训） |
 
 ---
 

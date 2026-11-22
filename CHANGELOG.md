@@ -13,6 +13,47 @@
 
 ---
 
+## v1.1 — 2026-11-23
+
+**插件骨架落地**：`plugin/` 可安装进 `web` profile，配置路由与素材路由带完整安全闸，client 半部把 14 个
+`--dsw-alias-*` 真正写进界面。
+
+### Added
+
+- 🆕 `plugin/` —— 可安装的 Cordis bundle
+  - `package.json`：`dsh.bundle.patch` + `dsh.client`（`platform: web`，`inject: ["@deepseek-ai/dsh-client-ui-theme"]`）
+    + `peerDependencies["@deepseek-ai/dsh"] = ">=0.2.0-rc.2 <0.3.0-0"`（optional，避免 link 安装时强解）
+  - `cordis.patch.yml`：插入 `id: sdt` 行
+  - `index.js`：host 半边，`inject: ['webServer', 'connection']`，注册 `/sdt` 前缀路由
+  - `client.js`：browser 半边，`theme.overrideTokens` + 注入 `--bj-*` 变量，含双挂载保护
+  - `lib/config.js`：`$DSH_HOME/sdt/sdt.config.json` 读取、深合并、逐字段校验、JSON 语法错带行列号
+  - `lib/assets.js`：素材白名单（8 种扩展名）、路径穿越防护、4 MB 上限、用户目录 → 内置回退
+  - `lib/routes.js`：`/sdt/health`、`/sdt/config.json`、`/sdt/asset/<name>`，首行过栅栏
+  - `locale/{en,zh}.json` + `icon.svg` + 内置 `assets/logo.svg`
+- 🆕 14 个 token 的明暗双套推导（由 `colors.brand/accent/surface/ink` 计算，含混色工具）
+
+### Fixed
+
+- ⚠️ **`inject` 必须声明 `connection`**：cordis 禁止访问未注入的服务属性，否则
+  `ctx.connection` 直接抛 `cannot get property "connection" without inject`，
+  宿主把所有 handler 异常统一回 **400**，表现为「所有路由 400」。
+- 栅栏改成 fail-closed：`requestRejection` 抛错或服务缺失时按 403 处理，绝不放行。
+
+### Verified
+
+- 装进 `web` profile：`dsh plugin --profile web add link:<repo>/plugin`；`--dump-config` 出现 `# == dsh-sdt`
+- 路由：未鉴权 `401` / 带 cookie `200` / `config.json` 返回默认配置 / `logo.svg` `200 image/svg+xml`
+- 安全：路径穿越 `404`、非法扩展名 `404`、跨源 `403`、`POST` `405`
+- 浏览器端到端：`body` 上出现我们的 14 个 token（`--dsw-alias-bg-base: #ffffff`、
+  `--dsw-specific-sidebar-fill: #f3f6fa`、`--dsw-alias-brand-primary: #3b6ea5`）
+
+### Notes
+
+- npm/pnpm 要求 manifest 里是三段 semver，故 `plugin/package.json` 写 `1.1.0`；
+  **项目版本仍是 `v1.1`**（`VERSION` / `CHANGELOG` / 发布标签一律两段）。校验器已做映射。
+
+---
+
 ## v1.0 — 2026-11-22
 
 **首次建立可交接基线**：文档体系 + 本机契约实测 + 生态调研 + 版本管理启用。
@@ -94,6 +135,7 @@
 
 | 版本 | 日期 | 内容 |
 |---|---|---|
+| **v1.1** | 2026-11-23 | 插件骨架落地：bundle + host/client 半边 + 配置与素材路由 + 14 token 实测生效 |
 | **v1.0** | 2026-11-22 | 更名 DSH-SDT（灵衣缝制）；版本管理启用；本机契约实测；生态调研；文档基线可交接 |
 
 > 下一次发版为 `v1.1`（插件骨架 + 素材路由 + 配置系统），之后 `v1.2` … `v1.9`，再进 `v2.0`。

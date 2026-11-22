@@ -6,7 +6,7 @@
   <sub>Deepseekharness-Spiritron Dress Tailoring</sub>
 </p>
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-v1.0-2ea44f?style=flat-square">
+  <img alt="version" src="https://img.shields.io/badge/version-v1.1-2ea44f?style=flat-square">
   <img alt="dsh" src="https://img.shields.io/badge/DSH-0.2.2--rc.1-1f6feb?style=flat-square">
   <img alt="license" src="https://img.shields.io/badge/license-pending-lightgrey?style=flat-square">
 </p>
@@ -20,7 +20,7 @@
 | 为谁 | 想给 DSH 换一整套外观，但不想读选择器、不想手调色板的人 |
 | 凭什么 | 只用官方接缝：theme token / 素材路由 / 首帧注入 / `shell.overlay` |
 | 交付形态 | 一个插件包 + 一个随包分发的 Agent Skill + `$DSH_HOME/sdt/` 内容目录 |
-| 现在 | **v1.0 契约基线**：调研、实测、文档就位；插件代码从 v1.1 开始 |
+| 现在 | **v1.1 插件骨架**：可装进 `web` profile，配置 / 素材路由 / 14 个 token 已实测生效 |
 
 ## 简介
 
@@ -93,7 +93,7 @@ dsh plugin --profile web add dsh-sdt
 
 | 版本 | 内容 |
 |---|---|
-| v1.1 | 插件骨架 · 素材路由 · 配置系统 |
+| v1.1 ✅ | 插件骨架 · 素材路由 · 配置系统 |
 | v1.2 | 默认灵衣（token 全覆盖 + 对比度） |
 | v1.3 | 开屏动画（首帧注入 + 看门狗 + 刷新去重） |
 | v1.4 | 氛围层（材质 / HUD / 常驻动效） |

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "DSH-SDT",
+    "description": "Appearance layer for DeepSeek Harness: palette tokens, asset routes, and a config file under $DSH_HOME/sdt/."
+  }
+}
