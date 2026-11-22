@@ -24,7 +24,7 @@
   中文名 **灵衣缝制**（FGO 灵衣概念）。仓库名保持不变，更名先落在 README 与文档叙事上。
 - **版本管理启用**：版本格式改为 `vX.Y`、逢 10 进 1（见文件头），
   与 DSH 官方版本号解耦；新增 `VERSION` 文件作为单一真相源。
-- 读者入口从"Boujoy Harness"叙事改为"灵衣缝制"叙事：主题是**缝**出来的，不是**选**出来的。
+- 读者入口从"DSH-SDT"叙事改为"灵衣缝制"叙事：主题是**缝**出来的，不是**选**出来的。
 
 ### Added
 
@@ -68,7 +68,7 @@
 ### Added
 
 - 🆕 `HANDOFF.md` —— **转手文档**（换设备 / 换会话继续用）
-- 🆕 `skills/boujoy-theme-setup/SKILL.md` —— **Agent 适配能力**（随插件分发，自动触发）
+- 🆕 `skills/sdt-theme-setup/SKILL.md` —— **Agent 适配能力**（随插件分发，自动触发）
 - 🆕 **槽位全量清单**（`docs/asset-library.md` §3）：内容级 34 项 / 样式级 13 项 / 结构级 30 项 / 明确不可自定义 5 类
 - 🆕 槽位规格单一数据源 `plugin/lib/slots.js`（Agent 依据 / doctor 校验器 / 文档共用）
 - 文档体系：`AGENTS.md`、`docs/TODO.md`、`docs/DESIGN.md`、`docs/project-overview.md`、

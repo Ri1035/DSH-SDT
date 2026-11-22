@@ -22,11 +22,11 @@
 
 ```
 层次 1（默认，零操作）
-   装上插件 → 直接得到一套完整的 Boujoy 主题
+   装上插件 → 直接得到一套完整的 DSH-SDT 主题
    用户什么都不用做
 
 层次 2（推荐，低摩擦）
-   用户把素材丢进 $DSH_HOME/boujoy/inbox/
+   用户把素材丢进 $DSH_HOME/sdt/inbox/
    对 Agent 说："用这些素材给我配一套外观"
    → Agent 完成全部适配，用户只看结果
 
@@ -43,7 +43,7 @@
 ## 2. 用户侧接口：一个"素材收件箱"
 
 ```
-$DSH_HOME/boujoy/
+$DSH_HOME/sdt/
 ├── inbox/              ← ★ 用户只需要管这个目录
 │   ├── 任意文件名.png      用户随便命名，甚至不命名（IMG_0001.png 也行）
 │   ├── 某个logo.svg       格式不限（png / jpg / svg / webp / woff2）
@@ -54,7 +54,7 @@ $DSH_HOME/boujoy/
 │   ├── fonts/brand.woff2
 │   ├── textures/background.png
 │   └── boot/ring.svg
-└── boujoy.config.yml   ← Agent 生成的配置（用户可手改，但不是必须）
+└── sdt.config.json   ← Agent 生成的配置（用户可手改，但不是必须）
 ```
 
 **用户唯一的必做动作：把文件放进 `inbox/`。**
@@ -279,7 +279,7 @@ $DSH_HOME/boujoy/
 
 ④ 生成产物
      ├─ 把文件复制/转换到 assets/<槽位路径>
-     └─ 生成 boujoy.config.yml
+     └─ 生成 sdt.config.json
 
 ⑤ 提取配色
      └─ 从 logo/素材提取主色 → colors.brand / accent
@@ -318,7 +318,7 @@ $DSH_HOME/boujoy/
 插件提供 `doctor` 能力（形态待定：命令 / 技能内的检查步骤 / 两者都有），输出：
 
 ```
-Boujoy 素材诊断
+SDT 素材诊断
 ────────────────────────────────────
 ✅ logo            assets/logo.svg            128×32  来自 inbox/brand-h.png
 ✅ textureBackground assets/textures/bg.jpg   1920×1080  1.2MB ⚠️ 偏大
@@ -451,12 +451,12 @@ advanced:
 
 ```
 host 启动
-  ├─ ① 读 boujoy.config.yml（不存在 → 全用内置默认）
+  ├─ ① 读 sdt.config.json（不存在 → 全用内置默认）
   ├─ ② 逐槽位解析素材：配置指定路径 → assets/<槽位路径> → 内置 assets/ → 隐藏
   ├─ ③ 生成运行时产物
-  │     GET /boujoy/theme.css     内置 CSS + 配置变量 + overrides.css
-  │     GET /boujoy/config.json   运行时视图（不含敏感路径）
-  │     GET /boujoy/assets/<名>   解析后的实际文件
+  │     GET /sdt/theme.css     内置 CSS + 配置变量 + overrides.css
+  │     GET /sdt/config.json   运行时视图（不含敏感路径）
+  │     GET /sdt/asset/<名>   解析后的实际文件
   └─ ④ DSH 版本探测（超范围时由宿主跳过整个 bundle）
 ```
 

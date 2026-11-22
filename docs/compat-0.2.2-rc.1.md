@@ -77,7 +77,7 @@ git update-ref refs/remotes/origin/main $(git rev-parse HEAD)   # 手动对齐�
 
 | 项 | 值 |
 |---|---|
-| 仓库 | `https://github.com/Ri1035/boujoy-harness`（public，账号 `Ri1035`） |
+| 仓库 | `https://github.com/Ri1035/DSH-SDT`（public，账号 `Ri1035`） |
 | 本地 | `C:\Users\KOKA\Desktop\FGO`，**已带完整历史克隆**（`git clone` 而非 zip 解包） |
 | HEAD | `324e3f2` `docs: ... README ...` |
 | 分支 | `main` ↔ `origin/main`，工作区仅 `tools/`（未跟踪本地工具） |
@@ -200,7 +200,7 @@ await editor.edit(entry, current => ({ ...current, field: value }))
 
 - `.volatile()` 字段原地更新，其余字段改动会**重启插件**。
 - 密钥类走 `ctx.credentials.modifyRecord()`，**不进配置**。
-- → 本项目 `boujoy.config.yml`（`D8`/`B8`）仍然成立：它是**用户外观配置**，
+- → 本项目 `sdt.config.json`（`D8`/`B8`）仍然成立：它是**用户外观配置**，
   不是插件行配置；但**不要**去写 profile patch，也不要和 `configEditor` 抢同一个文件。
 
 ---
@@ -210,13 +210,13 @@ await editor.edit(entry, current => ({ ...current, field: value }))
 | 任务 | 本版本落地 |
 |---|---|
 | T0.1 | `dsh --profile web --dump-config`（首次创建 profile，需批准）→ 再 `dsh web --port 0` 起隔离实例 |
-| T0.2 | 骨架按 §4.1 生成，包名 `boujoy-harness`，`dsh.bundle.patch` 指向 `cordis.patch.yml` |
-| T0.3 | host `apply` 内 `ctx.webServer.register({kind:'prefix', path:'/boujoy', handler})`，首行 `ctx.connection.requestRejection(req)` |
+| T0.2 | 骨架按 §4.1 生成，包名 `dsh-sdt`，`dsh.bundle.patch` 指向 `cordis.patch.yml` |
+| T0.3 | host `apply` 内 `ctx.webServer.register({kind:'prefix', path:'/sdt', handler})`，首行 `ctx.connection.requestRejection(req)` |
 | T0.3b | 4 个安全用例：`..` 穿越 / 非法扩展名 / 超大文件 / 跨源 |
 | T0.3c | `peerDependencies["@deepseek-ai/dsh"]` = `>=0.2.0-rc.2 <0.3.0-0`（本机 `0.2.2-rc.1` 落在区间内）；`dsh.client.inject` 起步空数组 |
 | T0.4 | `plugin_manager install_bundle` 装到 **web** profile，读 `application: applied` |
 | T0.5–T0.8 | 配置读取/校验/深合并/素材逐项覆盖，纯 Node ESM，**不引第三方依赖**（JSON 无需 yaml 包） |
-| T0.9 | `GET /boujoy/config.json` 给 client 读 |
+| T0.9 | `GET /sdt/config.json` 给 client 读 |
 
 ---
 
@@ -265,9 +265,9 @@ dsh --profile web --no-open --port 18950 # 起隔离实例
 
 ## 8. 下一步（本机可直接执行的顺序）
 
-1. **P0 T0.2** 生成 bundle 骨架（§4.1 形状），包名 `boujoy-harness`，locale 出 `en` + `zh`，自带 icon。
+1. **P0 T0.2** 生成 bundle 骨架（§4.1 形状），包名 `dsh-sdt`，locale 出 `en` + `zh`，自带 icon。
 2. **P0 T0.3** host `apply`：素材路由 `kind:'prefix'` + `requestRejection` 首行；4 个安全用例。
-3. **P0 T0.5–T0.9** 配置系统（JSON，零依赖）+ `/boujoy/config.json`。
+3. **P0 T0.5–T0.9** 配置系统（JSON，零依赖）+ `/sdt/config.json`。
 4. **P0 T0.4** `plugin_manager install_bundle`（目标 = 包绝对目录）装进 `web` profile，读 `application` 字段。
 5. 装完再抓一次引导表，确认本插件 client 那一行的 `id/url/inject`——这是 §7 的未确认项。
 

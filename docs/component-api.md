@@ -47,7 +47,7 @@ interface ThemeSnapshot {
 **本项目用法**：
 
 ```ts
-ctx.theme.overrideTokens('boujoy-harness', {
+ctx.theme.overrideTokens('dsh-sdt', {
   '--dsw-alias-bg-base': { light: '#f7f5f0', dark: '#0b0d10' },
 })
 ```
@@ -76,7 +76,7 @@ ctx.theme.overrideTokens('boujoy-harness', {
 ```ts
 ctx.slots.inject('shell.overlay', () =>
   ctx.slots.register(
-    { name: 'shell.overlay', id: 'boujoy-shell', order: 40, label: 'Boujoy shell' },
+    { name: 'shell.overlay', id: 'sdt-shell', order: 40, label: 'SDT shell' },
     ShellComponent,
   ),
 )
@@ -223,13 +223,13 @@ interface WebRoute {
 **本项目用法**：
 
 ```ts
-export const name = 'boujoy-harness'
+export const name = 'dsh-sdt'
 export const inject = ['webServer']
 
 export function apply(ctx) {
   ctx.effect(() => ctx.webServer.register({
     kind: 'prefix',
-    path: '/boujoy',
+    path: '/sdt',
     handler(req, res) {
       const pathname = new URL(req.url ?? '/', 'http://localhost').pathname
       const file = ASSETS.get(pathname)          // Map 白名单，天然防穿越
@@ -245,7 +245,7 @@ export function apply(ctx) {
       })
       res.end(file.body)
     },
-  }), 'boujoy-harness: static assets')
+  }), 'dsh-sdt: static assets')
 }
 ```
 
@@ -364,9 +364,9 @@ export const inject = ['webServer', 'skills']
 export function apply(ctx) {
   // 注册一个 runtime skill（落在 calling context 的层）
   ctx.skills.register({
-    name: 'boujoy-theme-setup',            // kebab-case
-    description: '把用户素材适配成 Boujoy 主题外观…',
-    content: SKILL_MARKDOWN,               // skills/boujoy-theme-setup/SKILL.md 的内容
+    name: 'sdt-theme-setup',            // kebab-case
+    description: '把用户素材适配成 SDT 主题外观…',
+    content: SKILL_MARKDOWN,               // skills/sdt-theme-setup/SKILL.md 的内容
   })
 }
 ```
@@ -388,7 +388,7 @@ export function apply(ctx) {
 
 ```markdown
 ---
-name: boujoy-theme-setup
+name: sdt-theme-setup
 description: <一句话说明用途与触发时机，英文更稳>
 ---
 
@@ -406,7 +406,7 @@ description: <一句话说明用途与触发时机，英文更稳>
 #### 5.2.1 插件元数据（规划）
 
 ```ts
-export const name = 'boujoy-harness'
+export const name = 'dsh-sdt'
 export const inject = ['webServer', 'skills']
 export function apply(ctx: Context): void
 ```
@@ -417,10 +417,10 @@ export function apply(ctx: Context): void
 
 | 路由 | 内容类型 | 说明 |
 |---|---|---|
-| `GET /boujoy/theme.css` | `text/css; charset=utf-8` | 主样式表 |
-| `GET /boujoy/assets/<name>` | 按扩展名 | logo / 纹理 / 图片 |
-| `GET /boujoy/assets/fonts/<name>.woff2` | `font/woff2` | 字体 |
-| `GET /boujoy/config.json` | `application/json` | 运行时配置视图（`no-store`） |
+| `GET /sdt/theme.css` | `text/css; charset=utf-8` | 主样式表 |
+| `GET /sdt/asset/<name>` | 按扩展名 | logo / 纹理 / 图片 |
+| `GET /sdt/asset/fonts/<name>.woff2` | `font/woff2` | 字体 |
+| `GET /sdt/config.json` | `application/json` | 运行时配置视图（`no-store`） |
 
 - 实现方式：启动时解析素材路径 → 读入内存 `Map`，白名单查表
 - **必须在 handler 开头调 `ctx.connection.requestRejection(req)`**（见 `AGENTS.md` R10）
@@ -437,7 +437,7 @@ const FIRST_FRAME_SCRIPT: string   // 看门狗脚本（三条退出路径）
 看门狗导出的全局句柄（规划）：
 
 ```ts
-window.__boujoyFirstFrame = {
+window.__sdtFirstFrame = {
   end: () => void   // client 就绪后主动退役首帧
 }
 ```
@@ -452,8 +452,8 @@ export function apply(ctx: ClientContext): void
 ```
 
 职责：
-1. `ctx.theme.overrideTokens('boujoy-harness', tokens)` —— A 层
-2. 注入 `<link href="/boujoy/theme.css">`（**带去重**，`ctx.effect` 卸载时移除）
+1. `ctx.theme.overrideTokens('dsh-sdt', tokens)` —— A 层
+2. 注入 `<link href="/sdt/theme.css">`（**带去重**，`ctx.effect` 卸载时移除）
 3. `ctx.slots.inject('shell.overlay', ...)` 注册开屏与氛围层
 4. （可选）注册对话动效相关 slot 或 CSS
 

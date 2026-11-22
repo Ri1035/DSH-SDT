@@ -7,7 +7,7 @@
 
 ## 1. 一句话定义
 
-**Boujoy Harness 是一个给 DSH（DeepSeek Harness）用的、素材与配置驱动的界面自定义框架**，
+**DSH-SDT 是一个给 DSH（DeepSeek Harness）用的、素材与配置驱动的界面自定义框架**，
 通过 DSH 官方插件机制实现「开屏动画 + 风格界面 + 对话动画」，
 **不修改 DSH 任何核心源码**。
 
@@ -37,12 +37,12 @@ DSH 原生的界面是通用风格。用户希望把它变成属于自己的产�
 
 | 编号 | 验收标准 |
 |---|---|
-| G0.1 | 用户把 `logo.svg` 放进 `$DSH_HOME/boujoy/assets/` 即替换品牌标识，**不改任何配置** |
-| G0.2 | 用户改 `boujoy.config.yml` 的 `colors.brand` 即改变整体主色 |
+| G0.1 | 用户把 `logo.svg` 放进 `$DSH_HOME/sdt/assets/` 即替换品牌标识，**不改任何配置** |
+| G0.2 | 用户改 `sdt.config.json` 的 `colors.brand` 即改变整体主色 |
 | G0.3 | 用户可逐项覆盖任意 `--dsw-alias-*` token（明暗分别指定） |
 | G0.4 | 用户放 `.woff2` 并配置即替换字体；加载失败自动回退官方字体 |
 | G0.5 | 配置写错时**报错指出字段与行号**，且界面仍可用（降级到默认） |
-| G0.6 | 插件升级/卸载**不影响** `$DSH_HOME/boujoy/` 内容 |
+| G0.6 | 插件升级/卸载**不影响** `$DSH_HOME/sdt/` 内容 |
 | G0.7 | DSH 版本超出兼容范围时进入**安全模式**：只应用配色，不注入 CSS、不播动画 |
 | G0.8 | 提供 `overrides.css` 逃生舱，可注入任意 CSS |
 
@@ -109,7 +109,7 @@ DSH 原生的界面是通用风格。用户希望把它变成属于自己的产�
 一个 npm 包（bundle），结构遵循 DSH 官方规范：
 
 ```
-boujoy-harness/                     # 仓库根
+dsh-sdt/                     # 仓库根
 ├── README.md
 ├── AGENTS.md                       # AI 协作入口
 ├── docs/                           # 本套文档

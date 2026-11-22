@@ -10,7 +10,7 @@
 
 ## 1. 这是什么
 
-**Boujoy Harness** 是给 **DSH（DeepSeek Harness）** 用的一个**界面主题**。
+**DSH-SDT** 是给 **DSH（DeepSeek Harness）** 用的一个**界面主题**。
 
 装上之后，你的 DSH 会变成：
 
@@ -87,7 +87,7 @@ dsh plugin --profile web add github:<owner>/<repo>#<tag>
 ## 4. 首次启动你会看到什么
 
 1. **开机片头**：从应用启动瞬间开始播放（不会先闪出 DSH 默认的加载提示）
-2. **皮肤生效**：进入界面后，配色、字体、字标已是 Boujoy 风格
+2. **皮肤生效**：进入界面后，配色、字体、字标已是 DSH-SDT 风格
 3. **氛围层**：背景有纹理/网格等装饰
 
 **片头只播一次**：同一页面会话内刷新或切换会话**不会**重复播放。
@@ -127,8 +127,8 @@ dsh plugin --profile web add github:<owner>/<repo>#<tag>
 一个独立目录，与插件本身分开：
 
 ```
-$DSH_HOME/boujoy/
-├── boujoy.config.yml     # 配置：颜色、动效、时长、字体路径
+$DSH_HOME/sdt/
+├── sdt.config.json     # 配置：颜色、动效、时长、字体路径
 └── assets/               # 素材：logo、字体、背景、纹理
 ```
 
@@ -137,7 +137,7 @@ $DSH_HOME/boujoy/
 
 ### 6.2 换素材（最简单的自定义）
 
-把文件放进 `$DSH_HOME/boujoy/assets/`，**文件名对上就生效**：
+把文件放进 `$DSH_HOME/sdt/assets/`，**文件名对上就生效**：
 
 | 放这个文件 | 效果 |
 |---|---|
@@ -154,7 +154,7 @@ $DSH_HOME/boujoy/
 
 ### 6.3 改配色与动效（改一个配置文件）
 
-编辑 `$DSH_HOME/boujoy/boujoy.config.yml`：
+编辑 `$DSH_HOME/sdt/sdt.config.json`：
 
 ```yaml
 name: "我的工作台"          # 侧栏与开屏显示的产品名
@@ -177,7 +177,7 @@ motion:
 
 ### 6.4 完全自由（需要一点 CSS 知识）
 
-在 `$DSH_HOME/boujoy/overrides.css` 里写任意 CSS，它会被注入到页面且优先级最高：
+在 `$DSH_HOME/sdt/overrides.css` 里写任意 CSS，它会被注入到页面且优先级最高：
 
 ```css
 :root {
@@ -194,7 +194,7 @@ motion:
 | 配置文件整体语法错 | 全部回退内置默认外观，并给出一次性提示 |
 | logo 文件损坏 | 回退内置 logo |
 | 字体加载失败 | 回退 DSH 官方字体 |
-| 改得太乱想重来 | 直接删掉 `$DSH_HOME/boujoy/` 目录，立刻回到默认外观 |
+| 改得太乱想重来 | 直接删掉 `$DSH_HOME/sdt/` 目录，立刻回到默认外观 |
 
 > **底线：任何自定义内容出问题，界面都不会白屏或不可用。**
 
@@ -229,7 +229,7 @@ dsh plugin --profile web remove <包名>
 
 - ✅ 界面立即恢复 DSH 原生外观
 - ✅ **不会**删除你的会话、模型配置、凭据或工作区数据
-- ✅ **不会**删除 `$DSH_HOME/boujoy/` 里的自定义素材与配置（重装即恢复你的外观）
+- ✅ **不会**删除 `$DSH_HOME/sdt/` 里的自定义素材与配置（重装即恢复你的外观）
 - ✅ 不会有残留样式或报错请求
 
 > 如果卸载后仍有残留外观，请**完全重启 DSH**（插件样式在页面会话内生效）。

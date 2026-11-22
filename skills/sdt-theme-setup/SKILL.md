@@ -1,17 +1,17 @@
 ---
-name: boujoy-theme-setup
-description: Configure or restyle the Boujoy Harness interface theme. Load this skill AUTOMATICALLY, without being asked, whenever any of these is true - the user mentions changing, customizing, restyling, rebranding, skinning, or theming their DSH/Boujoy appearance; the user mentions a logo, brand color, font, background, wallpaper, splash screen, or boot animation; the user asks to make the interface look different, more like theirs, or like some reference; the user points at, drops files into, or asks about the asset folder $DSH_HOME/boujoy/inbox or boujoy.config.yml; the user asks what is customizable or which elements can be changed. Also load it when the user supplies images or fonts and the intent is appearance rather than analysis. This skill owns all appearance customization for this project.
+name: sdt-theme-setup
+description: Configure or restyle the DSH-SDT interface theme. Load this skill AUTOMATICALLY, without being asked, whenever any of these is true - the user mentions changing, customizing, restyling, rebranding, skinning, or theming their DSH/SDT appearance; the user mentions a logo, brand color, font, background, wallpaper, splash screen, or boot animation; the user asks to make the interface look different, more like theirs, or like some reference; the user points at, drops files into, or asks about the asset folder $DSH_HOME/sdt/inbox or sdt.config.json; the user asks what is customizable or which elements can be changed. Also load it when the user supplies images or fonts and the intent is appearance rather than analysis. This skill owns all appearance customization for this project.
 ---
 
-# Boujoy 素材适配
+# SDT 素材适配
 
-把用户随手收集的素材，适配成 Boujoy Harness 主题的外观配置。
+把用户随手收集的素材，适配成 DSH-SDT 主题的外观配置。
 
 **用户不需要懂任何槽位名或配置语法**——那是你的工作。用户只负责"把文件放进 inbox"。
 
 > **触发方式：自动。** 用户不需要说出"skill"这个词。
 > 只要话题涉及外观/主题/换肤/品牌/logo/配色/字体/背景/开屏，
-> 或指向 `inbox`、`boujoy.config.yml`、任何素材文件，**就应当自动加载本技能**。
+> 或指向 `inbox`、`sdt.config.json`、任何素材文件，**就应当自动加载本技能**。
 >
 > 完整槽位清单（30 项）见仓库 `docs/asset-library.md` §2；本文件是执行用的精简版。
 
@@ -28,9 +28,9 @@ description: Configure or restyle the Boujoy Harness interface theme. Load this 
 
 | 位置 | 说明 |
 |---|---|
-| `$DSH_HOME/boujoy/inbox/` | **用户的素材收件箱**（主入口） |
+| `$DSH_HOME/sdt/inbox/` | **用户的素材收件箱**（主入口） |
 | 用户直接给的路径 | 可能是任意目录；扫描其中所有文件 |
-| `$DSH_HOME/boujoy/assets/` | 已有产物（**可能含用户手改，默认不要动**） |
+| `$DSH_HOME/sdt/assets/` | 已有产物（**可能含用户手改，默认不要动**） |
 
 `$DSH_HOME` 在 Windows 通常是 `C:\Users\<用户名>\.dsh`。
 
@@ -88,7 +88,7 @@ description: Configure or restyle the Boujoy Harness interface theme. Load this 
 ### ⑤ 生成产物
 
 1. **复制**（不要移动）文件到 `assets/<槽位路径>`；必要时转扩展名
-2. 生成/更新 `$DSH_HOME/boujoy/boujoy.config.yml`
+2. 生成/更新 `$DSH_HOME/sdt/sdt.config.json`
 3. 从 logo 与素材配色提取 `colors.brand` / `colors.accent`
 
 **产物路径约定**：
@@ -179,7 +179,7 @@ assets:
 
 - **用户只是问"这插件怎么用"** → 回答即可，不要擅自改他的素材
 - **用户没提供任何素材，且 inbox 为空** → 告诉他插件默认外观已经可用，
-  想自定义就把素材丢进 `$DSH_HOME/boujoy/inbox/`
+  想自定义就把素材丢进 `$DSH_HOME/sdt/inbox/`
 - **素材涉及版权不明** → 提醒用户自行确认授权（尤其商用/分发场景）
 - **用户手改过配置** → 先读现有配置，在其基础上增补，不要整体重写
 

@@ -27,7 +27,7 @@
 
 > 🆕 **2026-11-22 更名**：对外名称改为 **`DSH-SDT`**，全称
 > `Deepseekharness-Spiritron Dress Tailoring`，中文名 **灵衣缝制**（FGO 概念）。
-> **仓库名不变**（仍为 `boujoy-harness`），更名先落在 README 与文档叙事上。
+> **仓库名不变**（仍为 `dsh-sdt`），更名先落在 README 与文档叙事上。
 > 版本管理同时启用：`vX.Y`、逢 10 进 1，单一真相源 `VERSION`（当前 `v1.0`）。
 > 生态调研见 [`research/ECOSYSTEM-2026-11-22.md`](./research/ECOSYSTEM-2026-11-22.md)。
 
@@ -35,10 +35,10 @@
 
 ## 1. 项目是什么
 
-**Boujoy Harness** —— 一个给 DSH（DeepSeek Harness）用的**主题插件**：
+**DSH-SDT** —— 一个给 DSH（DeepSeek Harness）用的**主题插件**：
 
 ```
-主产品：一套完整的 Boujoy 主题（装上就好看，零操作）
+主产品：一套完整的 DSH-SDT 主题（装上就好看，零操作）
    └─ 保留空间：自定义框架（给想改成自己风格的人）
 ```
 
@@ -47,14 +47,14 @@
 | 档 | 用户做什么 | 需要读文档吗 |
 |---|---|---|
 | ① 默认 | 装插件 | ❌ |
-| ② 换素材 | 素材丢进 `$DSH_HOME/boujoy/inbox/`，让 Agent 适配 | ❌ |
-| ③ 精调 | 手改 `boujoy.config.yml` / 写 `overrides.css` | ✅ |
+| ② 换素材 | 素材丢进 `$DSH_HOME/sdt/inbox/`，让 Agent 适配 | ❌ |
+| ③ 精调 | 手改 `sdt.config.json` / 写 `overrides.css` | ✅ |
 
 **核心设计三条**：
 
 1. **默认主题零操作即好看**（框架能力不能成为"半成品"的借口）
 2. **脏活给 Agent**：用户不该知道槽位名/命名规则/格式要求
-3. **引擎与内容分离**：代码只渲染，外观全在 `$DSH_HOME/boujoy/`，升级不覆盖用户内容
+3. **引擎与内容分离**：代码只渲染，外观全在 `$DSH_HOME/sdt/`，升级不覆盖用户内容
 
 ---
 
@@ -62,7 +62,7 @@
 
 | 项 | 值 |
 |---|---|
-| 仓库 | https://github.com/Ri1035/boujoy-harness （**public**） |
+| 仓库 | https://github.com/Ri1035/DSH-SDT （**public**） |
 | 当前分支 | `main` |
 | 本地工作目录 | `C:\Users\Administrator\Desktop\DSH` |
 | 提交数 | 6 |
@@ -282,8 +282,8 @@ settings API 整体换代、图标导出名（`*16` 全删无别名）、`ctx.wo
 | **B5** | 品牌文案：开屏的产品名、副标题、版本号 | P2 |
 | **B6** | 目标端：只做 `web` profile，还是同时上 `desktop` | P7 |
 | **B7** | 用途：自用 / 分发（决定是否按可发布标准做） | 全程 |
-| **B8** | 配置文件格式与文件名（YAML vs JSON；`boujoy.config.yml`？） | P0 |
-| **B9** | 用户自定义目录定名（建议 `$DSH_HOME/boujoy/`） | P0 |
+| **B8** | 配置文件格式与文件名（YAML vs JSON；`sdt.config.json`？） | P0 |
+| **B9** | 用户自定义目录定名（建议 `$DSH_HOME/sdt/`） | P0 |
 | **B10** | 槽位清单定稿（`docs/asset-library.md` §2 的 30 项是否够用） | P0 / P3.5 |
 | **B11** | 适配 Skill 触发方式 → **用户已决定：自动触发** ✅ | P3.5 |
 
@@ -302,8 +302,8 @@ settings API 整体换代、图标导出名（`*16` 全删无别名）、`ctx.wo
 
 ```powershell
 # 1. 克隆
-git clone https://github.com/Ri1035/boujoy-harness.git
-cd boujoy-harness
+git clone https://github.com/Ri1035/DSH-SDT.git
+cd DSH-SDT
 
 # 2. 读文档（按顺序）
 #    HANDOFF.md（本文件） → AGENTS.md → docs/TODO.md
@@ -334,7 +334,7 @@ Invoke-WebRequest "https://github.com/deepseek-ai/deepseek-harness/releases.atom
 6. 装进 `web` profile，起隔离实例验证
 
 **验收标准**：`dsh --profile web --dump-config` 出现插件层；
-浏览器能看到原生界面；`/boujoy/config.json` 返回 200。
+浏览器能看到原生界面；`/sdt/config.json` 返回 200。
 
 ### 8.4 开工前必须遵守
 
@@ -398,7 +398,7 @@ docs/
 └── （共 10 个 docs 文件）
 
 skills/
-└── boujoy-theme-setup/SKILL.md  ★ Agent 适配能力（随插件分发，自动触发）
+└── sdt-theme-setup/SKILL.md  ★ Agent 适配能力（随插件分发，自动触发）
 
 research/
 ├── PLAN.md                      实施计划书

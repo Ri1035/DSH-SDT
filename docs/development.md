@@ -206,7 +206,7 @@ $env:DSH_HOME = $testHome
 #   1. profiles/web/package.json 出现插件依赖
 #   2. dsh.profile.bundles 出现插件名
 #   3. 启动命令不含 --patch
-#   4. /boujoy/* 素材路由返回 200
+#   4. /sdt/* 素材路由返回 200
 #   5. 页面出现开屏与主题
 #   6. 刷新不重复注入
 #   7. 卸载后恢复原生

@@ -30,8 +30,8 @@
         │ 读取（逐项覆盖：用户优先，缺失回退内置）
         │
 ┌───────┴──────────────────────┐   ┌─────────────────────────┐
-│ $DSH_HOME/boujoy/            │   │ 插件包内 assets/         │
-│ ├── boujoy.config.yml        │   │ （内置默认，升级时覆盖）  │
+│ $DSH_HOME/sdt/            │   │ 插件包内 assets/         │
+│ ├── sdt.config.json        │   │ （内置默认，升级时覆盖）  │
 │ ├── assets/                  │   │                         │
 │ └── overrides.css            │   │                         │
 └──────────────────────────────┘   └─────────────────────────┘
@@ -88,7 +88,7 @@ t=517ms   DSH 开机卡片被移除
 
 ```js
 // index.js（host 半边）
-export const name = 'boujoy-harness'
+export const name = 'dsh-sdt'
 // 注意：不需要 inject 任何 service
 export function apply(ctx) {
   ctx.on('webserver/index-inject', (table) => {
@@ -122,7 +122,7 @@ watch = setInterval(function () {
   if (card.querySelector('[data-dsh-boot-spinner]') === null) end()  // ② 掉 spinner = shell 失败态
 }, 250)
 setTimeout(end, 12000)                                       // ③ 绝对超时上限
-window.__boujoyFirstFrame = { end: end }                     // client 就绪后可主动退役首帧
+window.__sdtFirstFrame = { end: end }                     // client 就绪后可主动退役首帧
 ```
 
 ⚠️ 依赖 `[data-dsh-boot]` / `[data-dsh-boot-spinner]` 两个**未文档化的内部标记**。
@@ -137,19 +137,19 @@ window.__boujoyFirstFrame = { end: end }                     // client 就绪后
 ```
 host 启动
   │
-  ├─ ① 读 $DSH_HOME/boujoy/boujoy.config.yml
+  ├─ ① 读 $DSH_HOME/sdt/sdt.config.json
   │     ├─ 不存在  → 全用内置默认（首次安装的正常路径）
   │     └─ 存在    → 解析 + 校验 + 与默认值深度合并
   │                  ⚠️ 校验失败时：坏字段回退默认并报错，不让整体失效
   │
   ├─ ② 解析素材（逐项覆盖，不是整目录替换）
   │     对每个槽位依次检查：
-  │       $DSH_HOME/boujoy/<配置指定路径>  →  用户目录同名文件  →  内置 assets/同名  →  隐藏该元素
+  │       $DSH_HOME/sdt/<配置指定路径>  →  用户目录同名文件  →  内置 assets/同名  →  隐藏该元素
   │
   ├─ ③ 生成运行时产物
-  │     GET /boujoy/theme.css    内置 CSS + 配置生成的变量 + 用户 overrides.css
-  │     GET /boujoy/config.json  配置的运行时视图（不含敏感路径）
-  │     GET /boujoy/assets/<名>  解析后的实际文件
+  │     GET /sdt/theme.css    内置 CSS + 配置生成的变量 + 用户 overrides.css
+  │     GET /sdt/config.json  配置的运行时视图（不含敏感路径）
+  │     GET /sdt/asset/<名>  解析后的实际文件
   │
   └─ ④ DSH 版本探测 → 决定是否进入安全模式
 ```
@@ -165,8 +165,8 @@ host 启动
 assets/ 目录
   │  readFileSync 启动时读入内存（白名单 Map）
   ▼
-ctx.webServer.register({ kind: 'prefix', path: '/boujoy' })
-  │  GET /boujoy/assets/xxx.woff2
+ctx.webServer.register({ kind: 'prefix', path: '/sdt' })
+  │  GET /sdt/asset/xxx.woff2
   ▼
 浏览器（<link> / <img> / @font-face）
 ```
@@ -179,8 +179,8 @@ ctx.webServer.register({ kind: 'prefix', path: '/boujoy' })
 
 ```
 client.js apply()
-  ├─ ctx.theme.overrideTokens('boujoy-harness', { light, dark })   ← A 层
-  └─ 注入 <link href="/boujoy/theme.css">                          ← C 层
+  ├─ ctx.theme.overrideTokens('dsh-sdt', { light, dark })   ← A 层
+  └─ 注入 <link href="/sdt/theme.css">                          ← C 层
         └─ 官方没提供注入 CSS 的 API，走 document.head.appendChild
            ⚠️ 必须自己做去重 + ctx.effect 卸载时移除
 ```
@@ -190,7 +190,7 @@ client.js apply()
 ```
 client.js apply()
   └─ ctx.slots.inject('shell.overlay', () =>
-       ctx.slots.register({ name: 'shell.overlay', id: 'boujoy-shell', order: … }, Component))
+       ctx.slots.register({ name: 'shell.overlay', id: 'sdt-shell', order: … }, Component))
 ```
 
 `shell.overlay` 契约【实测官方原文】：
@@ -235,7 +235,7 @@ Loader 挂载插件行
 ```
 
 **卸载验收标准**：卸载后 `dsh web` 完全恢复原生外观，
-无残留 `<link>`、无 404 素材请求、无残留 DOM 属性（如 `body[data-boujoy-*]`）。
+无残留 `<link>`、无 404 素材请求、无残留 DOM 属性（如 `body[data-sdt-*]`）。
 
 ---
 
@@ -275,17 +275,17 @@ $DSH_HOME/profiles/web/
 ### 7.1 插件包内
 
 ```
-boujoy-harness/
+dsh-sdt/
 ├── README.md
 ├── AGENTS.md
 ├── CHANGELOG.md
 ├── docs/                          # 文档（已建立）
 ├── research/                      # 调研资料（已建立）
 ├── skills/                        # 🆕 Agent 能力（随插件分发）
-│   └── boujoy-theme-setup/
+│   └── sdt-theme-setup/
 │       └── SKILL.md               #   素材适配 Skill（用户侧零配置的关键）
 ├── examples/                      # 🆕 示例素材包（供用户照抄改）
-│   ├── boujoy.config.yml
+│   ├── sdt.config.json
 │   └── inbox/                     #   放几张示例素材，演示"丢进去就行"
 └── plugin/                        # P0 建立
     ├── package.json
@@ -317,10 +317,10 @@ boujoy-harness/
 ### 7.2 用户目录（与插件包完全分离）
 
 ```
-$DSH_HOME/boujoy/
+$DSH_HOME/sdt/
 ├── inbox/                 # 🆕 ★ 用户唯一需要管的目录：随便丢素材，文件名随意
 ├── assets/                # Agent 适配后的产物（可读可改，不建议手写）
-├── boujoy.config.yml      # Agent 生成的配置（用户可手改，但非必须）
+├── sdt.config.json      # Agent 生成的配置（用户可手改，但非必须）
 ├── overrides.css          # 逃生舱：任意 CSS
 └── .history/              # 🆕 Agent 改动前的备份（可回滚）
 

@@ -1,6 +1,6 @@
 # DESIGN.md —— 项目视觉规范
 
-> 本文件定义 Boujoy Harness 的视觉体系。**改任何样式前先读这里**，改完同步回写。
+> 本文件定义 DSH-SDT 的视觉体系。**改任何样式前先读这里**，改完同步回写。
 >
 > 证据等级标注：**【实测】**= 本机/官方包验证过；**【引用】**= 来自参考项目说法；**【未确认】**= 待验证。
 
@@ -88,7 +88,7 @@
 
 ```ts
 // 必须传 { light, dark } 对 —— 传裸字符串会抛「教学错误」
-const dispose = ctx.theme.overrideTokens('boujoy-harness', {
+const dispose = ctx.theme.overrideTokens('dsh-sdt', {
   '--dsw-alias-bg-base':   { light: '#f7f5f0', dark: '#0b0d10' },
   '--dsw-alias-brand-primary': { light: '#…', dark: '#…' },
 })
@@ -117,7 +117,7 @@ const dispose = ctx.theme.overrideTokens('boujoy-harness', {
 
 本项目接入自有字体时：
 - 格式 **`.woff2`**（授权需确认，endfield 专门列了一节素材授权检查）
-- 通过 host 素材路由提供：`/boujoy/assets/xxx.woff2`
+- 通过 host 素材路由提供：`/sdt/asset/xxx.woff2`
 - 用 `@font-face` 声明后，再覆盖 `--dsw-font-family-*`
 
 ### 3.3 动效【实测：官方无 token —— 这是关键事实】

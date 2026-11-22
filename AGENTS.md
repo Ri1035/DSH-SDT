@@ -10,11 +10,11 @@
 
 | 项 | 值 |
 |---|---|
-| 项目名 | **Boujoy Harness** |
+| 项目名 | **DSH-SDT** |
 | 类型 | DSH（DeepSeek Harness）**主题插件**，默认主题为主产品，另保留可自定义框架 |
 | 目标环境 | DSH `0.2.0-rc.2`（当前桌面版），开发用独立 `web` profile |
 | 当前阶段 | **规划与调研完成，工程代码为 0** |
-| 交付形态 | 一个 npm 包（bundle）+ 一个 Agent Skill + 用户内容目录 `$DSH_HOME/boujoy/` |
+| 交付形态 | 一个 npm 包（bundle）+ 一个 Agent Skill + 用户内容目录 `$DSH_HOME/sdt/` |
 | 核心设计 | ① 默认主题零操作即好看 ② 脏活给 Agent（用户只丢素材） ③ 引擎与内容分离 |
 | 核心难点 | 开屏动画的 **271ms 空窗**；对话动画是**生态空白**；DSH **1.77 天一个版本**的适配压力 |
 
@@ -43,7 +43,7 @@
 **这是一个"默认主题 + 保留自定义框架"的产品，不是"让用户自己做主题的工具"。**
 
 ```
-主产品：一套完整的 Boujoy 主题（装上就好看，零操作）
+主产品：一套完整的 DSH-SDT 主题（装上就好看，零操作）
    │
    └─ 保留空间：自定义框架（为想改成自己风格的人，不要求任何人使用）
 ```
@@ -51,14 +51,14 @@
 | 分档 | 用户做什么 | 需要读文档吗 |
 |---|---|---|
 | ① 默认 | 装插件 | ❌ |
-| ② 换素材 | 素材丢进 `$DSH_HOME/boujoy/inbox/`，让 Agent 适配 | ❌ |
+| ② 换素材 | 素材丢进 `$DSH_HOME/sdt/inbox/`，让 Agent 适配 | ❌ |
 | ③ 精调 | 手改配置 / 写 `overrides.css` | ✅ |
 
 **关键设计：脏活给 Agent，不给用户。**
 用户不该知道槽位名、命名规则、格式要求——那是 Agent 的活。
-Agent 的能力以 **Skill 形式随插件分发**（`skills/boujoy-theme-setup/`）。
+Agent 的能力以 **Skill 形式随插件分发**（`skills/sdt-theme-setup/`）。
 
-**引擎与内容分离**：代码只负责渲染，外观全在 `$DSH_HOME/boujoy/`。
+**引擎与内容分离**：代码只负责渲染，外观全在 `$DSH_HOME/sdt/`。
 升级引擎不覆盖内容，换内容不需要动引擎。
 
 任何设计决策都要先问两个问题：
@@ -69,6 +69,10 @@ Agent 的能力以 **Skill 形式随插件分发**（`skills/boujoy-theme-setup/
 ---
 
 ## 2. 环境事实（已验证，不要重新猜）
+
+> ⚠️ **本节表是 2026-09-30 那台机器的记录。当前开发机已更换，
+> 以 [`HANDOFF.md`](./HANDOFF.md) §3.4 与 [`docs/compat-0.2.2-rc.1.md`](./docs/compat-0.2.2-rc.1.md) 为准**
+> （DSH `0.2.2-rc.1`、`$DSH_HOME=C:\DSH\.dsh`、只有 `desktop` profile、内置 Node 在 `C:\DSH\.dsh\dsh-runtimes\…`）。
 
 ### 2.1 路径
 
@@ -211,8 +215,8 @@ Agent 的能力以 **Skill 形式随插件分发**（`skills/boujoy-theme-setup/
 | B2 | 视觉定位（主色 + 强调色 + 风格定义） | P1–P4 |
 | B3 | **第二个参考项目名称**（用户只在视频里看过，未给名称） | P5 之前 |
 | B4 | 对话动画路线选择（轻量 / 重度） | P5 |
-| B8 | 配置文件格式与文件名（YAML vs JSON、`boujoy.config.yml`？） | P0 |
-| B9 | 用户自定义目录定名（建议 `$DSH_HOME/boujoy/`） | P0 |
+| B8 | 配置文件格式与文件名（YAML vs JSON、`sdt.config.json`？） | P0 |
+| B9 | 用户自定义目录定名（建议 `$DSH_HOME/sdt/`） | P0 |
 
 > 阻塞项与待办详见 [`docs/TODO.md`](./docs/TODO.md)。
 

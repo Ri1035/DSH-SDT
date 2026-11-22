@@ -309,7 +309,7 @@ dsh plugin --profile web allow-version <pkg>@<版本> --dsh-version <版本> --a
 - **BREAKING**：配置字段 `splashDuration` 改名为 `motion.splash.duration`
   - 迁移：旧字段仍可识别但会输出 warn，下个 MAJOR 移除
 
-[0.2.0]: https://github.com/Ri1035/boujoy-harness/compare/v0.1.0...v0.2.0
+[0.2.0]: https://github.com/Ri1035/DSH-SDT/compare/v0.1.0...v0.2.0
 ```
 
 ---
@@ -367,7 +367,7 @@ Invoke-WebRequest "https://github.com/deepseek-ai/deepseek-harness/releases.atom
 
 - [ ] 确认兼容范围声明字段的**确切名称**（避免与 DSH 既有字段冲突）
 - [ ] 实现运行期 DSH 版本探测（从哪个接口读？⚠️ 需验证 host 侧能否拿到版本）
-- [ ] 实现安全模式的状态持久化（`$DSH_HOME/boujoy/.state.json`）
+- [ ] 实现安全模式的状态持久化（`$DSH_HOME/sdt/.state.json`）
 - [ ] 建立 DSH 版本差异的自动探针脚本（§6.1 的前 4 项）
 - [ ] 首次真实适配后，补全 §4 兼容矩阵第一行
 
@@ -400,7 +400,7 @@ Invoke-WebRequest "https://github.com/deepseek-ai/deepseek-harness/releases.atom
 | `0.1.5-alpha.1 → 0.1.5-alpha.2` | **slot 大重排**：`conversation` → `main.conversation`；`rightbar` 变 root 作用域并拆出 `rightbar.session` | 🔴 **本项目只注册 `shell.overlay`**，天然免疫 |
 | 同上 | `ctx.workspaces` 职责拆分（导航方法移到 `ctx.uiWorkspace`） | 🟢 本项目不碰 |
 | `0.1.6-alpha.2 → 0.1.7-alpha.1` | **UI primitives 图标改名：所有 `*16` 导出消失，且无别名**。症状 `Minified React error #130` | 🟠 本项目**不使用官方图标组件**（自带 SVG），但若将来用需注意 |
-| 同上 | **settings 换代**：`ctx.settings.register` 不再存在；全局 `settings.yaml` 只做一次性导入 | 🔴 **本项目的用户配置不走 DSH settings**（走自己的 `$DSH_HOME/boujoy/boujoy.config.yml`）→ 天然免疫 |
+| 同上 | **settings 换代**：`ctx.settings.register` 不再存在；全局 `settings.yaml` 只做一次性导入 | 🔴 **本项目的用户配置不走 DSH settings**（走自己的 `$DSH_HOME/sdt/sdt.config.json`）→ 天然免疫 |
 | 同上 | `dsh.bundle.patch` 由 `string` 扩为 `string \| string[]` | 🟢 **单文件写法仍有效**，向后兼容 |
 | `0.1.7-rc.1` | **peer 兼容强制化**（安装拒绝 + 启动跳过） | 🟢 **利好**：我们声明 `peerDependencies` 就获得官方保护 |
 | `0.1.5` | **web carrier 引入浏览器会话鉴权**；自定义路由**不继承**鉴权与 Host/Origin 栅栏 | 🔴 **本项目素材路由必须自己调 `ctx.connection.requestRejection(req)`** |
