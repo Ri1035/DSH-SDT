@@ -114,8 +114,8 @@ def check_relative_links() -> None:
 
 def check_branding() -> None:
     readme = read("README.md")
-    ok = "DSH-SDT" in readme and "Spiritron Dress Tailoring" in readme and "灵衣" in readme
-    record(ok, "README 含新项目名 / 全称 / 灵衣叙事", "")
+    ok = "DSH-SDT" in readme and "Spiritron Dress Tailoring" in readme
+    record(ok, "README 含项目名与全称", "（灵衣只作命名出处，不作产品术语，故不强制）")
 
 
 def check_secrets() -> None:

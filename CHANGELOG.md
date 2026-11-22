@@ -13,6 +13,41 @@
 
 ---
 
+## v1.2 — 2026-11-23
+
+**默认主题成稿 + 模块化能力矩阵首版**。
+
+### Added
+
+- 主题派生：由 `colors.{brand,accent,bgLight,bgDark,inkLight,inkDark}` 派生 **18 个 token**
+  （14 白名单 + 4 非白名单候选），并注入 `--bj-*`（圆角/阴影/强调色）与 `--dsh-font-family-*`（衬线正文）
+- `examples/sdt.config.json` —— 内容层样例（可直接复制到 `$DSH_HOME/sdt/`）
+- `docs/MODULARITY.md` —— **能力矩阵**：可改项 / 接缝 / 稳定性 / 实测证据 / 不可改红线
+- `docs/ROADMAP.md` —— 阶段 S1–S8、版本映射、验收口径、**阶段标记与回滚规则**
+- `docs/JOURNAL.md` —— 工作日志（每版一条，含回滚点）
+- `research/RESOURCES-2026-11-23.md` —— 先调研：可复用参考与许可判据
+- `docs/preview/theme-light.png` / `theme-dark.png` —— 实机截图（深色为算法值预览，已在文档标注）
+
+### Changed
+
+- README 重写为官方术语简报（主题插件 / token / slot / bundle / 路由 / 配置），删去隐喻式叙事
+- `colors` 配置键改为 6 个基准色，旧 `surface/ink` 停用
+
+### Researched
+
+- 非白名单 token 探针：`--dsw-alias-button-primary-fill` **确实被主按钮消费**；
+  `--dsw-alias-bg-layer-3` 写入但默认视图无消费点 → "写进去 ≠ 生效"
+
+### Removed
+
+- `research/ASSETS-2026-11-23.md`（FGO 素材清单）—— 方向错误：把项目名的趣味当成了产品概念
+
+### Adapted
+
+- 仍以 DSH `0.2.2-rc.1` 为验证基线；本版未新增接缝
+
+---
+
 ## v1.1 — 2026-11-23
 
 **插件骨架落地**：`plugin/` 可安装进 `web` profile，配置路由与素材路由带完整安全闸，client 半部把 14 个
@@ -135,6 +170,7 @@
 
 | 版本 | 日期 | 内容 |
 |---|---|---|
+| **v1.2** | 2026-11-23 | 默认主题成稿 + 模块化矩阵 + 阶段标记 |
 | **v1.1** | 2026-11-23 | 插件骨架落地：bundle + host/client 半边 + 配置与素材路由 + 14 token 实测生效 |
 | **v1.0** | 2026-11-22 | 更名 DSH-SDT（灵衣缝制）；版本管理启用；本机契约实测；生态调研；文档基线可交接 |
 

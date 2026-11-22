@@ -1,19 +1,17 @@
 /**
  * dsh-sdt — browser client bundle.
  *
- * 由 dsh-client-modules 以 `/plugins/sdt/client.js` 加载（安装为 bundle 后自动进入名册）。
+ * 职责（保持窄）：
+ *   1) theme.overrideTokens —— 把配置里的颜色派生为明/暗两套 `--dsw-alias-*`；
+ *   2) 注入自有变量 —— `--bj-*`（圆角/阴影/强调色/字体栈），
+ *      只在变量层面生效，不改任何组件的几何与布局。
  *
- * 只做两件事：
- *   1) theme.overrideTokens —— 把配置里的颜色映射成明/暗两套 `--dsw-alias-*`；
- *   2) 注入一段最小 CSS —— 只写自有 `--bj-*` 变量（圆角/阴影/字体/强调色），
- *      不碰布局、不改官方组件几何，避免与宿主样式打架。
- *
- * 双挂载保护：某些启动时序会挂两次，用 window 上的标记挡住第二次。
+ * 双挂载保护：某些启动时序会挂两次，用 window 标记挡住第二次（参考 dsh-theme-endfield 的做法）。
  */
 window.__ModuleLoader__.load({
   id: 'dsh-sdt',
   factory: () => {
-    const VERSION = '1.1';
+    const VERSION = '1.2';
     const SOURCE = 'dsh-sdt';
 
     if (window.__dshSdtApplied) {
@@ -22,6 +20,8 @@ window.__ModuleLoader__.load({
     window.__dshSdtApplied = true;
 
     /* ---------- 颜色工具 ---------- */
+    const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
+
     function hexToRgb(hex) {
       const m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
       if (!m) return { r: 0, g: 0, b: 0 };
@@ -29,7 +29,6 @@ window.__ModuleLoader__.load({
       return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
     }
     function toHex({ r, g, b }) {
-      const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
       return `#${[clamp(r), clamp(g), clamp(b)].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
     }
     function mix(a, b, t) {
@@ -44,47 +43,66 @@ window.__ModuleLoader__.load({
       return `rgba(${r}, ${g}, ${b}, ${a})`;
     };
 
-    /* ---------- 配置 → 明暗两套 token ---------- */
+    /* ---------- 默认值（与 lib/config.js 的 DEFAULT_CONFIG.colors 对齐） ---------- */
+    const DEFAULTS = {
+      brand: '#c8a24a',
+      accent: '#a3262f',
+      bgLight: '#f7f3ea',
+      bgDark: '#0d1117',
+      inkLight: '#231f19',
+      inkDark: '#e9e6df',
+    };
+
+    /**
+     * 由 6 个基准色派生明/暗两套 token。
+     * 注意：只产出 `Theme.listTokens` 白名单里的 14 个名字 + 用户显式配置的额外 token。
+     */
     function buildTokens(colors) {
-      const brand = colors.brand || '#3b6ea5';
-      const accent = colors.accent || '#d8a94a';
-      const surface = colors.surface || '#ffffff';
-      const ink = colors.ink || '#1b1f24';
+      const { brand, accent, bgLight, bgDark, inkLight, inkDark } = colors;
 
       const light = {
-        '--dsw-alias-bg-base': surface,
-        '--dsw-alias-bg-layer-1': mix(surface, ink, 0.035),
-        '--dsw-alias-bg-layer-2': mix(surface, ink, 0.07),
-        '--dsw-alias-bg-overlay': surface,
-        '--dsw-alias-border-l1': mix(ink, surface, 0.82),
-        '--dsw-alias-border-l2': mix(ink, surface, 0.66),
+        '--dsw-alias-bg-base': bgLight,
+        '--dsw-alias-bg-layer-1': mix(bgLight, inkLight, 0.04),
+        '--dsw-alias-bg-layer-2': mix(bgLight, inkLight, 0.08),
+        '--dsw-alias-bg-overlay': mix(bgLight, '#ffffff', 0.6),
+        '--dsw-alias-border-l1': mix(inkLight, bgLight, 0.82),
+        '--dsw-alias-border-l2': mix(inkLight, bgLight, 0.64),
         '--dsw-alias-brand-primary': brand,
-        '--dsw-alias-label-primary': ink,
-        '--dsw-alias-label-secondary': mix(ink, surface, 0.45),
-        '--dsw-alias-state-error-primary': '#c0392b',
-        '--dsw-alias-state-idle-primary': '#8a919a',
-        '--dsw-alias-state-success-primary': '#2c7a4b',
-        '--dsw-alias-state-warn-primary': '#c78a1c',
-        '--dsw-specific-sidebar-fill': mix(surface, brand, 0.06),
+        '--dsw-alias-label-primary': inkLight,
+        '--dsw-alias-label-secondary': mix(inkLight, bgLight, 0.42),
+        '--dsw-alias-state-error-primary': accent,
+        '--dsw-alias-state-idle-primary': mix(inkLight, bgLight, 0.5),
+        '--dsw-alias-state-success-primary': '#3f6b4f',
+        '--dsw-alias-state-warn-primary': '#b47b22',
+        '--dsw-specific-sidebar-fill': mix(bgLight, brand, 0.08),
+        // 以下为非白名单但被界面实际消费的变量（探针结论见 docs/MODULARITY.md §2）
+        '--dsw-alias-button-primary-fill': brand,
+        '--dsw-alias-button-primary-hover': darken(brand, 0.08),
+        '--dsw-alias-border-l3': mix(inkLight, bgLight, 0.76),
+        '--dsw-alias-bg-layer-3': mix(bgLight, inkLight, 0.11),
       };
 
-      const darkBase = mix('#14161a', brand, 0.05);
       const dark = {
-        '--dsw-alias-bg-base': darkBase,
-        '--dsw-alias-bg-layer-1': lighten(darkBase, 0.05),
-        '--dsw-alias-bg-layer-2': lighten(darkBase, 0.09),
-        '--dsw-alias-bg-overlay': lighten(darkBase, 0.07),
-        '--dsw-alias-border-l1': lighten(darkBase, 0.16),
-        '--dsw-alias-border-l2': lighten(darkBase, 0.26),
-        '--dsw-alias-brand-primary': lighten(brand, 0.18),
-        '--dsw-alias-label-primary': '#e9ebee',
-        '--dsw-alias-label-secondary': '#a2a8b0',
-        '--dsw-alias-state-error-primary': '#e06c5f',
-        '--dsw-alias-state-idle-primary': '#7c838c',
-        '--dsw-alias-state-success-primary': '#4da377',
-        '--dsw-alias-state-warn-primary': '#dcaa4a',
-        '--dsw-specific-sidebar-fill': mix(darkBase, ink, 0.12),
+        '--dsw-alias-bg-base': bgDark,
+        '--dsw-alias-bg-layer-1': lighten(bgDark, 0.05),
+        '--dsw-alias-bg-layer-2': lighten(bgDark, 0.09),
+        '--dsw-alias-bg-overlay': lighten(bgDark, 0.08),
+        '--dsw-alias-border-l1': lighten(bgDark, 0.16),
+        '--dsw-alias-border-l2': lighten(bgDark, 0.26),
+        '--dsw-alias-brand-primary': lighten(brand, 0.12),
+        '--dsw-alias-label-primary': inkDark,
+        '--dsw-alias-label-secondary': mix(inkDark, bgDark, 0.42),
+        '--dsw-alias-state-error-primary': lighten(accent, 0.24),
+        '--dsw-alias-state-idle-primary': mix(inkDark, bgDark, 0.55),
+        '--dsw-alias-state-success-primary': '#5f9e79',
+        '--dsw-alias-state-warn-primary': '#d2a34a',
+        '--dsw-specific-sidebar-fill': darken(mix(bgDark, brand, 0.06), 0.18),
+        '--dsw-alias-button-primary-fill': lighten(brand, 0.12),
+        '--dsw-alias-button-primary-hover': lighten(brand, 0.24),
+        '--dsw-alias-border-l3': lighten(bgDark, 0.12),
+        '--dsw-alias-bg-layer-3': lighten(bgDark, 0.13),
       };
+
       return { light, dark, brand, accent };
     }
 
@@ -96,18 +114,24 @@ window.__ModuleLoader__.load({
       return out;
     }
 
-    /* ---------- 自有变量（官方没有对应 token 的部分） ---------- */
-    function buildCss(colors, accent) {
+    /** 自有变量：官方没有对应 token 的项（圆角/阴影/字体/强调色）。 */
+    function buildCss(colors) {
+      const ink = colors.inkDark;
       return `:root{
-  --bj-accent: ${accent};
-  --bj-accent-soft: ${alpha(accent, 0.16)};
-  --bj-radius-card: 14px;
-  --bj-radius-control: 10px;
-  --bj-shadow-soft: 0 1px 2px ${alpha(colors.ink || '#1b1f24', 0.06)}, 0 8px 24px ${alpha(colors.ink || '#1b1f24', 0.06)};
-  --bj-font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+  --bj-accent: ${colors.accent};
+  --bj-accent-soft: ${alpha(colors.accent, 0.18)};
+  --bj-brand: ${colors.brand};
+  --bj-brand-soft: ${alpha(colors.brand, 0.16)};
+  --bj-radius-card: 12px;
+  --bj-radius-control: 8px;
+  --bj-shadow-soft: 0 1px 2px ${alpha(ink, 0.08)}, 0 10px 28px ${alpha(ink, 0.10)};
+  --bj-font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
   --bj-duration-fast: 120ms;
   --bj-duration-base: 220ms;
   --bj-ease: cubic-bezier(.2,.7,.3,1);
+  --dsh-font-family-text: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
+  --dsh-font-family-code: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --dsh-font-family-terminal: "JetBrains Mono", ui-monospace, Consolas, monospace;
   --bj-ready: 1;
 }`;
     }
@@ -121,15 +145,13 @@ window.__ModuleLoader__.load({
       return () => el.remove();
     }
 
-    const DEFAULTS = { brand: '#3b6ea5', accent: '#d8a94a', surface: '#ffffff', ink: '#1b1f24' };
-
     return {
       inject: ['theme'],
       apply(ctx) {
         let disposeTokens = null;
         const base = buildTokens(DEFAULTS);
 
-        ctx.effect(() => injectStyle(buildCss(DEFAULTS, base.accent)));
+        ctx.effect(() => injectStyle(buildCss(DEFAULTS)));
         ctx.effect(() => () => {
           if (typeof disposeTokens === 'function') disposeTokens();
         });
@@ -144,13 +166,21 @@ window.__ModuleLoader__.load({
         fetch('/sdt/config.json', { credentials: 'same-origin' })
           .then((r) => (r.ok ? r.json() : null))
           .then((payload) => {
-            if (!payload || !payload.config || !payload.config.colors) return;
-            const colors = { ...DEFAULTS, ...payload.config.colors };
+            if (!payload || !payload.config) return;
+            const colors = { ...DEFAULTS, ...(payload.config.colors || {}) };
             const palette = buildTokens(colors);
-            const pairs = { ...toPairs(palette), ...(payload.config.tokens || {}) };
+            const extra = payload.config.tokens || {};
+            const pairs = { ...toPairs(palette), ...extra };
             if (typeof disposeTokens === 'function') disposeTokens();
             disposeTokens = ctx.theme.overrideTokens(SOURCE, pairs);
             document.documentElement.dataset.sdtSource = payload.exists ? 'file' : 'defaults';
+            window.__sdtDebug = {
+              version: VERSION,
+              tokens: Object.keys(pairs).length,
+              extra: Object.keys(extra).length,
+              source: payload.exists ? 'file' : 'defaults',
+              warnings: payload.warnings || [],
+            };
           })
           .catch(() => {});
 

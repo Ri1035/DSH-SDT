@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "colors": {
+    "brand": "#c8a24a",
+    "accent": "#a3262f",
+    "bgLight": "#f7f3ea",
+    "bgDark": "#0d1117",
+    "inkLight": "#231f19",
+    "inkDark": "#e9e6df"
+  },
+  "tokens": {},
+  "motion": {
+    "splash": {
+      "enabled": true,
+      "duration": 2200,
+      "skippable": true,
+      "oncePerSession": true
+    },
+    "ambience": {
+      "enabled": true,
+      "intensity": 0.4
+    }
+  },
+  "assets": {
+    "logo": "logo.svg",
+    "texture": null
+  }
+}

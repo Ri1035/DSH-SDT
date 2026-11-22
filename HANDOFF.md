@@ -23,13 +23,25 @@
    docs/DESIGN.md         → 视觉规范、token 分层、选择器分级
 ```
 
-**一句话项目状态**：规划与调研全部完成，**还没写一行工程代码**，等用户提供素材/配色后开工 P0。
+**一句话项目状态**：**v1.2** —— 默认主题成稿（18 个 token + 字体/圆角变量）、插件可装进 `web` profile、
+模块化能力矩阵已出首版。工程代码在 `plugin/`。
 
-> 🆕 **2026-11-22 更名**：对外名称改为 **`DSH-SDT`**，全称
-> `Deepseekharness-Spiritron Dress Tailoring`，中文名 **灵衣缝制**（FGO 概念）。
-> **仓库名不变**（仍为 `dsh-sdt`），更名先落在 README 与文档叙事上。
-> 版本管理同时启用：`vX.Y`、逢 10 进 1，单一真相源 `VERSION`（当前 `v1.0`）。
-> 生态调研见 [`research/ECOSYSTEM-2026-11-22.md`](./research/ECOSYSTEM-2026-11-22.md)。
+> 🆕 **当前阶段（2026-11-23）**：**S3 / v1.2**。回滚点 `stage-03-v1.2`；
+> 计划与回滚规则见 [`docs/ROADMAP.md`](./docs/ROADMAP.md)，
+> 交付日志见 [`docs/JOURNAL.md`](./docs/JOURNAL.md)，
+> 能力结论见 [`docs/MODULARITY.md`](./docs/MODULARITY.md)。
+>
+> 接手先跑：
+>
+> ```powershell
+> python scripts/release_check.py                  # 自验证（7 项）
+> dsh --profile web --no-open --port 18990         # 隔离实例，勿用 desktop
+> dsh plugin --profile web add link:<repo>/plugin  # 重装/更新插件
+> ```
+>
+> 🆕 **更名**：对外名称 **`DSH-SDT`**，全称 `Deepseekharness-Spiritron Dress Tailoring`
+> （中文名只是命名趣味，**不作产品术语**）。仓库已是 `Ri1035/DSH-SDT`（旧地址 301）。
+> 版本规则：`vX.Y`、逢 10 进 1，单一真相源 `VERSION`（当前 `v1.2`）。
 
 ---
 

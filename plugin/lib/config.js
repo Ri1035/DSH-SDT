@@ -18,10 +18,12 @@ export const CONFIG_FILE_NAME = 'sdt.config.json';
 export const DEFAULT_CONFIG = Object.freeze({
   version: 1,
   colors: {
-    brand: '#3b6ea5',
-    accent: '#d8a94a',
-    surface: '#ffffff',
-    ink: '#1b1f24',
+    brand: '#c8a24a',
+    accent: '#a3262f',
+    bgLight: '#f7f3ea',
+    bgDark: '#0d1117',
+    inkLight: '#231f19',
+    inkDark: '#e9e6df',
   },
   tokens: {},
   motion: {
