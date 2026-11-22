@@ -11,6 +11,11 @@ research/*
 !research/PLAN.md
 !research/README.md
 !research/ECOSYSTEM-*.md
+!research/ASSETS-*.md
+
+# 本地样张：第三方游戏素材不入库（版权属 TYPE-MOON / FGO PROJECT）
+demo/assets/*
+!demo/assets/.gitkeep
 
 # DSH 运行期临时产物
 profiles/
