@@ -44,25 +44,32 @@
 | `github.com` / `api.github.com` / `raw.githubusercontent.com` 解析成 `127.0.0.1` | `hosts` 被 **Steam++ 加速器**写入大段 `127.0.0.1` 条目（`# Steam++ End` 段落） |
 | `curl` / `.NET` / `git`（默认 schannel）TLS 失败：`SEC_E_NO_CREDENTIALS` | Windows schannel 在本沙箱内取不到凭据 |
 | 真实网络其实是通的 | TCP 到 `140.82.113.6:443`、`223.5.5.5:443` 均连通 |
+| **`github.com` 的 TCP 连接很不稳定** | 同一 IP 时而 264ms 连上、时而 6s 超时；连上后也可能 TLS 完成却不返回 HTTP 响应 |
 
-**可用绕行方案（已跑通，脚本在 `tools/`）**：
+**可行的通道（已跑通）**：
+
+| 用途 | 通道 | 状态 |
+|---|---|---|
+| 读 API / 查仓库 | `tools/ghnet.py`（DoH 取真 IP + 正确 SNI 的 HTTPS） | ✅ 稳定 |
+| 下载仓库快照 | `tools/ghnet.py` → `codeload.github.com/.../zip/refs/heads/main` | ✅ 已用 |
+| **推送提交** | **`tools/gh_push.py`（GitHub Git Data API）** | ✅ **已验证：远端 SHA 与本地一致** |
+| 直连 git 传输 | `tools/ghproxy2.py`（CONNECT 代理）+ `-c http.sslBackend=openssl` | ⚠️ 不稳定，仅作备份 |
+
+**为什么推送走 API**：`github.com` 的 git 智能 HTTP 端点在这台机器上频繁卡住
+（CONNECT 成功、TLS 成功、请求无响应），而 `api.github.com` 每次都正常。
+`gh_push.py` 用 Git Data API 逐个上传 blob → 建 tree → 建 commit → 更新 ref，
+并**逐字段对齐作者/提交者/时间/消息**，因此服务端生成的 commit SHA 与本地完全相同（已实测相等），
+本地历史不需要改写。
 
 ```powershell
-# 1) DoH 取真实 IP（AliDNS，绕过 hosts）
-& "<内置python>" tools\ghnet.py api.github.com github.com
-
-# 2) 本地 CONNECT 代理（DoH 解析 + 隧道，TLS 端到端不破坏）
-& "<内置python>" tools\ghproxy.py        # 监听 127.0.0.1:18080
-
-# 3) git 走代理，并强制 OpenSSL 后端（schannel 会失败）
-git -c http.sslBackend=openssl -c http.proxy=http://127.0.0.1:18080 clone <repo>
+# 当前环境下的同步流程
+git add -A; git commit -m "..."
+$env:GH_PUSH_TOKEN = '<token>'      # 只放在单次进程环境变量里
+python tools\gh_push.py             # 推上去并核对 SHA
+git update-ref refs/remotes/origin/main $(git rev-parse HEAD)   # 手动对齐跟踪引用
 ```
 
-- `tools/ghnet.py` = 真 IP + SNI 的 HTTPS 客户端 + GitHub API 封装（**不含任何凭据**）
-- `tools/ghproxy.py` = CONNECT 代理，给 git / pnpm 用
-- `tools/` 已被 `.git/info/exclude` 排除，不会进仓库
-
-> ⚠️ 这台机器上 `pnpm install` 拉 GitHub 依赖同样会被 hosts 打死，需 `HTTP(S)_PROXY=http://127.0.0.1:18080`。
+> ⚠️ `tools/` 全部被 `.git/info/exclude` 排除，脚本与 token 都不入库。
 
 ---
 
