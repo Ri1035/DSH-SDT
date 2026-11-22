@@ -25,6 +25,12 @@
 
 **一句话项目状态**：规划与调研全部完成，**还没写一行工程代码**，等用户提供素材/配色后开工 P0。
 
+> 🆕 **2026-11-22 更名**：对外名称改为 **`DSH-SDT`**，全称
+> `Deepseekharness-Spiritron Dress Tailoring`，中文名 **灵衣缝制**（FGO 概念）。
+> **仓库名不变**（仍为 `boujoy-harness`），更名先落在 README 与文档叙事上。
+> 版本管理同时启用：`vX.Y`、逢 10 进 1，单一真相源 `VERSION`（当前 `v1.0`）。
+> 生态调研见 [`research/ECOSYSTEM-2026-11-22.md`](./research/ECOSYSTEM-2026-11-22.md)。
+
 ---
 
 ## 1. 项目是什么
@@ -97,10 +103,30 @@
 
 ### 3.3 换设备后必须重新确认的
 
-- [ ] DSH 版本是否仍为 `0.2.0-rc.2`（否则查 `releases.atom` 看有无破坏性变更）
-- [ ] `.dsh` 用户目录位置（可能不同）
-- [ ] 是否已有 `web` profile（没有则创建）
-- [ ] 内置 Node/pnpm 路径是否相同
+- [x] DSH 版本 → **`0.2.2-rc.1`**（不是 `0.2.0-rc.2`，见 §3.4）
+- [x] `.dsh` 用户目录位置 → `C:\DSH\.dsh`
+- [x] 是否已有 `web` profile → **没有**，需创建
+- [x] 内置 Node/pnpm 路径 → 见 §3.4
+
+### 3.4 🆕 本机核对结果（2026-11-22，换机后）
+
+> 完整实测记录见 [`docs/compat-0.2.2-rc.1.md`](./docs/compat-0.2.2-rc.1.md)。**事实层与本文 §3.1–3.2 冲突时，以那份为准。**
+
+| 项 | 本机实测 |
+|---|---|
+| 本地项目根 | `C:\Users\KOKA\Desktop\FGO`（带完整 git 历史） |
+| DSH 安装目录 | `C:\DSH` |
+| `$DSH_HOME` | `C:\DSH\.dsh` |
+| 已存在 profile | **只有 `desktop`**（`web` 未创建） |
+| 内置 Node / pnpm | `C:\DSH\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe`（v24.21.0）/ 同目录 `pnpm\bin\pnpm.mjs`（11.28.5） |
+| dsh CLI | `C:\DSH\resources\runtime\cli\bin\dsh.cmd` → `0.2.2-rc.1` |
+| DSH 版本 | **`0.2.2-rc.1`**（旧机 `0.2.0-rc.2`） |
+| 网络 | ⚠️ hosts 被 Steam++ 写死 `127.0.0.1`，且 schannel 不可用；`tools/ghnet.py` + `tools/ghproxy.py` 已跑通（DoH + CONNECT 代理，git 加 `-c http.sslBackend=openssl`） |
+
+**已复核的两处契约变化**（会改到旧文档的结论）：
+
+1. `ctx.skills.register()` → 本版本是 **`ctx.skills.registerProvider(fn)`**（TODO T3.5.3 需改）
+2. `dsh.client.inject` 语义是**客户端包激活排序**，不是服务依赖（AGENTS R9 需软化措辞）
 
 ---
 

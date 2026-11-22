@@ -10,6 +10,7 @@ research/*
 !research/REPORT.md
 !research/PLAN.md
 !research/README.md
+!research/ECOSYSTEM-*.md
 
 # DSH 运行期临时产物
 profiles/
