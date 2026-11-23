@@ -12,11 +12,11 @@
 |---|---|
 | 项目名 | **DSH-SDT** |
 | 类型 | DSH（DeepSeek Harness）**主题插件**，默认主题为主产品，另保留可自定义框架 |
-| 目标环境 | DSH `0.2.0-rc.2`（当前桌面版），开发用独立 `web` profile |
-| 当前阶段 | **规划与调研完成，工程代码为 0** |
+| 目标环境 | DSH `0.2.2-rc.1`（本机桌面端）；开发验证用独立 `web` profile |
+| 当前阶段 | **v1.5：可安装可运行，仅 `web` 验证；桌面端 0 验证** |
 | 交付形态 | 一个 npm 包（bundle）+ 一个 Agent Skill + 用户内容目录 `$DSH_HOME/sdt/` |
 | 核心设计 | ① 默认主题零操作即好看 ② 脏活给 Agent（用户只丢素材） ③ 引擎与内容分离 |
-| 核心难点 | 开屏动画的 **271ms 空窗**；对话动画是**生态空白**；DSH **1.77 天一个版本**的适配压力 |
+| 核心难点 | 开屏动画的 **271ms 空窗**；对话动画是**生态空白**；DSH **1.77 天一个版本**的适配压力；**桌面端从未装过** |
 
 ---
 
@@ -25,16 +25,17 @@
 接手时按此顺序读，不要一次读完所有文档：
 
 1. **本文件**（AGENTS.md）—— 协作契约与红线
-2. [`docs/TODO.md`](./docs/TODO.md) —— **当前进度与下一步**（跨会话续作的第一站）
-3. [`docs/project-overview.md`](./docs/project-overview.md) —— 目标与范围
-4. [`docs/architecture.md`](./docs/architecture.md) —— 技术框架，动手前必读
-5. [`docs/asset-library.md`](./docs/asset-library.md) —— **槽位全量清单（34 项内容级可自定义）+ Agent 适配规范**
-6. 按任务需要：`docs/DESIGN.md`（改视觉时）、`docs/features-customization.md`（改能力时）、
+2. [`HANDOFF.md`](./HANDOFF.md) —— **现状、环境、命令、已知坑**（换设备/换会话先读这份）
+3. [`docs/TODO.md`](./docs/TODO.md) —— **任务状态、backlog、ADR**（跨会话续作的第二站）
+4. [`docs/project-overview.md`](./docs/project-overview.md) —— 目标与范围
+5. [`docs/architecture.md`](./docs/architecture.md) —— 技术框架，动手前必读
+6. [`docs/asset-library.md`](./docs/asset-library.md) —— **槽位全量清单（34 项内容级可自定义）+ Agent 适配规范**
+7. 按任务需要：`docs/DESIGN.md`（改视觉时）、`docs/features-customization.md`（改能力时）、
    `docs/VERSIONING.md`（涉及版本/兼容时）、`docs/development.md`（跑命令时）、
    `docs/component-api.md`（调 API 时）
 
-> 🆕 **换设备 / 换会话接手时，先读 [`HANDOFF.md`](./HANDOFF.md)** —— 它是自包含的转手文档，
-> 包含环境事实、六个关键结论、阻塞项、下一步该做什么、以及本项目踩过的坑。
+> ⚠️ 旧的阅读顺序把 `TODO.md` 放在第二位，导致接手者看到的是「代码 0 行」的过期状态。
+> 现状唯一真相源是 `HANDOFF.md`；`TODO.md` 只对**任务与决策**负责。
 
 > 只有 `docs/user-guide.md` 是给最终用户看的，AI 不需要主动读，除非要改用户文档。
 
@@ -68,34 +69,28 @@ Agent 的能力以 **Skill 形式随插件分发**（`skills/sdt-theme-setup/`�
 
 ---
 
-## 2. 环境事实（已验证，不要重新猜）
+## 2. 环境事实（本机，均已实测）
 
-> ⚠️ **本节表是 2026-09-30 那台机器的记录。当前开发机已更换，
-> 以 [`HANDOFF.md`](./HANDOFF.md) §3.4 与 [`docs/compat-0.2.2-rc.1.md`](./docs/compat-0.2.2-rc.1.md) 为准**
-> （DSH `0.2.2-rc.1`、`$DSH_HOME=C:\DSH\.dsh`、只有 `desktop` profile、内置 Node 在 `C:\DSH\.dsh\dsh-runtimes\…`）。
+> 本节与 [`HANDOFF.md`](./HANDOFF.md) §3.1 同步维护；两者不一致时以 HANDOFF 为准并回写本节。
 
 ### 2.1 路径
 
 | 用途 | 路径 |
 |---|---|
-| 工作目录 | `C:\Users\Administrator\Desktop\DSH` |
-| DSH 安装目录 | `D:\soft\DSH` |
-| DSH 包内容 | `D:\soft\DSH\resources\app.asar`（**打包归档，115.7 MB，12967 个文件**） |
-| 原生模块解包 | `D:\soft\DSH\resources\app.asar.unpacked\dsh\node_modules`（**只有原生模块，没有前端源码**） |
-| DSH 用户数据 | `C:\Users\Administrator\.dsh` |
-| **桌面 profile（用户正在用）** | `C:\Users\Administrator\.dsh\profiles\desktop` |
-| **web profile（开发沙盒）** | `C:\Users\Administrator\.dsh\profiles\web` |
-| 内置 Node | `D:\soft\DSH\resources\runtime\primary-runtime\dependencies\node\bin\node.exe` |
-| 内置 pnpm | `D:\soft\DSH\resources\runtime\primary-runtime\dependencies\pnpm` |
-| dsh CLI | `D:\soft\DSH\resources\runtime\cli\bin\dsh.cmd` |
-
-> ⚠️ 任务描述里曾出现过 `D:\soft\DSH\resources\app.asar\dsh` 这个路径 —— **它不存在**。
-> 真实路径带 `.unpacked`，且其中没有前端源码。
+| 工作目录（仓库） | `C:\Users\KOKA\Desktop\FGO` |
+| DSH 安装目录 | `C:\DSH`（`DeepSeek Harness.exe`） |
+| DSH 包内容 | `C:\DSH\resources\app.asar`（203 MB，**只读归档**） |
+| `$DSH_HOME` | `C:\DSH\.dsh` |
+| **桌面 profile（用户生产环境）** | `C:\DSH\.dsh\profiles\desktop`（Electron 独占） |
+| **web profile（开发沙盒）** | `C:\DSH\.dsh\profiles\web`（`dsh-sdt` 以 `link:` 挂载到本仓库 `plugin/`） |
+| 内置 Node / pnpm | `C:\DSH\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe`（v24.21.0）/ 同级 `pnpm\bin\pnpm.mjs` |
+| dsh CLI | `C:\DSH\resources\runtime\cli\bin\dsh.cmd` |
+| 用户配置 / 素材 | `C:\DSH\.dsh\sdt\sdt.config.json` / `C:\DSH\.dsh\sdt\assets\` |
 
 ### 2.2 版本
 
-- DSH：`0.2.0-rc.2`（npm `latest` = `next`）
-- Node：`24.21.0` / pnpm `11.7.0`
+- DSH 桌面端与 CLI：`0.2.2-rc.1`
+- Node：`24.21.0` / pnpm：`11.7.0`
 - `@deepseek-ai/dsh-client-ui-*` 等单包在 npm 上的 `latest` **严重滞后**（停在 `0.0.1-rc.x`）
   → **版本对齐一律以 dsh 本体为准，不要按单包 latest 判断**
 
@@ -124,7 +119,7 @@ Agent 的能力以 **Skill 形式随插件分发**（`skills/sdt-theme-setup/`�
 | **R6** | **不要用 CSS Modules 哈希类做选择器**（如 `.Mbwy4a_card`） | 随构建变化，必然碎 |
 | **R7** | **不要把中文 `aria-label` 写进选择器** | 参考项目踩过：`button[aria-label="新建会话"]`，语言一换即废 |
 | **R8** | **不要用 `tapIndex` 注入** | 桌面端走 `dsh-app://` 直读 index.html，**从不调用 `renderIndex()`**，是死代码 |
-| **R9** | **不要给 `dsh.client.inject` 填任何服务** | 生态里"面板静默消失/连锁 pending"的根因几乎都是 client 服务依赖。本项目功能不需要任何 client 服务 → **保持空数组** |
+| **R9** | **不要新增 client 服务依赖** | 两个字段必须分清：`package.json` 的 `dsh.client.inject` 填的是**客户端模块**（本项目为 `@deepseek-ai/dsh-client-ui-theme`）；client 模块返回对象的 `inject: ['theme','slots']` 才是**cordis 服务依赖**。生态里「面板静默消失 / 连锁 pending」的根因是后者滥用。本项目只依赖这两个，且全部包在 try/catch 内可降级；新增服务依赖必须同样处理并写进 `MODULARITY.md` |
 | **R10** | **素材路由必须自己处理鉴权** | `ctx.webServer.register()` 注册的路由**不继承**宿主的鉴权与 Host/Origin 栅栏；handler 必须先调 `ctx.connection.requestRejection(req)` |
 | **R11** | **兼容范围只能写在 `peerDependencies`** | 写进 `dsh.*` 自定义字段、`dependencies`、`engines` 都会被**静默忽略**。只有 `peerDependencies["@deepseek-ai/dsh"]` 会被宿主检查 |
 | **R12** | **不要重定义官方 `--dsw-*` token** | 官方 ui-theme spec **拒绝 token 重定义**。未暴露的项（圆角/阴影/字体）走自有 `--bj-*` 变量 + 自有元素 |
@@ -170,8 +165,10 @@ Agent 的能力以 **Skill 形式随插件分发**（`skills/sdt-theme-setup/`�
 
 ## 6. 协作约定
 
+- **真相源分三层，职责不重叠**：`HANDOFF.md`（现状 / 环境 / 坑）→ `docs/TODO.md`（任务 / backlog / ADR）→
+  `VERSION` + `CHANGELOG.md`（版本与变更）。**三者不得互相矛盾**；改版本必须同时改这三处。
 - **写代码前必须先在 [`docs/TODO.md`](./docs/TODO.md) 里找到对应任务**；完成后更新状态与产出。
-- **每完成一个阶段，更新 `TODO.md` 的「当前进度」区块** —— 这是跨会话续作的唯一真相源。
+- **每完成一个阶段，同时更新 `HANDOFF.md` §1/§5 与 `TODO.md` 的「当前进度」** —— 只改一处必然漂移（v1.5 的教训）。
 - **改视觉规范 → 同步更新 `docs/DESIGN.md`**；改架构 → 同步 `docs/architecture.md`。
 - **新增/修改自有组件 API → 同步 `docs/component-api.md`**。
 - **不写「看起来合理」的猜测**。DSH 处于 developer preview，官方 README 明确
@@ -209,14 +206,16 @@ Agent 的能力以 **Skill 形式随插件分发**（`skills/sdt-theme-setup/`�
 
 ## 9. 当前阻塞（需要人类输入）
 
-| # | 阻塞项 | 影响的阶段 |
-|---|---|---|
-| B1 | 品牌素材（logo / 字体 / 纹理） | P1、P3 |
-| B2 | 视觉定位（主色 + 强调色 + 风格定义） | P1–P4 |
-| B3 | **第二个参考项目名称**（用户只在视频里看过，未给名称） | P5 之前 |
-| B4 | 对话动画路线选择（轻量 / 重度） | P5 |
-| B8 | 配置文件格式与文件名（YAML vs JSON、`sdt.config.json`？） | P0 |
-| B9 | 用户自定义目录定名（建议 `$DSH_HOME/sdt/`） | P0 |
+| # | 阻塞项 | 影响的阶段 | 状态 |
+|---|---|---|---|
+| B1 | 品牌素材（logo / 字体 / 纹理） | P1、P3 | 🟡 部分：字标已自绘（M3）；美术素材按 D26 放用户目录，不入库 |
+| B2 | 视觉定位（主色 + 强调色 + 风格） | P1–P4 | ✅ 已定：深海军蓝 + 青蓝（v1.4） |
+| B3 | **第二个参考项目名称**（用户只在视频里看过） | P5 之前 | ⏳ 未提供 |
+| B4 | 对话动画路线（轻量 / 重度） | P5 | ⏳ 未决策 |
+| B8 | 配置文件格式与文件名 | P0 | ✅ 已定：JSON `$DSH_HOME/sdt/sdt.config.json` |
+| B9 | 用户自定义目录定名 | P0 | ✅ 已定：`$DSH_HOME/sdt/` |
+| B12 | **桌面端安装授权**（装进 `desktop` 会重启应用） | v1.6 | ⏳ 待授权 |
+| B13 | 许可 | 全程 | ✅ 已定：代码 MIT；第三方美术不入库（D26） |
 
 > 阻塞项与待办详见 [`docs/TODO.md`](./docs/TODO.md)。
 

@@ -1,35 +1,54 @@
 # TODO.md —— 任务、优先级与开发进度
 
-> **这是跨会话续作的唯一真相源。** 切换 AI 或重启会话后，读完 `AGENTS.md` 就来这里看进度，
-> 不需要重读全部项目文档。
+> **本文件只负责三件事：任务状态、backlog、ADR（决策记录）。**
+> 现状 / 环境 / 已知坑在 [`HANDOFF.md`](../HANDOFF.md)；版本与变更在 [`VERSION`](../VERSION) + [`CHANGELOG.md`](../CHANGELOG.md)。
 >
-> 最后更新：**规划阶段结束（文档已建立，代码 0 行）**
+> 最后更新：**2026-11-23 · v1.5 文档基线校正**（上一版停留在「代码 0 行」，已作废）
 
 ---
 
-## 🎯 当前进度
+## 🎯 当前进度（v1.5）
 
 ```
-[■■■■■■■■■■] 调研     ✅ 完成
-[■■■■■■■■■■] 计划     ✅ 完成（含框架目标与版本策略）
-[■■■■■■■■■■] P0 骨架+配置   ✅ v1.1 完成
-[          ] P1 token       ⬜ 未开始
-[          ] P2 开屏        ⬜ 未开始
-[          ] P3 氛围        ⬜ 未开始
-[          ] P3.5 框架化    ⬜ 未开始（新增：安全模式/示例素材/用户文档）
-[          ] P4 C层         ⬜ 未开始
-[          ] P5 对话        ⬜ 未开始（被 B3/B4 阻塞）
-[          ] P6 回归        ⬜ 未开始
-[          ] P7 桌面        ⬜ 未开始（可选）
+[■■■■■■■■■■] 调研 / 计划        ✅ v1.0
+[■■■■■■■■■■] P0 骨架+配置+路由   ✅ v1.1
+[■■■■■■■■■■] P1 A层 token        ✅ v1.3（133/133）
+[■■■■■■■■■■] P4 部分 L2 语法     ✅ v1.3（G2/G6）
+[■■■■■■■■■■] 配色定版            ✅ v1.4（蓝青）
+[■■■■■■■■■■] 稳定化 + 转手        ✅ v1.5
+[■■■■■■■■■■] L3 间距 + M4 只读卡  ✅ v1.6（M5 负结论，降级）
+[          ] 桌面端验证          ⬜ 待授权（B12，唯一 0 验证项）
+[          ] P2 开屏             ⬜ 未开始
+[          ] P3 氛围             🟡 仅底纹/发丝线
+[          ] P3.5 框架化         ⬜ 未开始
+[          ] P4 余下（圆角/阴影/区块几何）⬜ 未开始
+[          ] P5 对话动画         ⬜ 被 B3/B4 阻塞
+[          ] P6 回归             ⬜ 未开始
 ```
 
-**版本基线**：`v1.0`（见根目录 `VERSION` / `CHANGELOG.md`；规则见 README「版本管理」，逢 10 进 1，禁止三段版本号）。
+**版本基线**：`v1.6`（`VERSION` / `CHANGELOG.md`；规则 `vX.Y` 逢 10 进 1，禁止三段版本号，见 ADR D22）。
 
-**项目定位已升级**：从"一套主题"变为**"素材与配置驱动的界面自定义框架"**。
-新增设计文档：`asset-library.md`（素材库规范）、`features-customization.md`（能力矩阵）、
-`VERSIONING.md`（版本与兼容策略）。P0/P1/P2/P3 的任务范围相应扩大。
+**下一件该做的事**：v1.7 = M1/M2 覆盖层与输入 dock + **桌面端首验**（B12 授权）；桌面端是唯一 0 验证项。
 
-**下一件该做的事**：P0（隔离环境 + 插件骨架 + 素材路由 + **配置加载与校验**）。
+---
+
+## ✅ 已完成（有实测证据）
+
+| 能力 | 版本 | 证据 |
+|---|---|---|
+| bundle 安装与挂载 | v1.1 | `--dump-config` 出现 `# == dsh-sdt`；`web` profile bundles 含 `dsh-sdt` |
+| `/sdt/health` `/config.json` `/asset/*` | v1.1 | 200 / 200 / 200；SVG 带 CSP |
+| 四道安全闸 | v1.1–v1.5 | 401 / 404（穿越）/ 404（`.exe`）/ 403（跨源）/ 405（POST） |
+| L1 133/133 token | v1.3 | `__sdtDebug = { mapped: 133, total: 133, skipped: [] }` |
+| 品牌字标（M3） | v1.3 | `sidebar.brand.mark` 注册自绘 SVG |
+| 深色切换 | v1.3 | 必须走 `theme.setTheme(mode)`；inline 会被宿主 publish 覆盖 |
+| 配置校验 | v1.1–v1.5 | 非法 token 值被丢弃并给 warning；JSON 错带行列号 |
+| 蓝青定版 | v1.4 | 截图 `docs/preview/theme-{light,dark}.png` |
+| 6 个 bug 修复 | v1.5 | 打包漏 assets / HEAD 语义 / SVG CSP / 补扫覆盖配色 / `ctx.get` 未防护 / token 注入防护 |
+| 自验证 | 每版 | `scripts/release_check.py` **8/8**（v1.5 起含 client 版本一致性） |
+
+**尚未做**：桌面端安装与首帧实测、L3 密度、M5 图标、M4 设置卡、M1/M2 覆盖层、
+M9 开屏、M6 壁纸/玻璃、M7 皮肤中心、M8 安全模式、P5 对话动画、P6 回归。
 
 ---
 
@@ -37,122 +56,120 @@
 
 | # | 阻塞项 | 影响 | 状态 |
 |---|---|---|---|
-| **B1** | 品牌素材：logo（SVG/透明PNG）、字体（woff2）、纹理/背景图 | P1、P3 | ⏳ 待提供 |
-| **B2** | 视觉定位：主色 + 强调色具体色值 + 一句话风格定义 | P1–P4 | ⏳ 待提供 |
-| **B3** | **第二个参考项目名称**（用户只在视频里看过，未给名称） | P5 前 | ⏳ 待确认 |
-| **B4** | 对话动画路线：轻量（官方 `data-*` + CSS）/ 重度（替换 `conversation.chat.node`） | P5 | ⏳ 待决策 |
-| **B5** | 品牌文案：开屏显示的产品名、副标题、版本号 | P2 | ⏳ 待提供 |
-| **B6** | 目标端：只做 `web` profile，还是同时上 `desktop` | P7 | ⏳ 待决策 |
-| **B7** | 用途：自用 / 分发（决定是否按可发布标准做） | 全程 | ⏳ 待决策 |
-| **B8** | 🆕 配置文件格式与文件名确认（YAML vs JSON；`sdt.config.json`？） | P0 | ⏳ 待决策 |
-| **B9** | 🆕 用户自定义目录定名（建议 `$DSH_HOME/sdt/`） | P0 | ⏳ 待确认 |
-| **B10** | 🆕 槽位清单复核（`docs/asset-library.md` §3 的 **34 项内容级**是否够用） | P0 / P3.5 | ⏳ 待确认 |
-| ~~B11~~ | ~~适配 Skill 触发方式~~ → ✅ **已解除：采用自动触发** | P3.5 | ✅ 已定（D18） |
+| B1 | 品牌素材（字体 woff2 / 纹理 / logo 成品） | P3、P4 | 🟡 字标已自绘；美术按 D26 走用户目录 |
+| ~~B2~~ | ~~视觉定位~~ | P1–P4 | ✅ 深海军蓝 + 青蓝（v1.4） |
+| B3 | 第二个参考项目名称 | P5 | ⏳ 待提供（不阻塞 v1.6） |
+| B4 | 对话动画路线（轻量 `data-*` / 重度 `conversation.chat.node`） | P5 | ⏳ 待决策 |
+| ~~B8~~ | ~~配置格式~~ | P0 | ✅ JSON `sdt.config.json` |
+| ~~B9~~ | ~~目录定名~~ | P0 | ✅ `$DSH_HOME/sdt/` |
+| B12 | **桌面端安装授权**（装进 `desktop` 会重启应用） | P7 / v1.6 | ⏳ 待授权 |
+| ~~B13~~ | ~~许可~~ | 全程 | ✅ 代码 MIT；第三方美术不入库（D26） |
 
 ---
 
-## 📋 任务清单
+## ✅ v1.6 已交付（2026-11-24）
 
-### P0 — 隔离环境 + 插件骨架 + 素材路由 + 配置系统（预估 2–3 天）
+### A. 基线一致性（0.5 天，无新功能）
 
-- [x] **T0.1** 在 `C:\Users\Administrator\.dsh\profiles\web` 基础上建立隔离验证流程
-  - 验收：`dsh --profile web --no-open --port 0` 能起来，浏览器能看到原生 DSH UI
-  - 风险：低。**绝不碰 `desktop` profile**
-- [x] **T0.2** 建立插件包骨架目录结构（`package.json` / `cordis.patch.yml` / `src/index.js` / `src/client/index.jsx`）
-- [x] **T0.3** 实现 host 素材路由（`inject: ['webServer']` + `webServer.register({kind:'prefix'})` + 白名单 Map + `ctx.effect`）
-  - 验收：`curl /sdt/asset/<file>` 返回 200 与正确 content-type；未知路径返回 404
-  - 注意：白名单写法，防路径穿越；只暴露已知扩展名
-  - 🆕 **必须在 handler 开头调 `ctx.connection.requestRejection(req)`** —— 自定义路由**不继承**宿主鉴权与 Host/Origin 栅栏（见 `AGENTS.md` R10）
-- [~] 🆕 **T0.3b**（3/4：穿越 / 扩展名 / 跨源已过；超大文件用例待补） 素材路由安全自检：路径穿越（`..`）、非法扩展名、超大文件、跨源请求 四项各写一个用例
-- [x] 🆕 **T0.3c** `package.json` 声明 `peerDependencies["@deepseek-ai/dsh"]`（范围取真实验证过的下界）与 `dsh.client.inject: []`
-  - 验收：用 `--dump-config` 确认插件层正常；用一个超范围版本验证宿主确实会跳过
-- [x] **T0.4** 装进 `web` profile，验证插件被加载（`dsh --profile web --dump-config` 出现插件层）
-- [x] 🆕 **T0.5 配置系统**：读取 `$DSH_HOME/sdt/sdt.config.json`（不存在则全用默认）
-- [x] 🆕 **T0.6 配置校验**：字段类型/范围/颜色格式校验，错误要**带行号的人话报错**，单项失败不拖垮整体
-- [x] 🆕 **T0.7 默认值合并**：配置与内置默认的深度合并（用户值优先）
-- [x] 🆕 **T0.8 素材解析层**：用户目录优先、缺失回退内置的"逐项覆盖"逻辑
-- [x] 🆕 **T0.9 配置运行时视图**：`GET /sdt/config.json` 供 client 读取
+- [x] **T6.0a** `TODO.md` 重写为 v1.5 现状（本文件）
+- [x] **T6.0b** `AGENTS.md` 环境表、阅读顺序、R9、阻塞项校正
+- [x] **T6.0c** `ROADMAP.md` / `PLAN` 版本表去重与顺延对齐
+- [x] **T6.0d** `DESIGN.md` token 总量、已定色值、选择器文件路径校正
+- [x] **T6.0e** `client.js` 版本常量 `1.3 → 1.5`；`plugin/package.json` license → MIT
+- [x] **T6.0f** 新增 `LICENSE`（MIT）+ README 许可与素材政策
+- [x] **T6.0g** 版本号单一来源检查：`release_check.py` 比对 `client.js` 的 `VERSION` 与 `VERSION` 文件（8/8）
 
-### P1 — A 层：主题 token（预估 1–2 天）
+### B. L3 密度 + M5 图标 + M4 只读设置卡（2 天）
 
-- [ ] **T1.1** 选定并铺满 `DESIGN.md` §2.2 的 15 个核心 alias token（明暗双份）
-- [ ] **T1.2** 扩展覆盖：状态色、`--dsw-specific-*` 区域色
-- [ ] 🆕 **T1.3 配置→token 转换链**：`colors.brand` / `colors.tokens` → `overrideTokens` 入参
-- [ ] **T1.4** 接入品牌字体（`.woff2` + `@font-face` + 覆盖 font family token）
-- [ ] **T1.5** 品牌字标替换：`sidebar.brand.mark` + `sidebar.brand.name`（single slot，替换点）
-- [ ] **T1.6** 明暗两套对比度自检（正文 ≥4.5:1）
-  - 验收：明/暗/跟随系统三种模式下无白底白字、无低对比文字
+- [x] **T6.1** `--dsh-*`（字号/行高/间距）梳理：当前视图实测 **49 个**（旧文档「88」无实测依据），
+      归属表见 [`DENSITY.md`](./DENSITY.md) —— 字号归宿主、侧栏密度在哈希类、仅会话容器可稳定覆盖
+- [x] **T6.2** 间距/几何落地：`--dsh-composer-side-clearance` 16→20、卡片最大宽 +32→+48；
+      944 / 980 / 1423 三视口无横向溢出（980 下侧栏自动折叠，输入卡完整）
+- [x] **T6.3** M5 图标：**负结论** —— `ctx.theme` 13 个方法无 icon 接口，官方无接缝；
+      降级为「只装饰自有元素」，不碰宿主图标（D30）
+- [x] **T6.4** M4 只读卡：落 `settings.general.item`（`settings.section` 实测是内容容器，注册不显示）；
+      显示版本 / token 133·133 / 配置来源 / 目录，已实测渲染
+- [ ] **T6.5** 明暗两套对比度自检（正文 ≥4.5:1），结果写 `DESIGN.md`
 
-### P2 — B 层：开屏动画（预估 1–2 天）⚠️ 最容易做错
+### C. 桌面端验证（0.5 天，需 B12 授权）→ **顺延到 v1.7**
+
+- [ ] **T7.1** 同一包注册进 `desktop` profile 的 `dsh.profile.bundles`
+- [ ] **T7.2** 桌面端首帧：`webserver/index-inject` 在 Electron 是否生效（决定开屏路线）
+- [ ] **T7.3** 桌面差异清单写入 `MODULARITY.md` 新增「桌面端」列
+
+---
+
+## 📋 下一步（v1.7）
+
+- [ ] **T8.1** M1 `shell.overlay` 覆盖层骨架（可开关、卸载无残留）
+- [ ] **T8.2** M2 `conversation.input.dock` 氛围条
+- [ ] **T8.3** 点击特效（借 bafx 思路，自写 pointer + canvas）
+- [ ] 桌面端三项（T7.1–T7.3），需授权后执行
+
+---
+
+## 📦 后续阶段（按版本顺延）
+
+### P2 — 开屏动画（v1.8）⚠️ 最容易做错
 
 - [ ] **T2.1** host 首帧注入：`ctx.on('webserver/index-inject', table => ...)`
-  - 只推 `{kind:'style'}` 和 `{kind:'script', placement:'head'}`（**未知 kind 会被 boot gate 拒绝**）
-  - 验收：从导航到首帧**不出现** DSH 的 `[data-dsh-boot]` "Loading plugins…" 卡片
+  - 只推 `{kind:'style'}` 与 `{kind:'script', placement:'head'}`（未知 kind 会被 boot gate 拒绝）
+  - 验收：导航到首帧**不出现** `[data-dsh-boot]` 卡片
 - [ ] **T2.2** 首帧看门狗三条退出路径（卡片消失 / 掉 spinner / 绝对超时 12s）
-- [ ] **T2.3** client 半边：`shell.overlay` 注册开屏正片（`kind: 'list'`，条目自设 `pointer-events`）
-- [ ] **T2.4** 开屏动画本体（CSS keyframes + React 计时器）
-- [ ] **T2.5** 退场动画（两段式：内容淡出 → 延迟 → 底幕淡出）
-- [ ] **T2.6** **刷新去重**（`sessionStorage`）—— 多数参考项目都没做
-- [ ] **T2.7** `prefers-reduced-motion` 降级 + 可跳过/可关闭
-- [ ] 🆕 **T2.8 配置驱动**：`motion.splash.duration` / `.skippable` / `.playOncePerSession` 生效
+- [ ] **T2.3** client 半边：`shell.overlay` 注册开屏正片（条目自设 `pointer-events`）
+- [ ] **T2.4** 开屏本体（CSS keyframes + React 计时器）
+- [ ] **T2.5** 退场两段式（内容淡出 → 延迟 → 底幕淡出）
+- [ ] **T2.6** 刷新去重（`sessionStorage`）
+- [ ] **T2.7** `prefers-reduced-motion` 降级 + 可跳过
+- [ ] **T2.8** 配置驱动：`motion.splash.*` 生效
 
-### P3 — B 层：氛围与素材（预估 1–2 天）
+### P3 — 氛围与素材（v1.8）
 
-- [ ] **T3.1** 背景氛围层（纹理/网格/渐变，读取用户素材）
-- [ ] **T3.2** HUD / 装饰元素（角标、状态条等）
-- [ ] **T3.3** 常驻循环动画（扫描线/呼吸/漂移等，注意性能与 reduced-motion）
-- [ ] 🆕 **T3.4 配置驱动**：`motion.ambience.intensity` / `.enabled` 生效
-- [ ] 🆕 **T3.5 素材回退链验证**：删除任一素材，界面不崩、回退内置
+- [x] **T3.1** 背景氛围层（G6 菱格底纹，深色，v1.3 落地）
+- [x] **T3.2** 装饰元素（G2 侧栏发丝线 / 会话头下边框，v1.3）
+- [ ] **T3.3** 常驻循环动画（扫描线/呼吸/漂移；注意性能与 reduced-motion）
+- [ ] **T3.4** 配置驱动：`motion.ambience.*`
+- [ ] **T3.5** 素材回退链验证：删任一素材不崩、回退内置
 
-### P3.5 — 🆕 框架化收尾（预估 2–3 天）
+### P3.5 — 框架化收尾（v1.8 之后）
 
-> ⚠️ **顺序要求**：默认主题（P1–P3）必须先做好。默认主题不成立，框架就没有第一个内容。
+- [ ] **T3.5.1** 槽位规格定稿 → 机器可读 JSON（`plugin/lib/slots.js`，ADR D20）
+- [ ] **T3.5.2** `doctor` 校验器：存在性 / 格式 / 尺寸 / 体积 / 配置语法 / 语义 +
+      「inbox 里未被匹配的文件」检测
+- [ ] **T3.5.3** Agent 适配 Skill 随插件分发（`ctx.skills.registerProvider`）
+- [ ] **T3.5.4** `overrides.css` 逃生舱
+- [ ] **T3.5.5** 示例素材包（`examples/`）
+- [ ] **T3.5.6** 用户文档改写为「丢进 inbox → 让 Agent 配」
+- [ ] **T3.5.7** 配置错误的人话报错验证
+- [ ] **T3.5.8** 幂等与回滚验证
 
-- [ ] **T3.5.1 槽位规格定稿**：`docs/asset-library.md` §3 的 10 个槽位 → 生成机器可读 JSON（Agent 与校验器共用）
-- [ ] **T3.5.2 `doctor` 校验器**：存在性 / 格式 / 尺寸 / 体积 / 配置语法（含行号）/ 语义，
-      以及**"inbox 里未被匹配的文件"**检测
-- [ ] 🆕 **T3.5.3 Agent 适配 Skill**：把 `skills/sdt-theme-setup/SKILL.md` 通过
-      **`ctx.skills.register()`** 随插件分发
-  - 验收：装插件后对 Agent 说"用 inbox 里的素材给我配一套外观"，能正确匹配并生成配置
-  - 注意：需验证插件的 skill 注册落在哪一层、是否对所有会话可见
-- [ ] **T3.5.4 `overrides.css` 逃生舱**：注入用户任意 CSS，优先级最高
-- [ ] **T3.5.5 示例素材包**：`examples/` 放一套可直接改的素材与配置
-- [ ] **T3.5.6 用户文档改写**：叙事从"按模板填素材"改为"丢进 inbox → 让 Agent 配"
-- [ ] **T3.5.7 配置错误的人话报错验证**：故意写错配置，确认提示清晰且界面可用
-- [ ] 🆕 **T3.5.8 幂等与回滚验证**：连续跑两次适配，确认无重复文件、无水印残留、可回滚
+### P4 — C 层视觉语言（v1.6 起，分批）
 
-### P4 — C 层：视觉语言（预估 2–3 天）
+- [ ] **T4.1** 圆角与 `corner-shape`（配对规则见 `DESIGN.md` §3.1）
+- [ ] **T4.2** 阴影与抬升（禁止用 border 配 elevation）
+- [ ] **T4.3** 侧栏 / 会话列 / 输入卡几何与材质（优先二级 `data-slot`）
+- [ ] **T4.4** 三级选择器收容：现状在 `client.js` 的 `buildCss()` 内联；拆分独立文件时
+      必须写「验证版本」头注释
 
-- [ ] **T4.1** 圆角与 `corner-shape`（注意 `DESIGN.md` §3.1 的配对规则）
-- [ ] **T4.2** 阴影与抬升（注意 §3.4 的禁止配对规则）
-- [ ] **T4.3** 侧栏 / 会话列 / 输入卡的几何与材质（优先用二级 `data-slot` 选择器）
-- [ ] **T4.4** 建立三级选择器收容文件 `overrides.tier3.css`，文件头写验证版本
+### P5 — 对话动画（被 B3/B4 阻塞）
 
-### P5 — C+ 层：对话动画（预估 2–4 天，被 B3/B4 阻塞）
+- [ ] **T5.1** 路线决策（轻量 / 重度）
+- [ ] **T5.2** 助手消息入场
+- [ ] **T5.3** 流式输出节奏
+- [ ] **T5.4** 工具卡展开/收起缓动
+- [ ] **T5.5** 与官方滚动跟随管线共存（follow ledger 的 `gap>25px` 误判、rAF 打 `translateY` 抵消）
+- [ ] **T5.6** 配置驱动 `motion.conversation.*`
 
-- [ ] **T5.1** 决策路线（轻量 / 重度）
-- [ ] **T5.2** 助手消息入场动画
-- [ ] **T5.3** 流式输出节奏动效
-- [ ] **T5.4** 工具调用卡片展开/收起缓动
-- [ ] **T5.5** ⚠️ **与官方滚动跟随管线共存**：需处理 follow ledger 误判（`gap>25px` 的 scroll 被当读者输入）
-  与残留 lag（rAF 打 `translateY` 抵消）
-- [ ] 🆕 **T5.6 配置驱动**：`motion.conversation.*` 生效
+### P6 — 回归（v1.9）
 
-### P6 — 回归测试（预估 1–2 天）
-
-见 [`development.md`](./development.md) 的回归清单。至少包含：
-
-- [ ] 明/暗/跟随系统三模式
-- [ ] 窄窗（980×640）不遮挡输入与侧栏
+- [ ] 明 / 暗 / 跟随系统三模式
+- [ ] 窄窗 980×640 不遮挡输入与侧栏
 - [ ] 刷新不重复注入 `<link>`、不双开屏
 - [ ] 卸载后完全恢复原生，无 404 素材请求
 - [ ] `prefers-reduced-motion` 下无动画
-- [ ] 长会话/多 turn 滚动性能
+- [ ] 长会话 / 多 turn 滚动性能
 
-### P7 — 上桌面端（可选，预估 0.5 天）
-
-- [ ] **T7.1** 把同一包注册进 `desktop` profile 的 `dsh.profile.bundles`
-- 注意：desktop profile 被 Electron 独占，CLI 不能管；改 `package.json` 后需**重启整个应用**
+> P7（桌面端）已提前到 v1.6 的 §C，见上。
 
 ---
 
@@ -160,40 +177,41 @@
 
 | # | 决策 | 理由 | 状态 |
 |---|---|---|---|
-| D1 | 主骨架用 `dsh-550c-boot`（MIT）而非 `dsh-endfield-ui` | endfield 的 license API 返回 `null`，无法确认；550c-boot 是唯一解决 271ms 时序问题的项目 | ✅ 已定 |
-| D2 | 不依赖 `better-sidebar` / `shikitor` | 参考项目明确警告禁止单独 add（会双挂载）；纯主题不需要 | ✅ 已定 |
-| D3 | 开发在 `web` profile，不在 `desktop` | desktop 被 Electron 独占，且是用户生产环境 | ✅ 已定 |
-| D4 | 首帧注入用 `webserver/index-inject`，不用 `tapIndex` | `tapIndex` 在桌面端是死代码（走 `dsh-app://` 不调 `renderIndex`） | ✅ 已定 |
-| D5 | 动效自带 `--bj-*` 变量 | 官方无动效 token（实测空集） | ✅ 已定 |
-| D6 | 对话动画路线 | 待 B4 | ⏳ 待定 |
-| **D7** | **项目定位升级为"素材与配置驱动的界面自定义框架"** | 用户明确要求"高度自定义框架插件"；引擎与内容分离能同时解决"素材可替换"与"升级不覆盖用户内容" | ✅ 已定 |
-| **D8** | **用户自定义目录用 `$DSH_HOME/sdt/`** | 已实测 `$DSH_HOME` 下无 `cordis.patch.yml`、无同名冲突；命名空间独立于 DSH | ✅ 已定（待确认目录名） |
-| **D9** | **素材采用"逐项同名覆盖"而非"整目录替换"** | 用户只放想改的文件即可，未提供的自动回退内置，降低上手成本 | ✅ 已定 |
-| **D10** | **引入安全模式（Safe Mode）** | DSH 平均 1.77 天一个版本且官方声明会有破坏性变更；宁可少效果不能让界面不可用 | ✅ 已定 |
-| **D11** | **插件版本与 DSH 版本解耦**，只用兼容矩阵关联 | 追赶每个 rc 不现实；只声明真实验证过的版本，不做宽泛承诺 | ✅ 已定 |
-| **D12** | **子包依赖必须显式指定版本** | 实测所有子包 `latest` 停在 `0.0.1-rc.1`，用 `latest` 会装到两个月前的版本 | ✅ 已定 |
-| **D13** | **兼容范围用标准 `peerDependencies["@deepseek-ai/dsh"]`** | 起先设计为自造 `dsh.compatibility.*` 字段，**实测/调研证实宿主不读自定义字段**；官方从 `0.1.7-rc.1` 起强制校验 peerDependencies | ✅ 已定（修正过一次） |
-| **D14** | **`dsh.client.inject` 保持空数组** | 生态中"面板静默消失/连锁 pending"的根因几乎都是 client 服务依赖；本项目功能不需要任何 client 服务 | ✅ 已定 |
-| **D15** | **只用 4 条最窄接缝**：`overrideTokens` / `shell.overlay` / `index-inject` / bundle 机制 | 189 张社区升级卡中，这 4 条在 `0.1.0-rc.8 → 0.1.7-rc.1` 全走廊**零改名记录**；而 slot 名称、settings API、图标导出名都改过 | ✅ 已定 |
-| **D16** | **不碰官方 settings 通道，用户配置走自有文件** | 官方 settings API 在 `0.1.7-alpha.1` 整体换代（`ctx.settings.register` 移除、`settingsScope`→`configForms`）；走自有 `$DSH_HOME/sdt/sdt.config.json` 天然免疫 | ✅ 已定 |
-| **D17** | **token 接口只能改颜色，其余走自有变量** | 实测 `Theme.listTokens` 只返回 14 个 token 且 `valueType` 全为 `"CSS color"`；圆角/阴影/字体存在但未暴露；官方 spec **拒绝 token 重定义** | ✅ 已定 |
-| **D18** | **适配 Skill 采用自动触发** | 用户明确要求"自动触发"；Skill 的 `description` 已写成列举式触发条件，覆盖外观/主题/换肤/logo/配色/字体/背景/开屏/inbox 等话题 | ✅ 已定 |
-| **D19** | **槽位清单扩展为 34 项内容级 + 13 项样式级 + 30 项结构级** | 用户要求"把可以自定义的元素组件全部写出来"；分 🟢内容/🟡样式/🔵结构 三级，标注稳定性 | ✅ 已定（待 B10 复核） |
-| **D20** | **槽位规格做成单一数据源 `plugin/lib/slots.js`** | Agent 适配依据、`doctor` 校验器、文档 §3 三者共用同一份真相，改一处即全同步 | ✅ 已定 |
-| **D21** | **`D17` 修正：14 项只是 `Theme.listTokens` 的 inspect 白名单，`overrideTokens` 实际可覆盖 129 个 `--dsw-*`** | 生态实测：`dsh-client-ui-theme-pack` 以官方 API 覆盖 129 项（117 alias + 11 specific），且 `validateOverrides` 不校验名字白名单。→ P1 先把 129 项按「是否真被消费」筛一遍 | ⏳ 待本机探针验证 |
-| **D22** | **版本号改为 `vX.Y`、逢 10 进 1**，与 DSH 版本解耦，单一真相源为 `VERSION` | 用户明确要求；三段版本号与两位小数一律禁止；发版必须自带验证报告 | ✅ 已定 |
-| **D23** | **项目更名 `DSH-SDT` / 灵衣缝制**，叙事改为"主题是缝出来的" | 用户指定；生态 170 个外观类项目中 FGO/衣柜叙事 0 个 → 概念位是空白 | ✅ 已定 |
-| **D24** | **项目版本 `vX.Y` 与 manifest 三段 semver 分离** | npm/pnpm 强制 `package.json` 版本为 `x.y.z`；项目对外版本仍是 `vX.Y`（`VERSION` / 标签 / 文档一律两段），校验器按 `1.1.0 → v1.1` 映射比对 | ✅ 已定（平台约束） |
-| **D25** | **host 插件必须 `inject: ['webServer', 'connection']`** | 实测：cordis 禁止访问未声明注入的服务，`ctx.connection` 会直接抛错；宿主把所有 handler 异常统一回 400，症状是「所有路由都 400」 | ✅ 已定（实测教训） |
+| D1 | 主骨架用 `dsh-550c-boot`（MIT）而非 `dsh-endfield-ui` | 后者 license 为 `null`；550c-boot 是唯一解决 271ms 时序问题的项目 | ✅ |
+| D2 | 不依赖 `better-sidebar` / `shikitor` | 参考项目明确警告禁止单独 add（双挂载） | ✅ |
+| D3 | 开发在 `web` profile，不在 `desktop` | desktop 被 Electron 独占，且是用户生产环境 | ✅ |
+| D4 | 首帧注入用 `webserver/index-inject`，不用 `tapIndex` | 桌面端走 `dsh-app://` 不调 `renderIndex`，是死代码 | ✅ |
+| D5 | 动效自带 `--bj-*` 变量 | 官方无动效 token（实测空集） | ✅ |
+| D6 | 对话动画路线 | 待 B4 | ⏳ |
+| D7 | 定位为「默认主题 + 素材与配置驱动框架」 | 引擎/内容分离，升级不覆盖用户内容 | ✅ |
+| D8 | 用户目录 `$DSH_HOME/sdt/` | 已实测无冲突，命名空间独立 | ✅ |
+| D9 | 素材逐项同名覆盖而非整目录替换 | 只放想改的文件，其余回退内置 | ✅ |
+| D10 | 引入安全模式（Safe Mode） | DSH 迭代极快，宁可少效果不能不可用 | ✅ |
+| D11 | 插件版本与 DSH 版本解耦 | 只声明验证过的版本 | ✅ |
+| D12 | 子包依赖显式指定版本 | 所有子包 `latest` 停在 `0.0.1-rc.1` | ✅ |
+| D13 | 兼容范围只写 `peerDependencies["@deepseek-ai/dsh"]` | 宿主不读自定义字段 | ✅ |
+| D14 | `dsh.client.inject` 不新增服务依赖 | 生态「面板静默消失」根因；现有 `['theme','slots']` 已含降级 | ✅ |
+| D15 | 只用 4 条最窄接缝 | 189 张升级卡中这 4 条零改名 | ✅ |
+| D16 | 不碰官方 settings 通道，配置走自有文件 | 官方 settings API 换过代 | ✅ |
+| D17 | token 接口只保证颜色 | 实测暴露项 `valueType` 全为 `"CSS color"` | ✅ |
+| D18 | 适配 Skill 自动触发 | 用户要求；`description` 写列举式触发条件 | ✅ |
+| D19 | 槽位清单 34 内容 / 13 样式 / 30 结构 | 用户要求全量列出 | ✅ |
+| D20 | 槽位规格单一数据源 `plugin/lib/slots.js` | Agent / doctor / 文档共用 | ⏳ 文件尚未创建 |
+| D21 | D17 修正：14 项只是 inspect 白名单，`overrideTokens` 实测可覆盖 133 项 | v1.3 `__sdtDebug` 证明 | ✅ |
+| D22 | 版本 `vX.Y` 逢 10 进 1，真相源 `VERSION` | 用户要求 | ✅ |
+| D23 | 项目更名 `DSH-SDT` / 灵衣缝制 | 生态 170 个外观项目中 FGO/衣柜叙事 0 个 | ✅ |
+| D24 | 项目版本 `vX.Y` 与 manifest 三段 semver 分离 | npm/pnpm 强制三段 | ✅ |
+| D25 | host 插件必须 `inject: ['webServer','connection']` | 未声明访问 `ctx.connection` 会抛错，宿主统一回 400 | ✅ |
+| **D26** | **第三方美术（含 FGO）不入仓库、不入 npm 包，只走 `$DSH_HOME/sdt/assets/` 运行时加载** | 用户要求可使用 FGO 美术作二创；但 MIT 只能覆盖自有代码，无法覆盖第三方美术。运行时加载既满足自用，又让仓库保持可开源可分发 | ✅ |
+| **D27** | **许可定为 MIT（仅代码）** | 用户指定；`LICENSE` 含第三方素材除外声明 | ✅ |
+| **D28** | **文档真相源三层分离**：HANDOFF=现状 / TODO=任务+ADR / VERSION+CHANGELOG=版本 | v1.5 出现「TODO 说代码 0 行」的漂移，根因是单点真相源被绕过 | ✅ |
+| **D29** | **字号交还宿主，插件不覆盖 `--dsh-content-font-size` / `--dsh-code-font-size`** | 实测宿主把它们**内联写在 `body`**，且对应设置页「字号大小」偏好；样式表覆盖会被内联压回，抢写还会与宿主 publish 打架 | ✅ |
+| **D30** | **M5 不做官方图标替换，只装饰自有元素** | `ctx.theme` 原型 13 个方法无 icon 接口；图标无稳定 `data-*`，只剩哈希类/中文 aria（R6/R7 禁止） | ✅ |
 
 ---
 
 ## 🔄 会话交接备忘
 
-新会话接手时：
-
-1. 读根目录 `AGENTS.md`（协作契约 + 红线）
-2. 读本文件的「当前进度」和「阻塞项」
-3. 若阻塞项已解除 → 从「任务清单」中第一个未完成的 P 开始
-4. 完成后：勾选任务、更新「当前进度」、把产生的决策补进「决策记录」
-5. **不要重读所有文档**，按需读 `architecture.md` / `DESIGN.md`
+1. 读 `AGENTS.md`（契约 + 红线）→ `HANDOFF.md`（环境 + 现状 + 坑）→ 本文件（任务 + ADR）。
+2. 从「下一步（v1.6）」的第一个未完成项继续；不要重读全部文档。
+3. 完成后：勾任务 → 更新本文件进度 → 更新 `HANDOFF.md` §1/§5 → 写 `JOURNAL.md` → 打 `stage-NN-vX.Y`。

@@ -1,11 +1,11 @@
 /**
- * dsh-sdt — browser client bundle (v1.3)
+ * dsh-sdt — browser client bundle (v1.5)
  *
  * 三件事：
  *   1) L1 全量：把界面里实际存在的 `--dsw-alias-*` / `--dsw-specific-*` 变量（实测 133 个）
  *      按语义族映射成明/暗两套值，一次性通过 `theme.overrideTokens` 覆盖；
  *   2) L2 语法：只用稳定锚点（`data-slot` / `data-ds-dark-theme`）写少量 CSS，
- *      实现"金色细框 + 白玻璃 + 菱格底纹"的视觉语言，不动布局与尺寸；
+ *      实现"品牌色细框 + 白玻璃 + 菱格底纹"的视觉语言，不动布局与尺寸；
  *   3) M3 字标：向 `sidebar.brand.mark` 注册自绘 SVG 字标。
  *
  * 纪律：未知族一律不覆盖（宁缺勿乱）；任何一步失败都不影响界面可用。
@@ -13,7 +13,7 @@
 window.__ModuleLoader__.load({
   id: 'dsh-sdt',
   factory: (require) => {
-    const VERSION = '1.3';
+    const VERSION = '1.6';
     const SOURCE = 'dsh-sdt';
     if (window.__dshSdtApplied) return { inject: ['theme', 'slots'], apply() {} };
     window.__dshSdtApplied = true;
@@ -72,7 +72,7 @@ window.__ModuleLoader__.load({
         warn: dark ? "#d2a34a" : "#b47b22",
         idle: mix(ink, base, 0.55),
         sidebar: dark ? darken(mix(base, colors.brand, 0.06), 0.18) : mix(base, colors.brand, 0.08),
-        gold: colors.brand,
+        gold: colors.brand, // 历史命名；v1.4 起此值为品牌青蓝，不是金色
       };
     }
 
@@ -235,6 +235,14 @@ window.__ModuleLoader__.load({
   --dsh-font-family-code: "JetBrains Mono", ui-monospace, Consolas, monospace;
   --dsh-font-family-terminal: "JetBrains Mono", ui-monospace, Consolas, monospace;
 }
+/* L3 密度：只改「间距 / 几何」，不改字号。
+   实测（v1.6）：宿主在 body 内联写了 --dsh-content-font-size / --dsh-code-font-size，
+   那是用户字号偏好的落点，插件覆盖会与之抢写并造成闪烁 → 字号交还宿主。
+   下面两个变量定义在 [data-conversation-content] 的哈希类上，用语义属性锚点以更高优先级覆盖。 */
+html body [data-conversation-content]{
+  --dsh-composer-side-clearance: 20px;
+  --dsh-composer-card-max-width: calc(var(--dsh-chat-content-width) + 48px);
+}
 /* G6 菱格底纹（仅深色） */
 body[data-ds-dark-theme]{
   background-image:
@@ -242,7 +250,7 @@ body[data-ds-dark-theme]{
     repeating-linear-gradient(-45deg, ${rgba(colors.brand, 0.09)} 0 1px, transparent 1px 22px);
   background-attachment: fixed;
 }
-/* G2 金色发丝线：只在稳定锚点上加边框，不动尺寸 */
+/* G2 品牌色发丝线：只在稳定锚点上加边框，不动尺寸 */
 [data-slot="sidebar"]{ border-right: 1px solid var(--bj-gold-line); }
 [data-slot="conversation.session"] header{ border-bottom: 1px solid var(--bj-gold-line); }
 [data-slot="sidebar"]{ box-shadow: inset -1px 0 0 var(--bj-gold-line); }
@@ -258,6 +266,36 @@ body[data-ds-dark-theme]{
       el.textContent = css;
       document.head.appendChild(el);
       return () => el.remove();
+    }
+
+    /* ---------------- M4：只读信息卡 ---------------- */
+    function makeSettingsCard() {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React) return null;
+      const h = React.createElement;
+      const row = (label, value) => h("div", {
+        style: { display: "flex", gap: "12px", fontSize: 13, lineHeight: 1.8 },
+      },
+        h("span", { style: { minWidth: 64, color: "var(--dsw-alias-label-secondary)" } }, label),
+        h("span", { style: { color: "var(--dsw-alias-label-primary)" } }, value));
+
+      return function SdtSettingsSection() {
+        const debug = window.__sdtDebug || {};
+        const source = debug.source === "file" ? "sdt.config.json" : "内置默认值";
+        return h("section", {
+          style: {
+            padding: "14px 0 10px",
+            borderTop: "1px solid var(--dsw-alias-border-l1)",
+            fontFamily: "var(--dsh-font-family-text)",
+          },
+        },
+          h("div", { style: { fontSize: 13, fontWeight: 600, letterSpacing: ".08em", color: "var(--dsw-alias-brand-primary)" } }, "DSH-SDT"),
+          row("版本", `v${debug.version || VERSION}`),
+          row("token", `${debug.mapped ?? "?"} / ${debug.total ?? "?"}`),
+          row("配置", source),
+          row("目录", "$DSH_HOME/sdt/"));
+      };
     }
 
     /* ---------------- M3：自绘字标 ---------------- */
@@ -304,6 +342,17 @@ body[data-ds-dark-theme]{
           }
         } catch (error) {
           console.warn("[dsh-sdt] brand mark unavailable:", error && error.message);
+        }
+
+        // M4 只读信息卡：失败不影响主题
+        try {
+          const SettingsCard = makeSettingsCard();
+          if (SettingsCard && ctx.slots?.inject) {
+            ctx.slots.inject("settings.general.item", () =>
+              ctx.slots.register({ name: "settings.general.item", id: "sdt-about", order: 90 }, SettingsCard));
+          }
+        } catch (error) {
+          console.warn("[dsh-sdt] settings card unavailable:", error && error.message);
         }
 
         fetch("/sdt/config.json", { credentials: "same-origin" })

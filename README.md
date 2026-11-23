@@ -1,11 +1,13 @@
 # DSH-SDT
 
-<img alt="version" src="https://img.shields.io/badge/version-v1.5-2ea44f?style=flat-square">
+<img alt="version" src="https://img.shields.io/badge/version-v1.6-2ea44f?style=flat-square">
 <img alt="dsh" src="https://img.shields.io/badge/DSH-0.2.2--rc.1-1f6feb?style=flat-square">
 
 **DeepSeek Harness 主题插件**：提供一套默认 FGO 风格主题，并以此为探针，测量 DSH 的模块化自定义上限。
 
-> `DSH-SDT` / `Spiritron Dress Tailoring` 只是命名趣味，**不含也不依赖任何 FGO 素材或玩法**。
+> `DSH-SDT` / `Spiritron Dress Tailoring` 只是命名趣味，不含任何 FGO 玩法逻辑。
+> **代码与 npm 包不含第三方美术**（含 FGO 素材）；美术走用户目录 `$DSH_HOME/sdt/assets/` 运行时加载，
+> 详见 [许可与素材政策](#许可与素材政策)。
 
 ## 它做什么
 
@@ -32,8 +34,14 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 |---|---|
 | v1.0 | 合同与实测基线（DSH 0.2.2-rc.1：4 条接缝、14 项 token、插件契约） |
 | v1.1 | 插件骨架：bundle / host + client 半边 / 配置与素材路由 / 14 token 生效 |
-| **v1.5** | 蓝青定版 + 133/133 token + 字标；**全面 bug 修复 + 转手文档** |
-| 下一阶段 | v1.6：L3 密度 + 图标替换（M5）+ 设置只读卡（M4） |
+| v1.3 | L1 133/133 token + L2 视觉语法 + M3 品牌字标 |
+| v1.4 | 蓝青定版（深海军蓝 + 青蓝，对齐 FGO 界面语汇） |
+| **v1.5** | 稳定化：6 个 bug 修复 + 转手文档 + 文档基线校正 |
+| **v1.6** | L3 间距/几何 + M4 只读信息卡 + M5 负结论（无图标接缝） |
+| 下一阶段 | v1.7：M1/M2 覆盖层与输入 dock + **桌面端首验** |
+
+**验证范围（重要）**：全部能力只在 `web` profile 实测；**桌面端（Electron）从未安装、未测试**。
+桌面端是用户主力端，安装验证需要授权（会重启应用），见 `HANDOFF.md` §10。
 
 ## 文档
 
@@ -56,10 +64,19 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 `vX.Y` 两段、逢 10 进 1（`v1.9 → v2.0`）；禁止三段与两位小数。
 npm manifest 因平台要求写三段 semver（`1.2.0`），**对外版本仍是 `v1.2`**（ADR D24）。
 
+## 许可与素材政策
+
+- **代码**：MIT，全文见 [`LICENSE`](./LICENSE)。
+- **第三方美术（含 FGO 素材）**：**不入仓库、不入 npm 包**。用户自行放在 `$DSH_HOME/sdt/assets/`
+  的素材只在本机运行时加载（`/sdt/asset/*`），不随仓库或发行包分发，**不在 MIT 授权范围内**；
+  版权归原权利人（TYPE-MOON / FGO PROJECT）。二创与分享前请自行确认适用法律与权利人政策。
+- **仓库内素材**：`plugin/assets/logo.svg`、品牌字标、CSS 菱格/发丝线均为自绘，随 MIT 授权。
+- 这样切分的原因：MIT 只能授权我们拥有版权的部分。把第三方美术放进 MIT 仓库会造成授权矛盾，
+  也会让 npm 包无法合规分发；而运行时加载既满足自用二创，又保持仓库可开源。
+
 ## 致谢
 
 - **DeepSeek Harness** —— 运行基座与 Cordis 插件体系
 - 参考实现：[dsh-theme-endfield](https://github.com/ymh0000123/dsh-theme-endfield)（MIT，bundle 结构与幂等保护）、
   [dsh-bloom-theme](https://github.com/webkubor/dsh-bloom-theme)（MIT，OKLCH 与对比度方法）——
   只借结构与方法，视觉与代码自行实现
-- 许可：尚未选定（首次公开发布前补齐）

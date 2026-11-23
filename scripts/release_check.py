@@ -45,6 +45,23 @@ def check_version_format() -> None:
     record(ok, "VERSION 格式为 vX.Y（Y 仅 0-9）", f"读到 {raw!r}")
 
 
+def check_client_version() -> None:
+    """client.js 的 VERSION 常量必须与 VERSION 文件一致。
+
+    v1.5 曾出现 client.js 仍写 '1.3' 而项目已到 v1.5，导致 __sdtDebug 误报。
+    """
+    project = read("VERSION").strip().lstrip("v")
+    path = os.path.join(ROOT, "plugin", "client.js")
+    if not os.path.exists(path):
+        record(False, "client.js 版本常量与 VERSION 一致", "plugin/client.js 不存在")
+        return
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
+    found = re.search(r"const VERSION = '([^']+)'", text)
+    got = found.group(1) if found else "未找到"
+    record(got == project, "client.js 版本常量与 VERSION 一致", f"client.js={got} / VERSION={project}")
+
+
 def check_changelog_heading() -> None:
     version = read("VERSION").strip()
     text = read("CHANGELOG.md")
@@ -143,6 +160,7 @@ def main() -> int:
     for fn in (
         check_version_format,
         check_changelog_heading,
+        check_client_version,
         check_forbidden_versions,
         check_relative_links,
         check_branding,

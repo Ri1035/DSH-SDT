@@ -21,7 +21,6 @@
 ### 2.1 总量【实测】
 
 对 `@deepseek-ai/dsh-client-ui-theme@0.2.0-rc.2` 实测扫描，共 **403 个 `--dsw-*` 变量**：
-
 | 前缀 | 数量 | 用途 | 第三方是否应覆盖 |
 |---|---|---|---|
 | `--dsw-alias-*` | **107** | **语义层** | ✅ **只覆盖这层** |
@@ -36,10 +35,17 @@
 | `--dsw-mask-*` | 1 | 遮罩 | ❌ 不碰 |
 | `--dsw-corner-shape` | 1 | 超椭圆平滑 | ⚠️ 标 `@supports` 才安全 |
 
-### 2.2 可直接覆盖的核心 token（实测 14 个）
+> ⚠️ **403 是包产物的静态总量**；运行时真正出现在样式表里的 `alias` / `specific` 是 **133 个**（v1.3 实测），
+> `overrideTokens` 对这 133 个全量生效。上表的「数量」只用于判断该不该碰，不是覆盖预算。
 
-经 `Theme.listTokens` **实测确认**——这 14 个是**当前可覆盖接口暴露的全部 token**，
-且**每一个的 `valueType` 都是 `"CSS color"`**（没有圆角、阴影、动效等非颜色项）：
+### 2.2 `Theme.listTokens` 白名单（14 个，仅用于 inspect）
+
+`Theme.listTokens` **实测只返回这 14 个**，且每一个的 `valueType` 都是 `"CSS color"`
+（没有圆角、阴影、动效等非颜色项）。
+
+**但这不等于覆盖上限**：`overrideTokens` 不校验名字白名单，v1.3 实测一次性写入 **133 个**
+`--dsw-alias-*` / `--dsw-specific-*` 并全部生效（`__sdtDebug.mapped = 133 / 133`）。
+这 14 个应理解为「官方承诺语义稳定的最小集合」，不是「只能改这 14 个」。
 
 | # | Token | 作用 |
 |---|---|---|
@@ -165,6 +171,17 @@ const dispose = ctx.theme.overrideTokens('dsh-sdt', {
 中性色平面边框/分隔线统一 `0.5px`（Chromium 渲染为 1 设备像素）。
 虚线装饰与状态色边框保持 1px。**ui-theme elevation spec 会拒绝更宽的中性实线边框**。
 
+### 3.7 密度【实测，v1.6】
+
+| 项 | 结论 |
+|---|---|
+| 字号 | **宿主所有**：`--dsh-content-font-size` 等由宿主内联写在 `body`，对应设置页「字号大小」；插件不覆盖（D29） |
+| 间距 / 几何 | 仅 `[data-conversation-content]` 上的 `--dsh-composer-side-clearance` 与 `--dsh-composer-card-max-width` 可稳定覆盖 |
+| 侧栏密度 | 变量定义在哈希类（`.wtg9ga_root`），无稳定锚点 → 暂不做 |
+| 图标 | `theme` 服务无 icon 接口（13 个方法实测）→ M5 无官方接缝（D30） |
+
+> 完整盘点、归属表与三视口验证见 [`DENSITY.md`](./DENSITY.md)。
+
 ---
 
 ## 4. ⭐ 选择器分级纪律（本项目最重要的规范）
@@ -203,8 +220,8 @@ const dispose = ctx.theme.overrideTokens('dsh-sdt', {
 
 ### 4.2 三级选择器的收容规则
 
-三级选择器**必须集中在单一文件**（计划：`src/client/overrides.tier3.css`），
-文件头写明每个选择器的作用与最后验证版本，便于 DSH 升级时定点排查。
+三级选择器**必须集中在单一文件**：现状是 `plugin/client.js` 的 `buildCss()` 内联；一旦引入三级选择器，
+必须拆到 `plugin/overrides.tier3.css`（待创建），文件头写明每个选择器的作用与最后验证版本，便于 DSH 升级时定点排查。
 
 ---
 
@@ -233,12 +250,14 @@ const dispose = ctx.theme.overrideTokens('dsh-sdt', {
 
 ---
 
-## 7. 待填充（需要人类输入）
+## 7. 已定与待定
 
 | 项 | 状态 |
 |---|---|
-| 主色 / 强调色具体色值 | ⏳ 待提供 |
-| 风格定位（一句话） | ⏳ 待提供 |
-| 品牌 logo / 字体 / 纹理素材 | ⏳ 待提供 |
-| 开屏时长与是否可跳过 | ⏳ 待决策 |
-| 明暗两套完整色板 | ⏳ 依赖以上 |
+| 主色 / 强调色 | ✅ v1.4：`brand #37a3d6` / `accent #1f6fa8` |
+| 底/字色 | ✅ `bgLight #eef6fb` / `bgDark #0a1626` / `inkLight #0f1b26` / `inkDark #dbeaf5` |
+| 风格定位 | ✅ 深海军蓝 + 青蓝 + 白玻璃 + 菱格底纹（G1–G7 语法，见 PLAN §1） |
+| 品牌 logo | ✅ 自绘 SVG：`plugin/assets/logo.svg` + `sidebar.brand.mark` 字标 |
+| 字体 | 🟡 当前用系统衬线栈（Noto Serif SC → Songti SC）；自有 `.woff2` 待定（B1） |
+| 开屏时长 / 可跳过 | 🟡 配置层已定义（2200ms / 可跳过 / 每次会话一次），功能在 v1.8 落地 |
+| 明暗两套完整色板 | ✅ 由 6 个基准色派生（`palette()`），133 token 全覆盖 |

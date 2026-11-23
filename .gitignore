@@ -31,6 +31,9 @@ storages/
 Thumbs.db
 desktop.ini
 
+# AI 协作工作区（本地记忆 / 会话缓存，不入库）
+.workbuddy/
+
 # 临时与调试
 tmp-*
 tmp_*

@@ -1,24 +1,27 @@
 # HANDOFF.md —— 转手文档（当前状态 → 下一个 Agent / 人）
 
 > **先读这三段就够开工**：§1 现状、§3 环境与命令、§6 已知坑。
-> 其余按需查。最后更新：2026-11-23，**v1.5**。
+> 其余按需查。最后更新：2026-11-23，**v1.5（含文档基线校正）**。
 
 ---
 
 ## 1. 一句话现状
 
 DSH 主题插件 **DSH-SDT** 已可安装运行：bundle + host/client 两边、`/sdt/*` 三路由、
-配置系统、**133/133 个 `--dsw-*` token 全覆盖**、自绘品牌字标、蓝青配色。
-**只在 `web` profile 验证过；桌面端（Electron）从未安装、未测试。**
+配置系统、**133/133 个 `--dsw-*` token 全覆盖**、自绘品牌字标、蓝青配色、
+L3 间距/几何、设置页只读卡。**只在 `web` profile 验证过；桌面端（Electron）从未安装、未测试。**
+
+文档基线已于 2026-11-23 校正，v1.6 起 `docs/DENSITY.md` 记录 `--dsh-*` 归属与 M5 负结论；
+许可定为 MIT（仅代码），第三方美术不入库（ADR D26）。
 
 | 项 | 值 |
 |---|---|
-| 版本 | `v1.5`（`VERSION` / manifest `1.5.0`） |
-| 阶段标记 | `stage-06-v1.5`（另有 `stage-01-v1.0` … `stage-05-v1.4`） |
+| 版本 | `v1.6`（`VERSION` / manifest `1.6.0`） |
+| 阶段标记 | `stage-07-v1.6`（另有 `stage-01-v1.0` … `stage-06-v1.5`） |
 | 仓库 | `https://github.com/Ri1035/DSH-SDT`（public） |
 | 本地工作区 | `C:\Users\KOKA\Desktop\FGO` |
-| 代码量 | `plugin/` 约 900 行（JS + JSON + SVG） |
-| 自验证 | `scripts/release_check.py` 7/7 |
+| 代码量 | `plugin/` 约 960 行（JS + JSON + SVG） |
+| 自验证 | `scripts/release_check.py` **8/8**（v1.5 起新增 client 版本一致性检查） |
 
 ---
 
@@ -40,7 +43,7 @@ DSH 主题插件 **DSH-SDT** 已可安装运行：bundle + host/client 两边、
 | DSH 安装目录 | `C:\DSH`（`DeepSeek Harness.exe`） |
 | DSH 包内容 | `C:\DSH\resources\app.asar`（203 MB，**只读归档**） |
 | `$DSH_HOME` | `C:\DSH\.dsh` |
-| 当前 profile | `desktop`（Electron 独占，**别动**）；`web`（开发沙盒） |
+| 当前 profile | `desktop`（Electron 独占，**别动**）；`web`（开发沙盒，`dsh-sdt` 以 `link:` 指向本仓库 `plugin/`，改码即生效，刷新页面重载） |
 | 内置 Node / pnpm | `C:\DSH\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe`（v24.21.0）/ 同目录 `pnpm\bin\pnpm.mjs` |
 | dsh CLI | `C:\DSH\resources\runtime\cli\bin\dsh.cmd`（`0.2.2-rc.1`） |
 | 用户配置 | `C:\DSH\.dsh\sdt\sdt.config.json` |
@@ -103,9 +106,12 @@ plugin/
 | 品牌字标（M3） | ✅ | `sidebar.brand.mark` 注册自绘 SVG，侧栏显示「菱形 + SDT」 |
 | 深色切换 | ✅ | 必须走 `theme.setTheme('dark')`；写 inline 会被宿主 publish 覆盖 |
 | 配置校验 | ✅ | 非法 token 值被丢弃并给 warning（不拖垮整体） |
+| L3 间距/几何 | ✅ | clearance 20px、卡片最大宽 +48px；944/980/1423 无溢出（`DENSITY.md`） |
+| M4 只读信息卡 | ✅ | 设置 → 通用设置底部：版本 / token / 来源 / 目录 |
+| M5 图标替换 | ❌ **负结论** | `ctx.theme` 13 个方法无 icon 接口；无稳定图标锚点 → 降级（D30） |
 
-**已知未做**：L3 密度体系、图标替换（M5）、设置分区（M4）、覆盖层（M1/M2）、
-开屏（M9）、壁纸/玻璃（M6）、皮肤中心（M7）、安全模式（M8）、桌面端验证。
+**已知未做**：L3 的侧栏密度与圆角体系（哈希类，无锚点）、覆盖层（M1/M2）、
+开屏（M9）、壁纸/玻璃（M6）、皮肤中心（M7）、安全模式（M8）、对话动画、桌面端验证。
 
 ---
 
@@ -162,7 +168,8 @@ plugin/
 | `stage-03-v1.2` | 默认主题首版 + 模块化矩阵 |
 | `stage-04-v1.3` | L1 133/133 + L2 语法 + 字标 |
 | `stage-05-v1.4` | 蓝青配色定版 |
-| **`stage-06-v1.5`** | **bug 修复 + 转手文档（当前）** |
+| `stage-06-v1.5` | bug 修复 + 转手文档 |
+| **`stage-07-v1.6`** | **L3 间距 + M4 只读卡 + M5 负结论（当前）** |
 
 ```powershell
 git reset --hard stage-05-v1.4      # 回退到配色定版
@@ -173,13 +180,16 @@ git log --oneline --decorate -10    # 看标签与提交
 
 ## 10. 下一步 backlog（按优先级）
 
-1. **桌面端验证**（用户主力端，目前 0 验证）：装进 `desktop` 需应用内插件管理或手动加依赖，**会重启应用**；需用户授权。
-2. **L3 密度**：88 个 `--dsh-*`（字号/行高/间距）+ 自有 `--bj-*`（圆角/阴影）；验收 980×640 不破版。
-3. **M5 图标替换**：`ICON_SYMBOLS` 里挑 12–20 个高频图标，改成青蓝单色 + 菱形底板。
-4. **M4 设置卡**：先只读（主题信息），可交互版本与安全模式一起做。
-5. **M1/M2 覆盖层与输入 dock**：点击特效（借 bafx）→ 开屏（client 优先）。
-6. **M6/M7/M8**：壁纸/玻璃、皮肤中心（`skin.json`）、安全模式。
-7. **桌面首帧**：`webserver/index-inject` 在桌面是否生效仍未验证 —— 决定开屏走哪条路。
+> v1.6 已完成：`--dsh-*` 盘点（实测 49 个）→ L3 间距、M4 只读卡、M5 负结论。
+> 剩余项如下。
+
+1. **桌面端验证**（用户主力端，目前 0 验证）：装进 `desktop` 需应用内插件管理或手动加依赖，**会重启应用**；需用户授权。同时验证 `webserver/index-inject` 是否在 Electron 生效 —— 它决定开屏走哪条路。
+2. **M1/M2 覆盖层与输入 dock**（v1.7）：`shell.overlay` + `conversation.input.dock`，点击特效优先。
+3. **M6/M7/M8**（v1.8）：壁纸/玻璃、皮肤中心（`skin.json`）、安全模式。
+4. **M9 开屏**（v1.8）：client overlay 为主，`index-inject` 作增强（取决于第 1 项结论）。
+5. **P5 对话动画**：被 B3（参考项目名）/ B4（轻量 or 重度）阻塞。
+6. **P3.5 框架化收尾**：`slots.js` 单一数据源、doctor 校验器、Agent Skill 分发、`overrides.css`。
+7. **发布准备**：双语 README、演示物料、市场元数据；`private: true` 需在首发前移除。
 
 ---
 
@@ -203,6 +213,7 @@ git log --oneline --decorate -10    # 看标签与提交
 1. 不改 `app.asar` / DSH 安装目录。
 2. 不在 `desktop` profile 做实验；要装先取得用户同意。
 3. 凭据不落盘：token 只走单次进程环境变量。
-4. 不搬 FGO 美术（TYPE-MOON 保留所有权利）；默认主题只用色值/排版/自绘 SVG/开源字体。
+4. **第三方美术（含 FGO）不入仓库、不入 npm 包**：只允许用户自放在 `$DSH_HOME/sdt/assets/` 运行时加载。
+   MIT 只覆盖自有代码与自绘素材（ADR D26/D27）；把 FGO 素材提交进仓库会同时破坏许可一致性与 npm 分发合规性。
 5. 不重定义 `--dsw-*` 语义（用 `overrideTokens` 覆盖值，不新增语义）；未暴露项走 `--bj-*`。
 6. 每个版本必须：自验证 → 写 JOURNAL → 打 `stage-NN-vX.Y` → 推送。
