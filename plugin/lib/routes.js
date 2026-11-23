@@ -1,25 +1,32 @@
 /**
  * dsh-sdt — host routes.
  *
- * 挂在 `/sdt` 前缀下，只暴露两件事：
- *   GET /sdt/config.json   配置的运行时视图（不含绝对路径）
- *   GET /sdt/asset/<name>  素材字节流（用户目录优先，内置回退）
+ * 挂在 `/sdt` 前缀下，只暴露三件事：
+ *   GET /sdt/health         存活检查
+ *   GET /sdt/config.json    配置的运行时视图（不含绝对路径）
+ *   GET /sdt/asset/<name>   素材字节流（用户目录优先，内置回退）
  *
- * 安全：`ctx.webServer.register()` 的自定义路由不继承宿主的鉴权与 Host/Origin 栅栏，
- * 所以 handler 第一件事就是 `ctx.connection.requestRejection(req)`。
+ * 安全：
+ *  - `ctx.webServer.register()` 的自定义路由**不继承**宿主的鉴权与 Host/Origin 栅栏，
+ *    所以 handler 第一件事就是 `ctx.connection.requestRejection(req)`，且异常时 fail-closed。
+ *  - 用户可上传 SVG；SVG 在同源下可执行脚本，因此对 SVG 响应加 CSP：禁止一切外部与脚本能力。
+ *  - HEAD 只回头，不回 body。
  */
 import { resolveAsset } from './assets.js';
 
-function send(res, status, body, headers = {}) {
-  const payload = Buffer.isBuffer(body) ? body : Buffer.from(JSON.stringify(body), 'utf8');
+function send(res, status, body, headers = {}, headOnly = false) {
+  const isBuffer = Buffer.isBuffer(body);
+  const payload = isBuffer ? body : Buffer.from(JSON.stringify(body), 'utf8');
   res.writeHead(status, {
-    'content-type': Buffer.isBuffer(body) ? headers['content-type'] ?? 'application/octet-stream' : 'application/json; charset=utf-8',
+    'content-type': isBuffer
+      ? headers['content-type'] ?? 'application/octet-stream'
+      : 'application/json; charset=utf-8',
     'content-length': payload.length,
     'cache-control': headers['cache-control'] ?? 'no-store',
     'x-content-type-options': 'nosniff',
     ...headers,
   });
-  res.end(payload);
+  res.end(headOnly ? undefined : payload);
 }
 
 export function createHandler({ ctx, readConfig, userAssetDir }) {
@@ -42,6 +49,7 @@ export function createHandler({ ctx, readConfig, userAssetDir }) {
   }
 
   return function handle(req, res) {
+    const headOnly = req.method === 'HEAD';
     try {
       const denied = fence(req);
       if (denied !== null) {
@@ -49,12 +57,12 @@ export function createHandler({ ctx, readConfig, userAssetDir }) {
           ok: false,
           error: denied.status === 401 ? 'unauthorized' : 'forbidden',
           detail: denied.detail,
-        });
+        }, {}, headOnly);
         return;
       }
 
       if (req.method !== 'GET' && req.method !== 'HEAD') {
-        send(res, 405, { ok: false, error: 'method_not_allowed' }, { allow: 'GET, HEAD' });
+        send(res, 405, { ok: false, error: 'method_not_allowed' }, { allow: 'GET, HEAD' }, headOnly);
         return;
       }
 
@@ -62,14 +70,14 @@ export function createHandler({ ctx, readConfig, userAssetDir }) {
       try {
         url = new URL(req.url ?? '/', 'http://127.0.0.1');
       } catch {
-        send(res, 400, { ok: false, error: 'bad_url' });
+        send(res, 400, { ok: false, error: 'bad_url' }, {}, headOnly);
         return;
       }
 
       const route = url.pathname.slice('/sdt'.length) || '/';
 
       if (route === '/health') {
-        send(res, 200, { ok: true, plugin: 'dsh-sdt', ready: true });
+        send(res, 200, { ok: true, plugin: 'dsh-sdt', ready: true }, {}, headOnly);
         return;
       }
 
@@ -78,7 +86,7 @@ export function createHandler({ ctx, readConfig, userAssetDir }) {
         try {
           snapshot = readConfig();
         } catch (error) {
-          send(res, 500, { ok: false, error: String(error) });
+          send(res, 500, { ok: false, error: String(error) }, {}, headOnly);
           return;
         }
         send(res, 200, {
@@ -87,7 +95,7 @@ export function createHandler({ ctx, readConfig, userAssetDir }) {
           warnings: snapshot.warnings ?? [],
           exists: snapshot.exists,
           error: snapshot.error,
-        });
+        }, {}, headOnly);
         return;
       }
 
@@ -95,23 +103,36 @@ export function createHandler({ ctx, readConfig, userAssetDir }) {
         const name = route.slice('/asset/'.length);
         const asset = resolveAsset(name, userAssetDir);
         if (!asset) {
-          send(res, 404, { ok: false, error: 'asset_not_found' });
+          send(res, 404, { ok: false, error: 'asset_not_found' }, {}, headOnly);
           return;
         }
-        send(res, 200, asset.body, {
+        const headers = {
           'content-type': asset.type,
           'cache-control': 'public, max-age=60',
           'x-sdt-source': asset.source,
-        });
+        };
+        if (asset.type === 'image/svg+xml') {
+          // 同源 SVG 若含脚本会在 DSH 源下执行；禁掉脚本与外链
+          headers['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'; img-src data:";
+          headers['content-disposition'] = 'inline; filename="asset.svg"';
+        }
+        send(res, 200, asset.body, headers, headOnly);
         return;
       }
 
-      send(res, 404, { ok: false, error: 'not_found' });
+      send(res, 404, { ok: false, error: 'not_found' }, {}, headOnly);
     } catch (error) {
-      // 绝不让异常逃逸：宿主会把 handler 抛错统一变成 400，无法定位
+      // 绝不让异常逃逸：宿主会把 handler 抛错统一变成 400，反而掩盖原因
       try {
-        if (!res.headersSent) send(res, 500, { ok: false, error: 'internal', detail: String(error && error.message || error) });
-        else res.destroy();
+        if (!res.headersSent) {
+          send(res, 500, {
+            ok: false,
+            error: 'internal',
+            detail: String((error && error.message) || error),
+          }, {}, headOnly);
+        } else {
+          res.destroy();
+        }
       } catch {
         res.destroy?.();
       }

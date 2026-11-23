@@ -107,11 +107,12 @@ function checkTokens(tokens, warn) {
       warn(`tokens.${name}`, '不是合法 CSS 变量名（需以 -- 开头）');
       continue;
     }
-    if (isPlainObject(value) && typeof value.light === 'string' && typeof value.dark === 'string') {
+    const safe = (v) => typeof v === 'string' && v.length > 0 && v.length <= 120 && !/[;{}<>]|url\(/i.test(v);
+    if (isPlainObject(value) && safe(value.light) && safe(value.dark)) {
       accepted[name] = { light: value.light, dark: value.dark };
       continue;
     }
-    if (typeof value === 'string') {
+    if (safe(value)) {
       accepted[name] = { light: value, dark: value };
       continue;
     }

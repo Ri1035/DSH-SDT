@@ -24,8 +24,12 @@ export const inject = ['webServer', 'connection'];
 
 function resolveDshHome(ctx) {
   if (process.env.DSH_HOME) return process.env.DSH_HOME;
-  const home = ctx.get?.('dshHome');
-  if (typeof home === 'string' && home) return home;
+  try {
+    const home = ctx.get?.('dshHome');
+    if (typeof home === 'string' && home) return home;
+  } catch {
+    // 未声明注入的服务不可访问；退回环境变量/默认目录
+  }
   return path.join(os.homedir(), '.dsh');
 }
 

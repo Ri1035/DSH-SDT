@@ -1,6 +1,6 @@
 # DSH-SDT
 
-<img alt="version" src="https://img.shields.io/badge/version-v1.4-2ea44f?style=flat-square">
+<img alt="version" src="https://img.shields.io/badge/version-v1.5-2ea44f?style=flat-square">
 <img alt="dsh" src="https://img.shields.io/badge/DSH-0.2.2--rc.1-1f6feb?style=flat-square">
 
 **DeepSeek Harness 主题插件**：提供一套默认 FGO 风格主题，并以此为探针，测量 DSH 的模块化自定义上限。
@@ -32,8 +32,8 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 |---|---|
 | v1.0 | 合同与实测基线（DSH 0.2.2-rc.1：4 条接缝、14 项 token、插件契约） |
 | v1.1 | 插件骨架：bundle / host + client 半边 / 配置与素材路由 / 14 token 生效 |
-| **v1.4** | **蓝青配色定版（对齐 FGO 语汇）+ 133/133 token + 字标 + 实机截图** |
-| 下一阶段 | v1.5：L3 密度 + 图标替换（M5）+ 设置只读卡（M4） |
+| **v1.5** | 蓝青定版 + 133/133 token + 字标；**全面 bug 修复 + 转手文档** |
+| 下一阶段 | v1.6：L3 密度 + 图标替换（M5）+ 设置只读卡（M4） |
 
 ## 文档
 
@@ -47,7 +47,8 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 | [`docs/compat-0.2.2-rc.1.md`](./docs/compat-0.2.2-rc.1.md) | 本机版本实测：接缝、token、插件契约 |
 | [`research/RESOURCES-2026-11-23.md`](./research/RESOURCES-2026-11-23.md) | 先调研：可复用参考与资源、许可判据 |
 | [`research/ECOSYSTEM-2026-11-22.md`](./research/ECOSYSTEM-2026-11-22.md) | 生态调研：规模、头部项目、机制、空位 |
-| [`AGENTS.md`](./AGENTS.md) ｜ [`HANDOFF.md`](./HANDOFF.md) | AI 协作入口 / 换设备交接 |
+| [`HANDOFF.md`](./HANDOFF.md) | **转手文档（换 Agent 先读这份）**：现状 / 环境 / 坑 / 回滚 / backlog |
+| [`AGENTS.md`](./AGENTS.md) | AI 协作入口：红线、技术框架 |
 | [`VERSION`](./VERSION) ｜ [`CHANGELOG.md`](./CHANGELOG.md) | 版本真相源与变更记录 |
 
 ## 版本规则

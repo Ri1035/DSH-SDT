@@ -1,6 +1,6 @@
 {
   "name": "dsh-sdt",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "type": "module",
   "description": "DSH-SDT (Spiritron Dress Tailoring): a DSH theme plugin with a modular appearance layer — token palette, asset routes, config file, Agent-ready inbox.",
@@ -25,7 +25,8 @@
     "cordis.patch.yml",
     "lib",
     "locale",
-    "icon.svg"
+    "icon.svg",
+    "assets"
   ],
   "dsh": {
     "bundle": {

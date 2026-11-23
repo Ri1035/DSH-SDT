@@ -283,7 +283,8 @@ body[data-ds-dark-theme]{
       inject: ["theme", "slots"],
       apply(ctx) {
         let disposeTokens = null;
-        const initial = buildPairs(DEFAULTS);
+        let currentColors = DEFAULTS;
+        const initial = buildPairs(currentColors);
         ctx.effect(() => injectStyle(buildCss(DEFAULTS)));
         ctx.effect(() => () => { if (typeof disposeTokens === "function") disposeTokens(); });
 
@@ -310,6 +311,7 @@ body[data-ds-dark-theme]{
           .then((payload) => {
             if (!payload || !payload.config) return;
             const colors = { ...DEFAULTS, ...(payload.config.colors || {}) };
+            currentColors = colors;
             const built = buildPairs(colors);
             const mode = (payload.config.appearance && payload.config.appearance.mode) || 'auto';
             if (mode === 'dark' || mode === 'light') {
@@ -342,8 +344,9 @@ body[data-ds-dark-theme]{
 
         // 样式表按需注入：稍后再扫几次，发现新变量就重算
         let lastCount = initial.stats.total;
-        const rescan = (delay) => setTimeout(() => {
-          const built = buildPairs(DEFAULTS);
+        const timers = [];
+        const rescan = (delay) => timers.push(setTimeout(() => {
+          const built = buildPairs(currentColors);
           if (built.stats.total > lastCount) {
             lastCount = built.stats.total;
             try {
@@ -352,9 +355,10 @@ body[data-ds-dark-theme]{
               window.__sdtDebug = { version: VERSION, mapped: built.stats.mapped, total: built.stats.total, skipped: built.stats.skipped };
             } catch {}
           }
-        }, delay);
+        }, delay));
         rescan(1200);
         rescan(3200);
+        ctx.effect(() => () => timers.forEach((id) => clearTimeout(id)));
       },
     };
   },
