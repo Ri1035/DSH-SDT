@@ -38,6 +38,7 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 
 | 文件 | 作用 |
 |---|---|
+| [`docs/PLAN-2026-11-23.md`](./docs/PLAN-2026-11-23.md) | **方案书**：能力分层、复用清单、版本计划、明确不做 |
 | [`docs/MODULARITY.md`](./docs/MODULARITY.md) | **能力矩阵与不可改红线**（项目核心结论） |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md) | 阶段计划、版本映射、验收与回滚规则 |
 | [`docs/JOURNAL.md`](./docs/JOURNAL.md) | 工作日志（每次交付 / 自验证 / 阶段标记） |
