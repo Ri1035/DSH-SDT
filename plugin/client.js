@@ -39,9 +39,12 @@ window.__ModuleLoader__.load({
     const BASELINE_TOKENS = ["--dsw-alias-bg-base", "--dsw-alias-bg-document-preview", "--dsw-alias-bg-document-selection", "--dsw-alias-bg-l1", "--dsw-alias-bg-layer-1", "--dsw-alias-bg-layer-2", "--dsw-alias-bg-layer-3", "--dsw-alias-bg-layer-4", "--dsw-alias-bg-mask-1", "--dsw-alias-bg-mask-2", "--dsw-alias-bg-mask-3", "--dsw-alias-bg-mask-drop", "--dsw-alias-bg-mask-photo", "--dsw-alias-bg-module-platform", "--dsw-alias-bg-multi-select", "--dsw-alias-bg-overlay", "--dsw-alias-bg-skeleton", "--dsw-alias-border-inverted", "--dsw-alias-border-inverted2", "--dsw-alias-border-l1", "--dsw-alias-border-l2", "--dsw-alias-border-l2-darkmode-thin", "--dsw-alias-border-l3", "--dsw-alias-border-l4", "--dsw-alias-brand-primary", "--dsw-alias-brand-primary-invert", "--dsw-alias-brand-primary-new-colorprimary-new-color", "--dsw-alias-brand-text", "--dsw-alias-button-contrast-fill", "--dsw-alias-button-elevated-fill", "--dsw-alias-button-floating-fill", "--dsw-alias-button-floating-hover", "--dsw-alias-button-ghost-active-border", "--dsw-alias-button-ghost-active-fill", "--dsw-alias-button-ghost-active-hover", "--dsw-alias-button-info-fill", "--dsw-alias-button-info-hover", "--dsw-alias-button-primary-dimmed", "--dsw-alias-button-primary-fill", "--dsw-alias-button-primary-hover", "--dsw-alias-button-tool-bar-fill", "--dsw-alias-button-tool-bar-fill-invisible", "--dsw-alias-button-tool-bar-hover", "--dsw-alias-code-diff-added", "--dsw-alias-code-diff-deleted", "--dsw-alias-file-diff-added-bg", "--dsw-alias-file-diff-added-gutter", "--dsw-alias-file-diff-added-marker", "--dsw-alias-file-diff-deleted-bg", "--dsw-alias-file-diff-deleted-gutter", "--dsw-alias-file-diff-deleted-marker", "--dsw-alias-fill-l1", "--dsw-alias-fill-l2", "--dsw-alias-fill-tertiary", "--dsw-alias-fill-tsp-secondary", "--dsw-alias-illustration-background", "--dsw-alias-illustration-backing", "--dsw-alias-illustration-detail", "--dsw-alias-illustration-inset", "--dsw-alias-illustration-shadow", "--dsw-alias-illustration-surface", "--dsw-alias-interactive-bg-active", "--dsw-alias-interactive-bg-hover", "--dsw-alias-interactive-bg-hover-accent", "--dsw-alias-interactive-bg-hover-danger", "--dsw-alias-interactive-bg-hover-solid", "--dsw-alias-label-caption", "--dsw-alias-label-deep-diving", "--dsw-alias-label-deep-diving-shimmer", "--dsw-alias-label-dimmed", "--dsw-alias-label-document-preview", "--dsw-alias-label-error", "--dsw-alias-label-primary", "--dsw-alias-label-primary-bluish", "--dsw-alias-label-primary-dimmed", "--dsw-alias-label-primary-foreground", "--dsw-alias-label-primary-inverted", "--dsw-alias-label-quaternary", "--dsw-alias-label-secondary", "--dsw-alias-label-shimmer", "--dsw-alias-label-tertiary", "--dsw-alias-link", "--dsw-alias-markdown-citation", "--dsw-alias-markdown-code-block", "--dsw-alias-markdown-code-block-banner", "--dsw-alias-markdown-code-segment-selected", "--dsw-alias-markdown-code-segment-unselected", "--dsw-alias-markdown-inline-code", "--dsw-alias-markdown-placeholder", "--dsw-alias-markdown-tag", "--dsw-alias-menu-group-header-fill", "--dsw-alias-menu-icon", "--dsw-alias-onboarding-accent", "--dsw-alias-onboarding-card-fill", "--dsw-alias-onboarding-checkbox-border", "--dsw-alias-onboarding-secondary-fill", "--dsw-alias-scrollbar-bg-l1", "--dsw-alias-scrollbar-bg-l2", "--dsw-alias-scrollbar-hover-l1", "--dsw-alias-scrollbar-hover-l2", "--dsw-alias-separator-primary", "--dsw-alias-settings-card-fill", "--dsw-alias-settings-card-stroke", "--dsw-alias-state-business-primary", "--dsw-alias-state-business-tertiary", "--dsw-alias-state-done-primary", "--dsw-alias-state-error-primary", "--dsw-alias-state-error-secondary", "--dsw-alias-state-idle-primary", "--dsw-alias-state-success-primary", "--dsw-alias-state-success-secondary", "--dsw-alias-state-success-tertiary", "--dsw-alias-state-warn-label", "--dsw-alias-state-warn-primary", "--dsw-alias-state-warn-secondary", "--dsw-alias-state-warn-tertiary", "--dsw-alias-switch-thumb", "--dsw-alias-toast-bg", "--dsw-alias-toast-label", "--dsw-alias-tooltip-bg", "--dsw-alias-tooltip-key-bg", "--dsw-alias-turn-trigger-bg", "--dsw-alias-turn-trigger-bg-hover", "--dsw-specific-bubble", "--dsw-specific-bubble-highlight", "--dsw-specific-input-major", "--dsw-specific-login-input", "--dsw-specific-menu", "--dsw-specific-selector", "--dsw-specific-sidebar-fill", "--dsw-specific-sidebar-nav-item-active", "--dsw-specific-sidebar-nav-item-active-accent", "--dsw-specific-tip"];
 
     const DEFAULTS = {
-      brand: "#c8a24a", accent: "#a3262f",
-      bgLight: "#f7f3ea", bgDark: "#0d1117",
-      inkLight: "#231f19", inkDark: "#e9e6df",
+      brand: "#37a3d6",        // 青蓝主色（截图里的按钮描边 / 高亮）
+      accent: "#1f6fa8",       // 深蓝（悬停 / 次级强调）
+      bgLight: "#eef6fb",      // 冰蓝白
+      bgDark: "#0a1626",       // 深海军蓝
+      inkLight: "#0f1b26",
+      inkDark: "#dbeaf5",
     };
 
     /* ---------------- 语义调色板（明/暗各一份） ---------------- */
@@ -113,10 +116,9 @@ window.__ModuleLoader__.load({
       }
       if (n.startsWith("button-")) {
         if (has("contrast")) return "ink";
-        if (has("info")) return "accentSoft";
-        if (has("hover", "active")) return "layer3";
         if (has("invisible", "ghost")) return "overlay";
-        return "layer2";
+        if (has("hover", "active")) return "brandSoft";
+        return "brandSoft";
       }
       if (n.startsWith("code-diff") || n.startsWith("file-diff")) {
         if (has("added")) return "success";
@@ -221,8 +223,9 @@ window.__ModuleLoader__.load({
       const p = palette(colors, "dark");
       return `:root{
   --bj-gold: ${colors.brand};
-  --bj-gold-line: ${rgba(colors.brand, 0.55)};
-  --bj-gold-glow: ${rgba(colors.brand, 0.18)};
+  --bj-gold-line: ${rgba(colors.brand, 0.45)};
+  --bj-gold-glow: ${rgba(colors.brand, 0.16)};
+  --bj-frame-line: ${rgba(colors.accent, 0.35)};
   --bj-accent: ${colors.accent};
   --bj-radius-card: 10px;
   --bj-radius-control: 6px;
@@ -235,8 +238,8 @@ window.__ModuleLoader__.load({
 /* G6 菱格底纹（仅深色） */
 body[data-ds-dark-theme]{
   background-image:
-    repeating-linear-gradient(45deg, ${rgba(colors.brand, 0.05)} 0 1px, transparent 1px 18px),
-    repeating-linear-gradient(-45deg, ${rgba(colors.brand, 0.05)} 0 1px, transparent 1px 18px);
+    repeating-linear-gradient(45deg, ${rgba(colors.brand, 0.09)} 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(-45deg, ${rgba(colors.brand, 0.09)} 0 1px, transparent 1px 22px);
   background-attachment: fixed;
 }
 /* G2 金色发丝线：只在稳定锚点上加边框，不动尺寸 */

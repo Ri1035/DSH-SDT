@@ -1,12 +1,12 @@
 {
   "version": 1,
   "colors": {
-    "brand": "#c8a24a",
-    "accent": "#a3262f",
-    "bgLight": "#f7f3ea",
-    "bgDark": "#0d1117",
-    "inkLight": "#231f19",
-    "inkDark": "#e9e6df"
+    "brand": "#37a3d6",
+    "accent": "#1f6fa8",
+    "bgLight": "#eef6fb",
+    "bgDark": "#0a1626",
+    "inkLight": "#0f1b26",
+    "inkDark": "#dbeaf5"
   },
   "tokens": {},
   "motion": {
