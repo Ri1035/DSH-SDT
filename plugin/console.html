@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-mode="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSH-SDT 控制台</title>
+<style>
+  :root{
+    --bg:#eef6fb; --fg:#0f1b26; --muted:#5c7385; --line:rgba(15,27,38,.14);
+    --card:#ffffff; --card-2:#f6fafd; --brand:#37a3d6; --accent:#1f6fa8;
+    --ok:#2f7d5d; --ok-bg:rgba(47,125,93,.12);
+    --warn:#9a6b12; --warn-bg:rgba(180,123,34,.14);
+    --bad:#a33a3a; --bad-bg:rgba(163,58,58,.12);
+    --idle:#5c7385; --idle-bg:rgba(92,115,133,.12);
+    --radius:12px; --shadow:0 1px 2px rgba(15,27,38,.06), 0 12px 32px rgba(15,27,38,.08);
+  }
+  html[data-mode="dark"]{
+    --bg:#0a1626; --fg:#dbeaf5; --muted:#8fa8bd; --line:rgba(219,234,245,.16);
+    --card:#0f2033; --card-2:#122740; --brand:#4faedb; --accent:#7cc4e8;
+    --ok:#6fc39a; --ok-bg:rgba(111,195,154,.14);
+    --warn:#e0b062; --warn-bg:rgba(224,176,98,.14);
+    --bad:#e08b8b; --bad-bg:rgba(224,139,139,.14);
+    --idle:#8fa8bd; --idle-bg:rgba(143,168,189,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 16px 40px rgba(0,0,0,.35);
+  }
+  html{color-scheme:light}
+  html[data-mode="dark"]{color-scheme:dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.6;font-size:14px}
+  a{color:var(--accent)}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 80px}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand svg{width:34px;height:22px;flex:none}
+  h1{font-size:20px;margin:0;letter-spacing:.02em;font-family:"Noto Serif SC","Songti SC",Georgia,serif;font-weight:600}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button{font:inherit;color:var(--fg);background-color:var(--card);border:1px solid var(--line);
+    border-radius:8px;padding:7px 12px;cursor:pointer;appearance:none;-webkit-appearance:none;
+    transition:border-color .15s ease,background-color .15s ease}
+  button:hover{border-color:var(--brand)}
+  button.ghost{background-color:transparent}
+  .btn{display:inline-flex;align-items:center;gap:6px;font:inherit;color:var(--fg);
+    background-color:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 12px;
+    cursor:pointer;user-select:none}
+  .btn:hover{border-color:var(--brand)}
+  .btn.ghost{background-color:transparent}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:26px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+  .kpi .k{color:var(--muted);font-size:12px;letter-spacing:.06em}
+  .kpi .v{font-size:22px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+  .kpi .n{color:var(--muted);font-size:11.5px;margin-top:2px}
+  nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:0 -24px 26px;padding:8px 24px;
+    display:flex;gap:6px;flex-wrap:wrap}
+  nav a{color:var(--muted);text-decoration:none;font-size:12.5px;padding:6px 10px;border-radius:7px}
+  nav a:hover{color:var(--fg);background:var(--card)}
+  section{margin-bottom:36px;scroll-margin-top:56px}
+  h2{font-size:15px;margin:0 0 4px;letter-spacing:.02em}
+  .hint{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+  .card h3{margin:0;font-size:14px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .card .id{color:var(--muted);font-size:11.5px;letter-spacing:.08em}
+  .chip{font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap;font-weight:500}
+  .chip.done{color:var(--ok);background:var(--ok-bg)}
+  .chip.partial{color:var(--warn);background:var(--warn-bg)}
+  .chip.planned{color:var(--idle);background:var(--idle-bg)}
+  .chip.blocked,.chip.no-seam,.chip.unverified{color:var(--bad);background:var(--bad-bg)}
+  .meta{font-size:12.5px;color:var(--muted)}
+  .meta b{color:var(--fg);font-weight:500}
+  .ph{border:1px dashed var(--line);border-radius:10px;background:var(--card-2);
+    min-height:74px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    color:var(--muted);font-size:12px;text-align:center;padding:10px}
+  .ph .lock{font-size:11px;letter-spacing:.1em}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .filters button{font-size:12px;padding:5px 10px;border-radius:999px}
+  .filters button[aria-pressed="true"]{border-color:var(--brand);color:var(--brand);background:var(--ok-bg)}
+  .swatches{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+  .sw{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+  .sw .c{height:52px}
+  .sw .l{padding:7px 9px;font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+  .sw .l code{color:var(--fg);font-size:11px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+  .check{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);
+    border-radius:9px;padding:9px 11px;background:var(--card-2);font-size:12.5px}
+  .check .code{font-variant-numeric:tabular-nums;font-weight:600}
+  .road{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .ver{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card)}
+  .ver .v{font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .ver ul{margin:6px 0 0;padding-left:16px;color:var(--muted);font-size:12px}
+  .ver.wip{border-color:var(--brand)}
+  .blockers{display:flex;flex-direction:column;gap:8px}
+  .blocker{display:flex;gap:10px;align-items:flex-start;border-left:3px solid var(--warn);padding:8px 12px;background:var(--card)}
+  .foot{color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .empty{color:var(--muted);font-size:13px;padding:14px;border:1px dashed var(--line);border-radius:10px}
+  @media (max-width:640px){ .wrap{padding:18px 14px 60px} nav{margin:0 -14px 18px;padding:8px 14px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 44 20" aria-hidden="true"><path d="M6 2 L12 10 L6 18 L0 10 Z" fill="var(--brand)"/><text x="18" y="14" fill="var(--brand)" font-family="Georgia,serif" font-size="10" letter-spacing="1.4">SDT</text></svg>
+      <div>
+        <h1>DSH-SDT 控制台</h1>
+        <div class="sub" id="sub">正在读取插件状态…</div>
+      </div>
+    </div>
+    <div class="actions">
+      <span id="modeBtn" class="btn ghost" role="button" tabindex="0">切换深色预览</span>
+      <span id="reloadBtn" class="btn" role="button" tabindex="0">刷新数据</span>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <nav>
+    <a href="#overview">概览</a>
+    <a href="#theme">主题</a>
+    <a href="#matrix">功能矩阵</a>
+    <a href="#roadmap">路线图</a>
+    <a href="#checks">自检</a>
+  </nav>
+
+  <section id="overview">
+    <h2>概览</h2>
+    <p class="hint">能测量的用真实接口，测不了的标「上次验证版本」，不写成实时值。</p>
+    <div class="grid" id="overviewGrid"></div>
+  </section>
+
+  <section id="theme">
+    <h2>主题</h2>
+    <p class="hint">来自 <code>/sdt/config.json</code>。切换右上角预览只影响本页，不改 DSH 配置。</p>
+    <div class="panel" style="margin-bottom:12px">
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>内置 logo <span class="chip done">已接线</span></h3>
+        <div class="ph" style="border-style:solid;background:transparent;min-height:96px">
+          <img id="logo" alt="logo" src="/sdt/asset/logo.svg" style="max-height:64px;max-width:70%">
+        </div>
+        <div class="meta">来源 <b id="logoSource">—</b>；用户目录优先，缺失回退内置。</div>
+      </div>
+      <div class="card">
+        <h3>字体 <span class="chip partial">部分</span></h3>
+        <div class="meta">正文：<b>Noto Serif SC / Songti SC</b>（系统栈）</div>
+        <div class="meta">代码：<b>JetBrains Mono / Consolas</b></div>
+        <div class="ph"><span class="lock">占位</span><span>自有 .woff2 字体待接入（B1）</span></div>
+      </div>
+      <div class="card">
+        <h3>字号 <span class="chip planned">归宿主</span></h3>
+        <div class="meta">宿主内联设置 <b>--dsh-content-font-size</b>，对应设置页「字号大小」。</div>
+        <div class="ph"><span class="lock">占位</span><span>插件不覆盖字号，避免与用户偏好抢写</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="matrix">
+    <h2>功能矩阵</h2>
+    <p class="hint">占位卡片表示「有位置、没实现」，不是可用功能。状态与证据来自 <code>features.json</code>。</p>
+    <div class="filters" id="filters"></div>
+    <div class="grid" id="modules"></div>
+  </section>
+
+  <section id="roadmap">
+    <h2>路线图</h2>
+    <p class="hint">版本按 <code>vX.Y</code>，逢 10 进 1；每个版本必须有自验证与回滚标记。</p>
+    <div class="road" id="road"></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">阻塞项</h3>
+    <div class="blockers" id="blockers"></div>
+  </section>
+
+  <section id="checks">
+    <h2>自检</h2>
+    <p class="hint">浏览器内直接请求插件路由；401 表示栅栏正常（本页已带 cookie，正常应为 200）。</p>
+    <div class="panel">
+      <div class="checks" id="checksGrid"></div>
+      <div style="margin-top:12px"><button id="runChecks" type="button">重跑自检</button></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>DSH-SDT · 控制台 · 数据只读，不写配置</span>
+    <span>文档：docs/DENSITY.md · docs/MODULARITY.md · HANDOFF.md</span>
+  </div>
+</div>
+
+<script>
+(function () {
+  var state = { features: null, config: null, configExists: false, warnings: [], health: null, mode: "light", filter: "all" };
+  try {
+    if (new URLSearchParams(location.search).get("mode") === "dark") state.mode = "dark";
+  } catch (e) {}
+  var STATUS = {
+    done: "已交付", partial: "部分", planned: "占位", blocked: "阻塞",
+    "no-seam": "无接缝", unverified: "未验证", wip: "进行中"
+  };
+  var STATUS_CLASS = {
+    done: "done", partial: "partial", planned: "planned", blocked: "blocked",
+    "no-seam": "no-seam", unverified: "unverified", wip: "partial"
+  };
+
+  function hexToRgb(hex) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim());
+    if (!m) return { r: 0, g: 0, b: 0 };
+    var n = parseInt(m[1], 16);
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  }
+  function mix(a, b, t) {
+    var x = hexToRgb(a), y = hexToRgb(b);
+    function c(v) { return Math.max(0, Math.min(255, Math.round(v))); }
+    return "#" + [c(x.r + (y.r - x.r) * t), c(x.g + (y.g - x.g) * t), c(x.b + (y.b - x.b) * t)]
+      .map(function (v) { return v.toString(16).padStart(2, "0"); }).join("");
+  }
+  function applyPalette() {
+    var c = (state.config && state.config.colors) || {};
+    var dark = state.mode === "dark";
+    var base = dark ? (c.bgDark || "#0a1626") : (c.bgLight || "#eef6fb");
+    var ink = dark ? (c.inkDark || "#dbeaf5") : (c.inkLight || "#0f1b26");
+    var brand = c.brand || "#37a3d6";
+    var root = document.documentElement;
+    root.dataset.mode = state.mode;
+    root.style.setProperty("--bg", base);
+    root.style.setProperty("--fg", ink);
+    root.style.setProperty("--muted", mix(ink, base, dark ? .42 : .52));
+    root.style.setProperty("--line", mix(base, ink, dark ? .2 : .16));
+    root.style.setProperty("--card", mix(base, ink, dark ? .05 : .025));
+    root.style.setProperty("--card-2", mix(base, ink, dark ? .08 : .04));
+    root.style.setProperty("--brand", dark ? mix(brand, "#ffffff", .12) : brand);
+    root.style.setProperty("--accent", c.accent || "#1f6fa8");
+  }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function chip(status) {
+    var s = el("span", "chip " + (STATUS_CLASS[status] || "planned"), STATUS[status] || status);
+    return s;
+  }
+  function getJSON(url) {
+    return fetch(url, { credentials: "same-origin" }).then(function (r) {
+      if (!r.ok) throw new Error(url + " → " + r.status);
+      return r.json();
+    });
+  }
+  function renderKpis() {
+    var host = document.getElementById("kpis");
+    host.innerHTML = "";
+    var stats = (state.features && state.features.stats) || {};
+    var tokens = stats.tokens || {};
+    var items = [
+      { k: "插件版本", v: (state.health && state.health.version) || "—", n: (state.health && state.health.plugin) || "dsh-sdt" },
+      { k: "Token 覆盖", v: (tokens.mapped || "?") + " / " + (tokens.total || "?"), n: "上次验证 " + (tokens.verifiedIn || "—") },
+      { k: "配置来源", v: (state.configExists ? "文件" : "默认"), n: state.warnings.length ? state.warnings.length + " 条告警" : "无告警" },
+      { k: "桌面端", v: "未验证", n: "desktop profile 从未安装" }
+    ];
+    items.forEach(function (it) {
+      var d = el("div", "kpi");
+      d.appendChild(el("div", "k", it.k));
+      d.appendChild(el("div", "v", it.v));
+      d.appendChild(el("div", "n", it.n));
+      host.appendChild(d);
+    });
+  }
+  function renderOverview() {
+    var host = document.getElementById("overviewGrid");
+    host.innerHTML = "";
+    var layers = (state.features && state.features.layers) || [];
+    layers.forEach(function (l) {
+      var d = el("div", "card");
+      var h = el("h3");
+      h.appendChild(el("span", null, l.id + " · " + l.name));
+      h.appendChild(chip(l.status));
+      d.appendChild(h);
+      d.appendChild(el("div", "meta", l.detail || ""));
+      d.appendChild(el("div", "meta", "证据：" + (l.evidence || "—")));
+      host.appendChild(d);
+    });
+  }
+  function renderSwatches() {
+    var host = document.getElementById("swatches");
+    host.innerHTML = "";
+    var c = (state.config && state.config.colors) || {};
+    var keys = [
+      ["brand", "主色"], ["accent", "强调"], ["bgLight", "浅色底"],
+      ["bgDark", "深色底"], ["inkLight", "浅色字"], ["inkDark", "深色字"]
+    ];
+    keys.forEach(function (pair) {
+      var box = el("div", "sw");
+      var top = el("div", "c");
+      top.style.background = c[pair[0]] || "#888";
+      var bottom = el("div", "l");
+      bottom.appendChild(el("span", null, pair[1]));
+      var code = el("code", null, c[pair[0]] || "—");
+      bottom.appendChild(code);
+      box.appendChild(top); box.appendChild(bottom);
+      host.appendChild(box);
+    });
+  }
+  function renderFilters() {
+    var host = document.getElementById("filters");
+    host.innerHTML = "";
+    var defs = [["all", "全部"], ["done", "已交付"], ["partial", "部分"], ["planned", "占位"], ["blocked", "阻塞/无接缝"]];
+    defs.forEach(function (d) {
+      var b = el("button", null, d[1]);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(state.filter === d[0]));
+      b.addEventListener("click", function () { state.filter = d[0]; renderFilters(); renderModules(); });
+      host.appendChild(b);
+    });
+  }
+  function matchFilter(m) {
+    if (state.filter === "all") return true;
+    if (state.filter === "blocked") return m.status === "blocked" || m.status === "no-seam" || m.status === "unverified";
+    return m.status === state.filter;
+  }
+  function renderModules() {
+    var host = document.getElementById("modules");
+    host.innerHTML = "";
+    var list = ((state.features && state.features.modules) || []).filter(matchFilter);
+    if (!list.length) { host.appendChild(el("div", "empty", "该筛选下没有条目。")); return; }
+    list.forEach(function (m) {
+      var d = el("div", "card");
+      var h = el("h3");
+      var title = el("span", null, m.id + " · " + m.name);
+      h.appendChild(title);
+      h.appendChild(chip(m.status));
+      d.appendChild(h);
+      d.appendChild(el("div", "meta", m.detail || ""));
+      var seam = el("div", "meta", "接缝：");
+      seam.appendChild(el("b", null, m.seam || "—"));
+      d.appendChild(seam);
+      d.appendChild(el("div", "meta", "证据：" + (m.evidence || "—") + (m.since ? " · " + m.since : "")));
+      if (m.placeholder) {
+        var ph = el("div", "ph");
+        ph.appendChild(el("span", "lock", m.status === "no-seam" ? "无接缝" : "占位"));
+        ph.appendChild(el("span", null, m.placeholderNote || "尚未接线"));
+        d.appendChild(ph);
+      }
+      host.appendChild(d);
+    });
+  }
+  function renderRoad() {
+    var host = document.getElementById("road");
+    host.innerHTML = "";
+    ((state.features && state.features.roadmap) || []).forEach(function (v) {
+      var d = el("div", "ver" + (v.status === "wip" ? " wip" : ""));
+      var top = el("div", "v");
+      top.appendChild(el("span", null, v.version));
+      top.appendChild(chip(v.status));
+      d.appendChild(top);
+      var ul = el("ul");
+      (v.items || []).forEach(function (i) { ul.appendChild(el("li", null, i)); });
+      d.appendChild(ul);
+      host.appendChild(d);
+    });
+    var bh = document.getElementById("blockers");
+    bh.innerHTML = "";
+    ((state.features && state.features.blockers) || []).forEach(function (b) {
+      var row = el("div", "blocker");
+      row.appendChild(el("b", null, b.id));
+      row.appendChild(el("span", null, b.text + "（影响 " + b.affects + "）"));
+      bh.appendChild(row);
+    });
+  }
+  function runChecks() {
+    var defs = [
+      ["/sdt/health", "health"],
+      ["/sdt/config.json", "config"],
+      ["/sdt/features.json", "features"],
+      ["/sdt/asset/logo.svg", "asset"]
+    ];
+    var host = document.getElementById("checksGrid");
+    host.innerHTML = "";
+    defs.forEach(function (d) {
+      var row = el("div", "check");
+      row.appendChild(el("span", null, d[1]));
+      var code = el("span", "code", "…");
+      row.appendChild(code);
+      host.appendChild(row);
+      fetch(d[0], { credentials: "same-origin", method: "GET" })
+        .then(function (r) { code.textContent = String(r.status); code.style.color = r.ok ? "var(--ok)" : "var(--bad)"; })
+        .catch(function () { code.textContent = "ERR"; code.style.color = "var(--bad)"; });
+    });
+  }
+  function renderAll() {
+    applyPalette();
+    renderKpis();
+    renderOverview();
+    renderSwatches();
+    renderFilters();
+    renderModules();
+    renderRoad();
+    var sub = document.getElementById("sub");
+    var v = (state.health && state.health.version) || "?";
+    var src = state.configExists ? "sdt.config.json" : "内置默认";
+    sub.textContent = "v" + v + " · 来源 " + src + " · 更新 " + new Date().toLocaleString("zh-CN", { hour12: false });
+    var logoSource = document.getElementById("logoSource");
+    if (logoSource) {
+      var logo = document.getElementById("logo");
+      if (logo) logo.src = "/sdt/asset/logo.svg?t=" + Date.now();
+      fetch("/sdt/asset/logo.svg", { method: "HEAD", credentials: "same-origin" })
+        .then(function (r) { logoSource.textContent = r.headers.get("x-sdt-source") === "user" ? "用户目录" : "内置"; })
+        .catch(function () { logoSource.textContent = "未知"; });
+    }
+    var modeBtn = document.getElementById("modeBtn");
+    if (modeBtn) modeBtn.textContent = state.mode === "dark" ? "切换浅色预览" : "切换深色预览";
+  }
+  function load() {
+    Promise.all([
+      getJSON("/sdt/features.json").catch(function () { return null; }),
+      getJSON("/sdt/config.json").catch(function () { return null; }),
+      getJSON("/sdt/health").catch(function () { return null; })
+    ]).then(function (r) {
+      var payload = r[1];
+      state.features = r[0];
+      state.config = payload && payload.config ? payload.config : null;
+      state.configExists = !!(payload && payload.exists);
+      state.warnings = (payload && payload.warnings) || [];
+      state.health = r[2];
+      if (!state.features) {
+        document.getElementById("modules").appendChild(el("div", "empty", "features.json 读取失败：检查插件版本或路由。"));
+      }
+      renderAll();
+      runChecks();
+    });
+  }
+  document.getElementById("modeBtn").addEventListener("click", function () {
+    state.mode = state.mode === "dark" ? "light" : "dark";
+    this.textContent = state.mode === "dark" ? "切换浅色预览" : "切换深色预览";
+    applyPalette();
+  });
+  document.getElementById("reloadBtn").addEventListener("click", load);
+  document.getElementById("runChecks").addEventListener("click", runChecks);
+  load();
+})();
+</script>
+</body>
+</html>

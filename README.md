@@ -1,6 +1,6 @@
 # DSH-SDT
 
-<img alt="version" src="https://img.shields.io/badge/version-v1.6-2ea44f?style=flat-square">
+<img alt="version" src="https://img.shields.io/badge/version-v1.7-2ea44f?style=flat-square">
 <img alt="dsh" src="https://img.shields.io/badge/DSH-0.2.2--rc.1-1f6feb?style=flat-square">
 
 **DeepSeek Harness 主题插件**：提供一套默认 FGO 风格主题，并以此为探针，测量 DSH 的模块化自定义上限。
@@ -28,6 +28,17 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 
 装完打开界面即为默认主题；改配色只动 `sdt.config.json`，不用改代码。
 
+## 控制台
+
+访问 `http://127.0.0.1:<port>/sdt/console`（先用 `/?token=` 换 cookie；加 `?mode=dark` 看深色）：
+
+- 实时数据：版本、配置来源、路由自检（health / config / features / asset）；
+- 主题：6 个基准色与色值、logo 来源；
+- **功能矩阵**：13 张卡（M1–M10 / P3 / P5 / P7），已交付 / 部分 / 占位 / 无接缝 / 未验证一目了然；
+- 占位块只说明「待 vX.Y 接线」，不含假开关；页面只读，不写配置。
+
+功能清单的单一数据源是 `plugin/features.json`，控制台与文档共用。
+
 ## 当前状态
 
 | 版本 | 内容 |
@@ -38,7 +49,8 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 | v1.4 | 蓝青定版（深海军蓝 + 青蓝，对齐 FGO 界面语汇） |
 | **v1.5** | 稳定化：6 个 bug 修复 + 转手文档 + 文档基线校正 |
 | **v1.6** | L3 间距/几何 + M4 只读信息卡 + M5 负结论（无图标接缝） |
-| 下一阶段 | v1.7：M1/M2 覆盖层与输入 dock + **桌面端首验** |
+| **v1.7** | 插件控制台 `/sdt/console` + 功能矩阵占位 + `features.json` 单一数据源 |
+| 下一阶段 | v1.8：M1/M2 覆盖层与输入 dock + **桌面端首验** |
 
 **验证范围（重要）**：全部能力只在 `web` profile 实测；**桌面端（Electron）从未安装、未测试**。
 桌面端是用户主力端，安装验证需要授权（会重启应用），见 `HANDOFF.md` §10。

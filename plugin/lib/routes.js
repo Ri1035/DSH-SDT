@@ -12,7 +12,44 @@
  *  - 用户可上传 SVG；SVG 在同源下可执行脚本，因此对 SVG 响应加 CSP：禁止一切外部与脚本能力。
  *  - HEAD 只回头，不回 body。
  */
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { resolveAsset } from './assets.js';
+
+const PLUGIN_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+
+/** 读插件自身文件（console.html / features.json / package.json），失败返回 null。 */
+function readPluginFile(name) {
+  try {
+    return fs.readFileSync(path.join(PLUGIN_ROOT, name));
+  } catch {
+    return null;
+  }
+}
+
+function pluginVersion() {
+  const raw = readPluginFile('package.json');
+  if (!raw) return '0.0.0';
+  try {
+    return JSON.parse(raw.toString('utf8')).version || '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
+/** console 页面的 CSP：只允许自身资源与内联样式/脚本（本页无外部依赖）。 */
+const CONSOLE_CSP = [
+  "default-src 'self'",
+  "img-src 'self' data:",
+  "style-src 'unsafe-inline'",
+  "script-src 'unsafe-inline'",
+  "connect-src 'self'",
+  "base-uri 'none'",
+  "form-action 'none'",
+].join('; ');
+
+const VERSION = pluginVersion();
 
 function send(res, status, body, headers = {}, headOnly = false) {
   const isBuffer = Buffer.isBuffer(body);
@@ -77,7 +114,38 @@ export function createHandler({ ctx, readConfig, userAssetDir }) {
       const route = url.pathname.slice('/sdt'.length) || '/';
 
       if (route === '/health') {
-        send(res, 200, { ok: true, plugin: 'dsh-sdt', ready: true }, {}, headOnly);
+        send(res, 200, { ok: true, plugin: 'dsh-sdt', version: VERSION, ready: true }, {}, headOnly);
+        return;
+      }
+
+      if (route === '/console' || route === '/console/') {
+        const html = readPluginFile('console.html');
+        if (!html) {
+          send(res, 404, { ok: false, error: 'console_not_found' }, {}, headOnly);
+          return;
+        }
+        send(res, 200, html, {
+          'content-type': 'text/html; charset=utf-8',
+          'content-security-policy': CONSOLE_CSP,
+          'cache-control': 'no-store',
+        }, headOnly);
+        return;
+      }
+
+      if (route === '/features.json') {
+        const raw = readPluginFile('features.json');
+        if (!raw) {
+          send(res, 404, { ok: false, error: 'features_not_found' }, {}, headOnly);
+          return;
+        }
+        let parsed;
+        try {
+          parsed = JSON.parse(raw.toString('utf8'));
+        } catch (error) {
+          send(res, 500, { ok: false, error: 'features_invalid', detail: String(error && error.message) }, {}, headOnly);
+          return;
+        }
+        send(res, 200, parsed, {}, headOnly);
         return;
       }
 

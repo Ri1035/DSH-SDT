@@ -9,15 +9,16 @@
 
 DSH 主题插件 **DSH-SDT** 已可安装运行：bundle + host/client 两边、`/sdt/*` 三路由、
 配置系统、**133/133 个 `--dsw-*` token 全覆盖**、自绘品牌字标、蓝青配色、
-L3 间距/几何、设置页只读卡。**只在 `web` profile 验证过；桌面端（Electron）从未安装、未测试。**
+L3 间距/几何、设置页只读卡、**控制台 `/sdt/console`（含 13 项功能占位矩阵）**。
+**只在 `web` profile 验证过；桌面端（Electron）从未安装、未测试。**
 
 文档基线已于 2026-11-23 校正，v1.6 起 `docs/DENSITY.md` 记录 `--dsh-*` 归属与 M5 负结论；
 许可定为 MIT（仅代码），第三方美术不入库（ADR D26）。
 
 | 项 | 值 |
 |---|---|
-| 版本 | `v1.6`（`VERSION` / manifest `1.6.0`） |
-| 阶段标记 | `stage-07-v1.6`（另有 `stage-01-v1.0` … `stage-06-v1.5`） |
+| 版本 | `v1.7`（`VERSION` / manifest `1.7.0`） |
+| 阶段标记 | `stage-08-v1.7`（另有 `stage-01-v1.0` … `stage-07-v1.6`） |
 | 仓库 | `https://github.com/Ri1035/DSH-SDT`（public） |
 | 本地工作区 | `C:\Users\KOKA\Desktop\FGO` |
 | 代码量 | `plugin/` 约 960 行（JS + JSON + SVG） |
@@ -63,7 +64,11 @@ dsh --profile web --no-open --port 18990                          # 起隔离实
 curl.exe -sSL -c c.txt -b c.txt -o NUL "http://127.0.0.1:18990/?token=$T"   # 换 cookie
 curl.exe -sS -c c.txt -b c.txt "http://127.0.0.1:18990/sdt/health"          # {"ok":true,...}
 curl.exe -sS -o NUL -w "%{http_code}" "http://127.0.0.1:18990/sdt/health"   # 无 cookie → 401
+curl.exe -sS -c c.txt -b c.txt -o NUL -w "%{http_code}" "http://127.0.0.1:18990/sdt/console"  # 200 text/html
 ```
+
+> 控制台：浏览器打开 `http://127.0.0.1:<port>/sdt/console`（需先访问 `/?token=` 换 cookie），
+> 加 `?mode=dark` 直接看深色。功能清单在 `plugin/features.json`，改功能只改这一份。
 
 ### 3.3 抓图（ego 抓不到时用这条）
 
@@ -87,6 +92,8 @@ plugin/
 ├── lib/routes.js       /health /config.json /asset/*；首行 requestRejection（fail-closed）
 ├── locale/{en,zh}.json meta.title / meta.description
 ├── icon.svg            插件图标
+├── console.html        控制台（/sdt/console，单页零构建）
+├── features.json       功能矩阵单一数据源（控制台读取）
 └── assets/logo.svg     内置素材（`files` 必须含 assets，否则打包丢失）
 ```
 
@@ -109,6 +116,7 @@ plugin/
 | L3 间距/几何 | ✅ | clearance 20px、卡片最大宽 +48px；944/980/1423 无溢出（`DENSITY.md`） |
 | M4 只读信息卡 | ✅ | 设置 → 通用设置底部：版本 / token / 来源 / 目录 |
 | M5 图标替换 | ❌ **负结论** | `ctx.theme` 13 个方法无 icon 接口；无稳定图标锚点 → 降级（D30） |
+| 控制台（v1.7） | ✅ | `/sdt/console` 200；未鉴权 401；13 卡矩阵 / 明暗预览 / 自检全 200 |
 
 **已知未做**：L3 的侧栏密度与圆角体系（哈希类，无锚点）、覆盖层（M1/M2）、
 开屏（M9）、壁纸/玻璃（M6）、皮肤中心（M7）、安全模式（M8）、对话动画、桌面端验证。
@@ -169,7 +177,8 @@ plugin/
 | `stage-04-v1.3` | L1 133/133 + L2 语法 + 字标 |
 | `stage-05-v1.4` | 蓝青配色定版 |
 | `stage-06-v1.5` | bug 修复 + 转手文档 |
-| **`stage-07-v1.6`** | **L3 间距 + M4 只读卡 + M5 负结论（当前）** |
+| `stage-07-v1.6` | L3 间距 + M4 只读卡 + M5 负结论 |
+| **`stage-08-v1.7`** | **控制台 + 功能矩阵（当前）** |
 
 ```powershell
 git reset --hard stage-05-v1.4      # 回退到配色定版
@@ -184,9 +193,9 @@ git log --oneline --decorate -10    # 看标签与提交
 > 剩余项如下。
 
 1. **桌面端验证**（用户主力端，目前 0 验证）：装进 `desktop` 需应用内插件管理或手动加依赖，**会重启应用**；需用户授权。同时验证 `webserver/index-inject` 是否在 Electron 生效 —— 它决定开屏走哪条路。
-2. **M1/M2 覆盖层与输入 dock**（v1.7）：`shell.overlay` + `conversation.input.dock`，点击特效优先。
-3. **M6/M7/M8**（v1.8）：壁纸/玻璃、皮肤中心（`skin.json`）、安全模式。
-4. **M9 开屏**（v1.8）：client overlay 为主，`index-inject` 作增强（取决于第 1 项结论）。
+2. **M1/M2 覆盖层与输入 dock**（v1.8）：`shell.overlay` + `conversation.input.dock`，点击特效优先。
+3. **M6/M7/M8**（v1.9）：壁纸/玻璃、皮肤中心（`skin.json`）、安全模式。
+4. **M9 开屏**（v1.9）：client overlay 为主，`index-inject` 作增强（取决于第 1 项结论）。
 5. **P5 对话动画**：被 B3（参考项目名）/ B4（轻量 or 重度）阻塞。
 6. **P3.5 框架化收尾**：`slots.js` 单一数据源、doctor 校验器、Agent Skill 分发、`overrides.css`。
 7. **发布准备**：双语 README、演示物料、市场元数据；`private: true` 需在首发前移除。

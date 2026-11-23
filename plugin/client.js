@@ -13,7 +13,7 @@
 window.__ModuleLoader__.load({
   id: 'dsh-sdt',
   factory: (require) => {
-    const VERSION = '1.6';
+    const VERSION = '1.7';
     const SOURCE = 'dsh-sdt';
     if (window.__dshSdtApplied) return { inject: ['theme', 'slots'], apply() {} };
     window.__dshSdtApplied = true;
