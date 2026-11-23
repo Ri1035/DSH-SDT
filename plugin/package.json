@@ -1,6 +1,6 @@
 {
   "name": "dsh-sdt",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "private": true,
   "type": "module",
   "description": "DSH-SDT (Spiritron Dress Tailoring): a DSH theme plugin with a modular appearance layer — token palette, asset routes, config file, Agent-ready inbox.",

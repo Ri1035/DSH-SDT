@@ -1,5 +1,5 @@
 /**
- * dsh-sdt — browser client bundle (v1.8)
+ * dsh-sdt — browser client bundle (v1.9)
  *
  * 三件事：
  *   1) L1 全量：把界面里实际存在的 `--dsw-alias-*` / `--dsw-specific-*` 变量（实测 133 个）
@@ -13,7 +13,7 @@
 window.__ModuleLoader__.load({
   id: 'dsh-sdt',
   factory: (require) => {
-    const VERSION = '1.8';
+    const VERSION = '1.9';
     const SOURCE = 'dsh-sdt';
     if (window.__dshSdtApplied) return { inject: ['theme', 'slots'], apply() {} };
     window.__dshSdtApplied = true;
@@ -295,6 +295,7 @@ body[data-ds-dark-theme]{
           row("版本", `v${debug.version || VERSION}`),
           row("token", `${debug.mapped ?? "?"} / ${debug.total ?? "?"}`),
           row("配置", source),
+          row("控制台", "/sdt/console"),
           row("目录", "$DSH_HOME/sdt/"));
       };
     }
@@ -355,6 +356,220 @@ body[data-ds-dark-theme]{
       };
     }
 
+    /* ---------------- M1b：点击特效（移植自用户提供的 FGO点击特效.html） ----------------
+       改动：canvas 透明叠层、clearRect 而非填底、pointer-events:none、无自动演示、
+       只在有爆发时跑 rAF，闲时停帧。 */
+    function makeClickEffect() {
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
+      const HUES = [
+        { h: 151, s: 92, l: 49 }, { h: 164, s: 94, l: 51 }, { h: 185, s: 96, l: 54 },
+        { h: 207, s: 96, l: 58 }, { h: 230, s: 94, l: 62 }, { h: 273, s: 88, l: 66 },
+      ];
+      const LIFE = 900;
+      const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+      const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+      const easeOutQuad = (t) => 1 - (1 - t) * (1 - t);
+      const now = () => performance.now();
+      const hsl = (c, a, dl, ds) =>
+        `hsla(${c.h},${clamp(c.s + (ds || 0), 0, 100)}%,${clamp(c.l + (dl || 0), 0, 96)}%,${a})`;
+      const R = Math.random;
+
+      const canvas = document.createElement("canvas");
+      canvas.id = "dsh-sdt-fx";
+      canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2147483000";
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      let W = 0, H = 0, DPR = 1;
+      function resize() {
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        W = window.innerWidth; H = window.innerHeight;
+        canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+      }
+      resize();
+
+      function dmdG(cx, cy, radius, rot, col, alpha, ratio) {
+        const w = ratio || 1;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(cx, cy);
+        ctx.rotate(rot);
+        ctx.fillStyle = hsl(col, 1, 0);
+        ctx.beginPath();
+        ctx.moveTo(0, -radius); ctx.lineTo(radius * w, 0); ctx.lineTo(0, radius); ctx.lineTo(-radius * w, 0);
+        ctx.closePath(); ctx.fill(); ctx.restore();
+      }
+      function edgePoint(e, t, radius, rot, w) {
+        const hw = radius * (w || 1);
+        let bx, by;
+        if (e === 0) { bx = hw * t; by = -radius + radius * t; }
+        else if (e === 1) { bx = hw - hw * t; by = radius * t; }
+        else if (e === 2) { bx = -hw * t; by = radius - radius * t; }
+        else { bx = -hw + hw * t; by = -radius * t; }
+        return { x: bx * Math.cos(rot) - by * Math.sin(rot), y: bx * Math.sin(rot) + by * Math.cos(rot) };
+      }
+      function makeBurst(x, y) {
+        const pi = R() < 0.55 ? 0 : R() < 0.62 ? 1 : R() < 0.55 ? 2 : R() < 0.6 ? 3 : R() < 0.6 ? 4 : 5;
+        const ci = R() < 0.5 ? clamp(pi + 1 + Math.floor(R() * 3), 0, 5) : Math.floor(R() * 6);
+        const hues = [HUES[pi], HUES[ci]];
+        if (R() < 0.45) hues.push(HUES[(ci + 2) % 6]);
+        const maxR = 72 + R() * 50;
+        const ratioA = 0.68 + R() * 0.12;
+        const bStart = 132 + R() * 42;
+        const bDur = 118 + R() * 52;
+        const bR = maxR * (0.50 + R() * 0.14);
+        const explodeAt = bStart + bDur;
+        const ratioB = 0.63 + R() * 0.13;
+        const n = 14 + Math.floor(R() * 4);
+        const counts = [3, 3, 3, 3];
+        for (let q = 12; q < n; q += 1) counts[Math.floor(R() * 4)] += 1;
+        const shards = [];
+        for (let e = 0; e < 4; e += 1) {
+          const cnt = counts[e];
+          for (let j = 0; j < cnt; j += 1) {
+            let t = (j + 0.06 + R() * 0.88) / cnt;
+            t = clamp(t, 0.02, 0.98);
+            const p = edgePoint(e, t, bR, 0, ratioB);
+            const ang = Math.atan2(p.y, p.x);
+            const rad = (R() - 0.5) * 0.3 * bR;
+            p.x += Math.cos(ang) * rad; p.y += Math.sin(ang) * rad;
+            const big = R() < 0.45;
+            const sz = big ? (0.58 + R() * 0.34) * bR : (0.28 + R() * 0.24) * bR;
+            shards.push({
+              px: p.x, py: p.y, sz, ang,
+              drift: (3 + R() * 26) * (0.5 + sz / bR),
+              col: hues[Math.floor(R() * hues.length)],
+              w: 0.52 + R() * 0.34,
+              sway: (R() - 0.5) * 16,
+              delay: R() * 115, life: 280 + R() * 300,
+              echo: R() < 0.6,
+            });
+          }
+        }
+        const sparks = [];
+        const ns = 3 + Math.floor(R() * 3);
+        for (let j = 0; j < ns; j += 1) {
+          const ea = R() * Math.PI * 2;
+          const er = bR * (0.98 + R() * 0.62);
+          sparks.push({
+            x: Math.cos(ea) * er, y: Math.sin(ea) * er,
+            sz: 4 + R() * 8, delay: R() * 150, life: 150 + R() * 230,
+            col: hues[Math.floor(R() * hues.length)],
+          });
+        }
+        return {
+          x, y, born: now(), maxR, ratioA, bStart, explodeAt, bR, ratioB,
+          colA: HUES[pi], colB: R() < 0.42 ? HUES[pi] : HUES[ci], shards, sparks,
+        };
+      }
+
+      const bursts = [];
+      let raf = 0, running = false;
+      function drawA(b, age) {
+        if (age > 300) return;
+        const grow = clamp(age / 125, 0, 1);
+        const rr = b.maxR * easeOutCubic(grow);
+        const fade = age > 152 ? clamp(1 - (age - 152) / 130, 0, 1) : 1;
+        dmdG(b.x, b.y, rr, 0, b.colA, 0.4 * Math.min(grow * 1.6, 1) * fade, b.ratioA);
+      }
+      function drawB(b, age) {
+        if (age < b.bStart || age >= b.explodeAt) return;
+        const k = (age - b.bStart) / (b.explodeAt - b.bStart);
+        dmdG(b.x, b.y, b.bR * easeOutQuad(k), 0, b.colB,
+          0.34 * Math.min(1, (age - b.bStart) / 35), b.ratioB);
+      }
+      function drawDebris(b, age) {
+        const t = age - b.explodeAt;
+        if (t < 0) return;
+        for (const s of b.shards) {
+          const at = t - s.delay;
+          if (at < 0 || at > s.life) continue;
+          const q = at / s.life;
+          const inK = clamp(at / 42, 0, 1);
+          const outA = q > 0.55 ? 1 - (q - 0.55) / 0.45 : 1;
+          const dist = s.drift * easeOutCubic(clamp(at / (s.life * 0.72), 0, 1));
+          const px = b.x + s.px + Math.cos(s.ang) * dist + s.sway * q;
+          const py = b.y + s.py + Math.sin(s.ang) * dist * 0.9;
+          if (s.echo) {
+            dmdG(px + Math.cos(s.ang) * (s.sz * 0.6), py + Math.sin(s.ang) * (s.sz * 0.6),
+              s.sz * 0.44, 0, HUES[2], 0.26 * inK * outA, s.w * 0.9);
+          }
+          dmdG(px, py, s.sz * 0.62, 0,
+            { h: s.col.h + q * 22, s: s.col.s, l: s.col.l + q * 4 },
+            0.84 * inK * outA, s.w);
+        }
+        for (const k of b.sparks) {
+          const aj = t - k.delay;
+          if (aj < 0 || aj > k.life) continue;
+          const pj = aj / k.life;
+          const a2 = clamp(aj / 30, 0, 1) * (1 - pj);
+          dmdG(b.x + k.x * (1 + pj * 0.7), b.y + k.y * (1 + pj * 0.7), k.sz * 0.9, 0, k.col, 0.66 * a2, 0.72);
+        }
+      }
+      function frame() {
+        const t = now();
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        for (let i = bursts.length - 1; i >= 0; i -= 1) {
+          const b = bursts[i];
+          const age = t - b.born;
+          if (age > LIFE) { bursts.splice(i, 1); continue; }
+          drawA(b, age); drawB(b, age); drawDebris(b, age);
+        }
+        if (bursts.length) raf = requestAnimationFrame(frame);
+        else { running = false; }
+      }
+      function spawn(x, y) {
+        if (bursts.length > 12) bursts.shift();
+        bursts.push(makeBurst(x, y));
+        if (!running) { running = true; raf = requestAnimationFrame(frame); }
+      }
+      const onDown = (e) => { if (e.button === 0) spawn(e.clientX, e.clientY); };
+      window.addEventListener("pointerdown", onDown, true);
+      window.addEventListener("resize", resize);
+      document.documentElement.appendChild(canvas);
+      return () => {
+        window.removeEventListener("pointerdown", onDown, true);
+        window.removeEventListener("resize", resize);
+        cancelAnimationFrame(raf);
+        canvas.remove();
+      };
+    }
+
+    /* ---------------- M4b：侧栏控制台入口 ---------------- */
+    function makeConsoleButton() {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React) return null;
+      const h = React.createElement;
+      return function SdtConsoleButton() {
+        const open = () => {
+          try {
+            const win = window.open("/sdt/console", "_blank", "noopener");
+            if (!win) {
+              // 弹窗被拦时退化为复制地址，绝不改写当前页面
+              navigator.clipboard?.writeText(location.origin + "/sdt/console").catch(() => {});
+            }
+          } catch (error) {
+            console.warn("[dsh-sdt] console open failed:", error && error.message);
+          }
+        };
+        return h("button", {
+          type: "button",
+          title: "打开 DSH-SDT 控制台（/sdt/console）",
+          "aria-label": "打开 DSH-SDT 控制台",
+          "data-sdt-console": "",
+          onClick: open,
+          style: {
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 26, height: 26, padding: 0, borderRadius: 8, cursor: "pointer",
+            border: "1px solid var(--dsw-alias-border-l1)",
+            background: "transparent", color: "var(--dsw-alias-brand-primary)",
+          },
+        }, h("svg", { viewBox: "0 0 20 20", width: 13, height: 13, "aria-hidden": true },
+          h("path", { d: "M10 2 L18 10 L10 18 L2 10 Z", fill: "currentColor" })));
+      };
+    }
+
     /* ---------------- M3：自绘字标 ---------------- */
     function makeBrandMark() {
       let React = null;
@@ -398,6 +613,19 @@ body[data-ds-dark-theme]{
         const initial = buildPairs(currentColors);
         let disposeStyle = injectStyle(buildCss(currentColors));
         ctx.effect(() => () => { if (typeof disposeStyle === "function") disposeStyle(); });
+
+        // 点击特效：默认开，配置可关；失败/减动效时静默不启用
+        let disposeClick = null;
+        const syncClickEffect = (enabled) => {
+          if (enabled && !disposeClick) {
+            try { disposeClick = makeClickEffect(); } catch (error) { console.warn("[dsh-sdt] click effect unavailable:", error && error.message); }
+          } else if (!enabled && disposeClick) {
+            disposeClick();
+            disposeClick = null;
+          }
+        };
+        syncClickEffect(true);
+        ctx.effect(() => () => { if (typeof disposeClick === "function") disposeClick(); });
         ctx.effect(() => () => { if (typeof disposeTokens === "function") disposeTokens(); });
 
         try {
@@ -453,6 +681,17 @@ body[data-ds-dark-theme]{
           console.warn("[dsh-sdt] settings card unavailable:", error && error.message);
         }
 
+        // 侧栏控制台入口：失败不影响主题
+        try {
+          const ConsoleButton = makeConsoleButton();
+          if (ConsoleButton && ctx.slots?.inject) {
+            ctx.slots.inject("sidebar.footer.action", () =>
+              ctx.slots.register({ name: "sidebar.footer.action", id: "sdt-console", order: 20 }, ConsoleButton));
+          }
+        } catch (error) {
+          console.warn("[dsh-sdt] console button unavailable:", error && error.message);
+        }
+
         fetch("/sdt/config.json", { credentials: "same-origin" })
           .then((r) => (r.ok ? r.json() : null))
           .then((payload) => {
@@ -487,6 +726,10 @@ body[data-ds-dark-theme]{
               skipped: built.stats.skipped, source: payload.exists ? "file" : "defaults",
             };
             document.documentElement.dataset.sdtSource = payload.exists ? "file" : "defaults";
+
+            // 点击特效：配置显式关闭时停掉
+            const clickCfg = payload.config.motion && payload.config.motion.click;
+            syncClickEffect(!(clickCfg && clickCfg.enabled === false));
 
             // M1 覆盖层骨架：仅在配置显式开启时注册，默认零影响
             if (payload.config.appearance && payload.config.appearance.overlay === true) {

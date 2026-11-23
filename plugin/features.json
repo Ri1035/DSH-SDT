@@ -80,12 +80,12 @@
       "id": "M1",
       "name": "覆盖层",
       "layer": "L4",
-      "status": "partial",
-      "since": "v1.8",
+      "status": "done",
+      "since": "v1.8–v1.9",
       "seam": "slots: shell.overlay",
-      "detail": "覆盖层骨架（默认关闭）：开启后仅四角标 + HUD 文字，无交互",
-      "evidence": "web 实测 pointer-events:none；桌面未开启",
-      "placeholder": true,
+      "detail": "覆盖层骨架（默认关）+ 点击特效 canvas（默认开，reduced-motion 跳过）",
+      "evidence": "点击后画布 43k 亮像素、900ms 清零；卸载即移除",
+      "placeholder": false,
       "placeholderNote": "视觉与点击特效待后续版本"
     },
     {
@@ -158,7 +158,7 @@
       "detail": "视频/CSS 双模式开屏：首帧覆盖、播完/到点/点击淡出、reduced-motion 跳过",
       "evidence": "桌面实测 readyState=4、无残留",
       "placeholder": true,
-      "placeholderNote": "两段式退场与 boot-card 看门狗待补"
+      "placeholderNote": "两段式退场与 boot-card 看门狗排入 v2.0 打磨"
     },
     {
       "id": "M10",
@@ -248,19 +248,21 @@
     },
     {
       "version": "v1.9",
-      "status": "wip",
+      "status": "done",
       "items": [
-        "M9 开屏（首版）",
-        "两段式/看门狗",
-        "回归"
+        "M9 开屏（视频/CSS 双模式）",
+        "M1b 点击特效",
+        "控制台入口（侧栏 + 设置卡）"
       ]
     },
     {
       "version": "v2.0",
       "status": "planned",
       "items": [
-        "发布准备",
-        "首发"
+        "M6 壁纸/玻璃",
+        "M7 皮肤中心",
+        "M8 安全模式",
+        "回归 + 发布"
       ]
     }
   ],

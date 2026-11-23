@@ -1,6 +1,6 @@
 # DSH-SDT
 
-<img alt="version" src="https://img.shields.io/badge/version-v1.8-2ea44f?style=flat-square">
+<img alt="version" src="https://img.shields.io/badge/version-v1.9-2ea44f?style=flat-square">
 <img alt="dsh" src="https://img.shields.io/badge/DSH-0.2.2--rc.1-1f6feb?style=flat-square">
 
 **DeepSeek Harness 主题插件**：提供一套默认 FGO 风格主题，并以此为探针，测量 DSH 的模块化自定义上限。
@@ -18,6 +18,7 @@
 | 品牌 | 自绘 SVG 字标替换 `sidebar.brand.mark` |
 | 素材 | `/sdt/asset/<name>` 提供 logo、纹理、字体，用户目录优先、内置回退 |
 | 开屏 | `motion.splash.video` 指定用户素材名（如 `fgo.mp4`）；缺省纯 CSS；可跳过、每会话一次 |
+| 点击特效 | canvas 菱形爆发（默认开）；`motion.click.enabled` 可关；reduced-motion 不启动 |
 | 结论 | DSH 能改什么、改到什么程度，写进 [`docs/MODULARITY.md`](./docs/MODULARITY.md) |
 
 ## 安装
@@ -56,10 +57,12 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 | **v1.6** | L3 间距/几何 + M4 只读信息卡 + M5 负结论（无图标接缝） |
 | **v1.7** | 插件控制台 `/sdt/console` + 功能矩阵占位 + `features.json` 单一数据源 |
 | **v1.8** | M2 输入 dock + M1 覆盖层骨架 + **桌面端安装验证**（字标修复） |
-| 下一阶段 | v1.9：开屏 M9 + 壁纸/皮肤中心/安全模式 + 回归 |
+| **v1.9** | **视频开屏（M9 首版）+ M1b 点击特效 + 控制台入口 + 图标重绘** |
+| 下一阶段 | v2.0（首发）：M6 壁纸/玻璃 + M7 皮肤中心 + M8 安全模式 + 回归 + 发布清单 |
 
-**验证范围**：`web` 与 `desktop` 均已实测（v1.8）。桌面端为 `dsh-app://` 渲染，
-主题 / 133 token / 菱形字标 / 输入 dock 均生效；**首帧 `index-inject` 已验证生效**，v1.9 开屏可走 host 首帧。
+**验证范围**：`web` 与 `desktop` 均已实测。桌面端为 `dsh-app://` 渲染，
+主题 / 133 token / 菱形字标 / 输入 dock / 首帧注入均已验证；
+**v1.9 新增（开屏视频 / 点击特效 / 控制台入口）已在 `web` 实测**，桌面端下次启动自然生效。
 桌面端启动有环境坑，见 `HANDOFF.md` §3.4 与 §6 K11–K13。
 
 ## 文档

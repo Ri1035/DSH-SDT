@@ -34,6 +34,7 @@ export const DEFAULT_CONFIG = Object.freeze({
   motion: {
     splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true, video: null },
     ambience: { enabled: true, intensity: 0.4 },
+    click: { enabled: true },
   },
   assets: {
     logo: 'logo.svg',
@@ -142,6 +143,7 @@ export function validateConfig(raw) {
 
   const splash = { ...DEFAULT_CONFIG.motion.splash };
   const ambience = { ...DEFAULT_CONFIG.motion.ambience };
+  const click = { ...DEFAULT_CONFIG.motion.click };
   if (isPlainObject(raw.motion)) {
     if (isPlainObject(raw.motion.splash)) {
       const s = raw.motion.splash;
@@ -163,6 +165,11 @@ export function validateConfig(raw) {
       if (typeof a.enabled === 'boolean') ambience.enabled = a.enabled;
       if (typeof a.intensity === 'number' && a.intensity >= 0 && a.intensity <= 1) ambience.intensity = a.intensity;
       else if (a.intensity !== undefined) warn('motion.ambience.intensity', '需为 0–1 的数字');
+    }
+    if (isPlainObject(raw.motion.click)) {
+      const c = raw.motion.click;
+      if (typeof c.enabled === 'boolean') click.enabled = c.enabled;
+      else if (c.enabled !== undefined) warn('motion.click.enabled', '需为 true | false');
     }
   } else if (raw.motion !== undefined) {
     warn('motion', '必须是对象');
@@ -194,7 +201,7 @@ export function validateConfig(raw) {
       colors,
       tokens: checkTokens(raw.tokens, warn),
       appearance,
-      motion: { splash, ambience },
+      motion: { splash, ambience, click },
       assets,
     },
     warnings,

@@ -1,13 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="DSH-SDT">
   <defs>
-    <linearGradient id="sdt-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#22303f"/>
-      <stop offset="1" stop-color="#101820"/>
+    <linearGradient id="sdt-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7dd93"/>
+      <stop offset="0.5" stop-color="#e8b64f"/>
+      <stop offset="1" stop-color="#c8871f"/>
     </linearGradient>
   </defs>
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#sdt-bg)"/>
-  <path d="M20 44c6-2 8-8 8-14s4-10 8-10" fill="none" stroke="#d8a94a" stroke-width="2.2" stroke-linecap="round"/>
-  <circle cx="38" cy="20" r="3.4" fill="none" stroke="#d8a94a" stroke-width="2.2"/>
-  <path d="M22 46l-3.2 3.2M18.8 49.2l-2.4 2.4" stroke="#e9ebee" stroke-width="2.2" stroke-linecap="round"/>
-  <path d="M44 40c-2.6 0-4.6 2-4.6 4.6S41.4 49.2 44 49.2s4.6-2 4.6-4.6S46.6 40 44 40z" fill="none" stroke="#e9ebee" stroke-width="1.6"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0a1626"/>
+  <g fill="none" stroke="url(#sdt-gold)" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M32 9 L55 32 L32 55 L9 32 Z" stroke-width="4"/>
+    <path d="M32 18 L46 32 L32 46 L18 32 Z" stroke-width="3.4"/>
+    <path d="M9 32 H18 M46 32 H55 M32 9 V18 M32 46 V55" stroke-width="2.6" opacity=".8"/>
+    <path d="M20 20 L27 27 M44 20 L37 27 M20 44 L27 37 M44 44 L37 37" stroke-width="2.2" opacity=".55"/>
+  </g>
+  <path d="M32 26 L38 32 L32 38 L26 32 Z" fill="url(#sdt-gold)"/>
 </svg>

@@ -9,7 +9,7 @@
 
 DSH 主题插件 **DSH-SDT** 已可安装运行：bundle + host/client 两边、`/sdt/*` 三路由、
 配置系统、**133/133 个 `--dsw-*` token 全覆盖**、自绘品牌字标、蓝青配色、
-L3 间距/几何、设置页只读卡、控制台 `/sdt/console`、M2 输入 dock、M1 覆盖层骨架。
+L3 间距/几何、设置页只读卡、控制台 `/sdt/console`、M2 输入 dock、M1 覆盖层骨架 + **点击特效**、视频开屏。
 **`web` 与 `desktop` 均已安装验证**；桌面首帧 `index-inject` **已验证生效**（v1.9 开屏可走 host 首帧）。
 
 文档基线已于 2026-11-23 校正，v1.6 起 `docs/DENSITY.md` 记录 `--dsh-*` 归属与 M5 负结论；
@@ -17,8 +17,8 @@ L3 间距/几何、设置页只读卡、控制台 `/sdt/console`、M2 输入 doc
 
 | 项 | 值 |
 |---|---|
-| 版本 | `v1.8`（`VERSION` / manifest `1.8.0`） |
-| 阶段标记 | `stage-09-v1.8`（另有 `stage-01-v1.0` … `stage-08-v1.7`） |
+| 版本 | `v1.9`（`VERSION` / manifest `1.9.0`） |
+| 阶段标记 | `stage-10-v1.9`（另有 `stage-01-v1.0` … `stage-09-v1.8`） |
 | 仓库 | `https://github.com/Ri1035/DSH-SDT`（public） |
 | 本地工作区 | `C:\Users\KOKA\Desktop\FGO` |
 | 代码量 | `plugin/` 约 960 行（JS + JSON + SVG） |
@@ -100,13 +100,13 @@ $env:HTTPS_PROXY = $null; $env:https_proxy = $null
 plugin/
 ├── package.json        dsh.bundle.patch + dsh.client(platform/immediately/inject) + files(含 assets)
 ├── cordis.patch.yml    insert: [{ id: sdt, name: dsh-sdt }]
-├── index.js            host：inject ['webServer','connection']；注册 /sdt 前缀路由
-├── client.js           client：① 133 token 语义族映射 ② L2 语法 CSS ③ 品牌字标 ④ appearance.mode
-├── lib/config.js       配置读取/深合并/逐字段校验/JSON 行列号/mtime 缓存 + token 值注入防护
-├── lib/assets.js       素材白名单(8 扩展名)/穿越防护/4MB 上限/用户目录→内置回退
-├── lib/routes.js       /health /config.json /asset/*；首行 requestRejection（fail-closed）
+├── index.js            host：/sdt 路由 + `webserver/index-inject`（首帧探针 + 视频开屏/CSS 开屏）
+├── client.js           client：133 token 映射 + L2 CSS + 字标/名字 + dock/设置卡/控制台按钮 + 点击特效
+├── lib/config.js       配置读取/深合并/逐字段校验（含 `motion.click`、`splash.video`）/mtime 缓存
+├── lib/assets.js       白名单(含 mp4/webm)/穿越防护/4MB/用户目录→内置回退/符号链接校验
+├── lib/routes.js       /health /config.json /features.json /console /asset/*；首行 requestRejection（fail-closed）
 ├── locale/{en,zh}.json meta.title / meta.description
-├── icon.svg            插件图标
+├── icon.svg            插件图标（金色菱形格矢量）
 ├── console.html        控制台（/sdt/console，单页零构建）
 ├── features.json       功能矩阵单一数据源（控制台读取）
 └── assets/logo.svg     内置素材（`files` 必须含 assets，否则打包丢失）
@@ -135,6 +135,9 @@ plugin/
 | M2 输入 dock（v1.8） | ✅ | 桌面 / 宿主 web 均挂载，16px，点击穿透 |
 | M1 覆盖层骨架（v1.8） | 🟡 | 配置 `appearance.overlay` 默认关；开启后四角标，`pointer-events:none` |
 | 桌面端（v1.8） | ✅ 已安装 | 133/133、菱形字标 + `DSH-SDT`、dock、**首帧注入已验证** |
+| M1b 点击特效（v1.9） | ✅ | canvas 菱形爆发，260ms 43k 亮像素 / 900ms 清零；`motion.click.enabled` 可关 |
+| 控制台入口（v1.9） | ✅ | 侧栏按钮 + 设置卡「控制台」行 |
+| 插件图标（v1.9） | ✅ | 金色菱形格矢量；`fgo.png` 只作参考不入库 |
 
 **已知未做**：L3 的侧栏密度与圆角体系（哈希类，无锚点）、覆盖层（M1/M2）、
 开屏（M9）、壁纸/玻璃（M6）、皮肤中心（M7）、安全模式（M8）、对话动画、桌面端验证。
@@ -214,13 +217,11 @@ git log --oneline --decorate -10    # 看标签与提交
 > v1.8 已完成：M2 dock、M1 覆盖层骨架、桌面端安装，**首帧 `index-inject` 已验证生效**。
 > 剩余项如下。
 
-1. **M9 开屏**（v1.9）：host 首帧 + client 正片、看门狗、刷新去重、可跳过；
-   按桌面 **20–30 秒**启动时长调参（不能只按 web 的 271ms 窗口设计）。
-2. **M6/M7/M8**（v1.9）：壁纸/玻璃（默认关）、皮肤中心（`skin.json`）、安全模式。
-3. **M1 收尾**：点击特效 + 覆盖层视觉；`appearance.overlay` 打开后的观感验收。
-4. **M4 可交互**：改色 / 切主题，与安全模式一起做。
-5. **P3.5 框架化收尾**：`slots.js` 单一数据源、doctor 校验器、Agent Skill 分发、`overrides.css`。
-6. **发布准备**：双语 README、演示物料、市场元数据；`private: true` 需在首发前移除。
+1. **开屏打磨**：两段式退场 + boot card 消失看门狗（现仅绝对时长）。
+2. **M6 壁纸/玻璃**（默认关 + 性能降级）、**M7 皮肤中心**、**M8 安全模式**。
+3. **M4 可交互**：改色 / 切主题。
+4. **回归**：三模式 / 980×640 / 卸载残留 / reduced-motion / 长会话性能。
+5. **发布清单**：双语 README、演示 GIF、`private:false`、市场元数据（v2.0 首发）。
 
 ---
 
