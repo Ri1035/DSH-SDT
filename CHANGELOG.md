@@ -54,9 +54,30 @@
 | 输入卡 | 729×98，1282 宽无横向溢出 |
 | 覆盖层 | 默认关闭（未在桌面开启验证） |
 
+### Fixed（阶段审查，post-tag）
+
+1. **配置颜色进不了装饰层**：样式注入写死 `DEFAULTS`，改 `colors.brand` 后 token 变了、`--bj-*` / 底纹 / 选区仍是默认色。
+   现在配置加载后重建样式，且注入函数按 id 幂等。
+2. `__sdtDebug.skipped` 类型不一致（初始是数字、之后是数组）→ 统一为数组。
+3. 控制台「桌面端」KPI 写死「未验证 / 从未安装」→ 改读 `features.stats.profiles.desktop`。
+4. 控制台头部按钮用 `<span role=button>` 无键盘触发 → 补 Enter / Space。
+5. 控制台 CSP 缺 `frame-ancestors` → 加 `'none'`。
+6. 素材解析未处理符号链接 → `realpath` 后再校验仍在目录内（防链接逃逸）。
+7. `--bj-shadow-soft` 用暗色调色板 → 改用 `inkLight`。
+
+### Verified（桌面首帧，阶段性结论）
+
+| 项 | 结果 |
+|---|---|
+| `webserver/index-inject` | ✅ 生效：`window.__sdtFirstFrame` 存在、`html[data-sdt-first]` = 1、`--sdt-first-frame` = 1 |
+| DSH 版本 | 仍为 `0.2.2-rc.1`（commit `c59d10a`），**未发生更新** |
+| 其余 | 133/133、字标、dock 均正常 |
+
+> 结论：**开屏可以走 host 首帧**，不必退化为纯 client。真正动画留待 v1.9 继续。
+
 ### Notes
 
-- **桌面首帧 `webserver/index-inject` 仍未验证**，留待 v1.9 开屏；本版只证明「装得上、界面正常」。
+- **桌面首帧已在 post-tag 补验：`index-inject` 生效**（见上表），开屏走 host 首帧；动画本体留 v1.9。
 - 桌面端启动约 20–30 秒（插件多），期间显示 `HARNESS Loading plugins…`，不是卡死。
 - 启动环境坑：WorkBuddy 终端里 `ELECTRON_RUN_AS_NODE=1` 与 `NODE_OPTIONS` 会让桌面端**以 Node 模式静默退出**；
   必须清掉这两个变量再启动。已写入 `HANDOFF.md` §6。

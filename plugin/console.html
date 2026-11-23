@@ -256,11 +256,14 @@
     host.innerHTML = "";
     var stats = (state.features && state.features.stats) || {};
     var tokens = stats.tokens || {};
+    var profiles = stats.profiles || {};
+    var desktopState = profiles.desktop || "unknown";
+    var desktopLabel = desktopState === "verified" ? "已验证" : desktopState === "installed" ? "已安装" : "未安装";
     var items = [
       { k: "插件版本", v: (state.health && state.health.version) || "—", n: (state.health && state.health.plugin) || "dsh-sdt" },
       { k: "Token 覆盖", v: (tokens.mapped || "?") + " / " + (tokens.total || "?"), n: "上次验证 " + (tokens.verifiedIn || "—") },
       { k: "配置来源", v: (state.configExists ? "文件" : "默认"), n: state.warnings.length ? state.warnings.length + " 条告警" : "无告警" },
-      { k: "桌面端", v: "未验证", n: "desktop profile 从未安装" }
+      { k: "桌面端", v: desktopLabel, n: desktopState === "installed" ? "已装，首帧未验" : "desktop profile" }
     ];
     items.forEach(function (it) {
       var d = el("div", "kpi");
@@ -433,13 +436,22 @@
       runChecks();
     });
   }
-  document.getElementById("modeBtn").addEventListener("click", function () {
+  function onActivate(node, fn) {
+    if (!node) return;
+    node.addEventListener("click", fn);
+    node.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); }
+    });
+  }
+  function toggleMode() {
     state.mode = state.mode === "dark" ? "light" : "dark";
-    this.textContent = state.mode === "dark" ? "切换浅色预览" : "切换深色预览";
+    var btn = document.getElementById("modeBtn");
+    if (btn) btn.textContent = state.mode === "dark" ? "切换浅色预览" : "切换深色预览";
     applyPalette();
-  });
-  document.getElementById("reloadBtn").addEventListener("click", load);
-  document.getElementById("runChecks").addEventListener("click", runChecks);
+  }
+  onActivate(document.getElementById("modeBtn"), toggleMode);
+  onActivate(document.getElementById("reloadBtn"), load);
+  onActivate(document.getElementById("runChecks"), runChecks);
   load();
 })();
 </script>

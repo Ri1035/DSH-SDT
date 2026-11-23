@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-11-24 · v1.8 阶段审查（post-tag）+ 桌面首帧结论
+
+**审查范围**：`client.js` / `index.js` / `lib/{config,assets,routes}.js` / `console.html` / `features.json`。
+
+**修掉 7 个问题**（详见 CHANGELOG v1.8 Fixed）：
+
+1. 配置颜色进不了装饰层（写死 `DEFAULTS`）——**用红 #b23a3a 实测**：修前 `--bj-gold` 仍是 #37a3d6，
+   修后 token / `--bj-gold` / 菱格底纹三处同步变红，且 `<style id="dsh-sdt-vars">` 只有 1 个。
+2-7. skipped 类型、控制台 KPI 写死、键盘可达性、CSP `frame-ancestors`、素材符号链接、阴影取色。
+
+**首帧实测（关键结论）**
+
+- 在 `index.js` 加最小探针（只推 `style` + `script` 两种白名单 kind）。
+- 桌面端重启后读到：`__sdtFirstFrame = {at:...}`、`data-sdt-first="1"`、`--sdt-first-frame:1`。
+- `__DSH_BOOT__.release.version` 仍为 `0.2.2-rc.1` —— **未触发 DSH 更新**（用户明确要求不更新）。
+- 结论：**开屏可以走 host 首帧**，271ms 空窗有解；动画本体留 v1.9。
+
+**验证**
+
+| 项 | 结果 |
+|---|---|
+| 配置改色链路 | token / `--bj-*` / 底纹同步 |
+| 控制台 | 桌面端 KPI = 已安装；13 卡、四路由 200；键盘可触发 |
+| 桌面端 | 133/133、字标、dock、首帧标记全部存在 |
+| 自验证 | 8/8 |
+
+**未做**：开屏动画本体、M6/M7/M8；桌面覆盖层开启验证。
+
+**回滚点**：`stage-09-v1.8`（本轮为同版补丁）
+
+---
+
 ## 2026-11-24 · 阶段 9 · v1.8 —— M1 覆盖层骨架 + M2 输入 dock + 桌面端首验
 
 **做了什么**

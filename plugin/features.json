@@ -12,7 +12,7 @@
     "routes": 3,
     "profiles": {
       "web": "verified",
-      "desktop": "installed"
+      "desktop": "verified"
     }
   },
   "layers": [
@@ -200,12 +200,12 @@
       "id": "P7",
       "name": "桌面端",
       "layer": "—",
-      "status": "partial",
+      "status": "done",
       "since": "v1.8",
       "seam": "desktop profile bundle",
-      "detail": "已装进 desktop profile：主题 / 字标 / dock 生效；首帧 index-inject 待验",
-      "evidence": "桌面实测 133/133 + 蓝青 + 菱形字标",
-      "placeholder": true,
+      "detail": "已装进 desktop：主题/字标/dock/首帧注入均验证",
+      "evidence": "133/133；__sdtFirstFrame 存在；release 仍为 0.2.2-rc.1",
+      "placeholder": false,
       "placeholderNote": "首帧结论留待 v1.9 开屏"
     }
   ],

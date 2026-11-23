@@ -62,13 +62,19 @@ function readCandidate(dir, name) {
   const target = path.resolve(dir, name);
   if (!within(dir, target)) return null;
   let stat;
+  let real;
+  let realDir;
   try {
-    stat = fs.statSync(target);
+    // 解析符号链接后再校验一次：防止 assets 目录里的链接指向目录外
+    realDir = fs.realpathSync(dir);
+    real = fs.realpathSync(target);
+    stat = fs.statSync(real);
   } catch {
     return null;
   }
+  if (!within(realDir, real)) return null;
   if (!stat.isFile() || stat.size === 0 || stat.size > MAX_ASSET_BYTES) return null;
-  return { path: target, size: stat.size };
+  return { path: real, size: stat.size };
 }
 
 /**

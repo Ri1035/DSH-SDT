@@ -58,7 +58,7 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 | 下一阶段 | v1.9：开屏 M9 + 壁纸/皮肤中心/安全模式 + 回归 |
 
 **验证范围**：`web` 与 `desktop` 均已实测（v1.8）。桌面端为 `dsh-app://` 渲染，
-主题 / 133 token / 菱形字标 / 输入 dock 均生效；**桌面首帧 `index-inject` 尚未验证**（v1.9 开屏前置）。
+主题 / 133 token / 菱形字标 / 输入 dock 均生效；**首帧 `index-inject` 已验证生效**，v1.9 开屏可走 host 首帧。
 桌面端启动有环境坑，见 `HANDOFF.md` §3.4 与 §6 K11–K13。
 
 ## 文档

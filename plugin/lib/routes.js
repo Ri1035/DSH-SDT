@@ -47,6 +47,7 @@ const CONSOLE_CSP = [
   "connect-src 'self'",
   "base-uri 'none'",
   "form-action 'none'",
+  "frame-ancestors 'none'",
 ].join('; ');
 
 const VERSION = pluginVersion();

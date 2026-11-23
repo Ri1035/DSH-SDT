@@ -33,11 +33,26 @@ function resolveDshHome(ctx) {
   return path.join(os.homedir(), '.dsh');
 }
 
+/**
+ * 首帧探针（v1.9）：只推 style + script 两种白名单 kind。
+ * 作用：在 React 挂载前给 html 打标记，用来判断 `webserver/index-inject`
+ * 在 web / 桌面端是否真的生效（开屏路线的前置结论）。
+ * 副作用极小：一个 CSS 变量 + 一个 dataset 标记。
+ */
+const FIRST_FRAME_STYLE = 'html{--sdt-first-frame:1}';
+const FIRST_FRAME_SCRIPT =
+  'try{window.__sdtFirstFrame={at:Date.now()};document.documentElement.dataset.sdtFirst="1"}catch(e){}';
+
 export function apply(ctx) {
   const dshHome = resolveDshHome(ctx);
   const readConfig = createConfigStore(dshHome);
   const userAssetDir = ensureUserAssetDir(dshHome);
   const handler = createHandler({ ctx, readConfig, userAssetDir });
+
+  ctx.on('webserver/index-inject', (table) => {
+    table.push({ kind: 'style', text: FIRST_FRAME_STYLE });
+    table.push({ kind: 'script', placement: 'head', text: FIRST_FRAME_SCRIPT });
+  });
 
   ctx.effect(() => {
     const dispose = ctx.webServer.register({ kind: 'prefix', path: '/sdt', handler });

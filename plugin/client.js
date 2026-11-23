@@ -220,7 +220,6 @@ window.__ModuleLoader__.load({
 
     /* ---------------- L2：语法 CSS（只用稳定锚点） ---------------- */
     function buildCss(colors) {
-      const p = palette(colors, "dark");
       return `:root{
   --bj-gold: ${colors.brand};
   --bj-gold-line: ${rgba(colors.brand, 0.45)};
@@ -229,7 +228,7 @@ window.__ModuleLoader__.load({
   --bj-accent: ${colors.accent};
   --bj-radius-card: 10px;
   --bj-radius-control: 6px;
-  --bj-shadow-soft: 0 1px 2px ${rgba(p.ink, 0.08)}, 0 10px 28px ${rgba(p.ink, 0.12)};
+  --bj-shadow-soft: 0 1px 2px ${rgba(colors.inkLight, 0.08)}, 0 10px 28px ${rgba(colors.inkLight, 0.12)};
   --bj-font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
   --dsh-font-family-text: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
   --dsh-font-family-code: "JetBrains Mono", ui-monospace, Consolas, monospace;
@@ -260,6 +259,8 @@ body[data-ds-dark-theme]{
     }
 
     function injectStyle(css) {
+      // 幂等：同 id 的旧样式先移除，避免配置重载后叠加两份
+      for (const old of Array.from(document.querySelectorAll("#dsh-sdt-vars"))) old.remove();
       const el = document.createElement("style");
       el.id = "dsh-sdt-vars";
       el.dataset.sdt = VERSION;
@@ -395,12 +396,13 @@ body[data-ds-dark-theme]{
         let disposeTokens = null;
         let currentColors = DEFAULTS;
         const initial = buildPairs(currentColors);
-        ctx.effect(() => injectStyle(buildCss(DEFAULTS)));
+        let disposeStyle = injectStyle(buildCss(currentColors));
+        ctx.effect(() => () => { if (typeof disposeStyle === "function") disposeStyle(); });
         ctx.effect(() => () => { if (typeof disposeTokens === "function") disposeTokens(); });
 
         try {
           disposeTokens = ctx.theme.overrideTokens(SOURCE, initial.pairs);
-          window.__sdtDebug = { version: VERSION, mapped: initial.stats.mapped, total: initial.stats.total, skipped: initial.stats.skipped.length };
+          window.__sdtDebug = { version: VERSION, mapped: initial.stats.mapped, total: initial.stats.total, skipped: initial.stats.skipped };
         } catch (error) {
           console.warn("[dsh-sdt] token override rejected:", error && error.message);
         }
@@ -457,6 +459,9 @@ body[data-ds-dark-theme]{
             if (!payload || !payload.config) return;
             const colors = { ...DEFAULTS, ...(payload.config.colors || {}) };
             currentColors = colors;
+            // 配置颜色必须同步进 --bj-* / 底纹 / 选区，否则改色后只有 token 变、装饰仍是默认色
+            if (typeof disposeStyle === "function") disposeStyle();
+            disposeStyle = injectStyle(buildCss(colors));
             const built = buildPairs(colors);
             const mode = (payload.config.appearance && payload.config.appearance.mode) || 'auto';
             if (mode === 'dark' || mode === 'light') {

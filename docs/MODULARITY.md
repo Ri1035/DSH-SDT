@@ -106,7 +106,7 @@ plugin/
 | 品牌字标 | ✅ `priority:-10` 替换官方默认标 + `sidebar.brand.name` = `DSH-SDT` | DOM 有 `[data-sdt-brand]` |
 | 输入 dock | ✅ 挂载并渲染 | `[data-sdt-dock]` 高 16px |
 | 覆盖层 | ⏸ 默认关闭，未在桌面开启验证 | — |
-| 首帧 `index-inject` | ❓ **未验证**（留待 v1.9 开屏） | — |
+| 首帧 `index-inject` | ✅ **已验证生效**（`__sdtFirstFrame` / `data-sdt-first` / `--sdt-first-frame`） | v1.8 补丁探针 |
 | 启动耗时 | 约 20–30 秒（插件多），`Loading plugins…` 属正常 | 冷启动观测 |
 
 **桌面端特有坑**
