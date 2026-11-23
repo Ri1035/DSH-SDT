@@ -32,7 +32,7 @@ export const DEFAULT_CONFIG = Object.freeze({
     overlay: false,
   },
   motion: {
-    splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true },
+    splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true, video: null },
     ambience: { enabled: true, intensity: 0.4 },
   },
   assets: {
@@ -150,6 +150,13 @@ export function validateConfig(raw) {
       else if (s.duration !== undefined) warn('motion.splash.duration', '需为 400–8000 的整数（毫秒）');
       if (typeof s.skippable === 'boolean') splash.skippable = s.skippable;
       if (typeof s.oncePerSession === 'boolean') splash.oncePerSession = s.oncePerSession;
+      if (s.video === null) splash.video = null;
+      else if (typeof s.video === 'string' && s.video.length > 0 && s.video.length <= 120 &&
+        !s.video.includes('..') && !path.isAbsolute(s.video) && !/[\\/]/.test(s.video)) {
+        splash.video = s.video;
+      } else if (s.video !== undefined) {
+        warn('motion.splash.video', '需为素材目录内的文件名（不含路径分隔符与 ..）');
+      }
     }
     if (isPlainObject(raw.motion.ambience)) {
       const a = raw.motion.ambience;

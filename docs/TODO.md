@@ -114,7 +114,9 @@ M9 开屏、M6 壁纸/玻璃、M7 皮肤中心、M8 安全模式、P5 对话动�
 
 - [x] **T10.1** 桌面首帧：`webserver/index-inject` **已验证生效**
       （`__sdtFirstFrame` / `data-sdt-first` / `--sdt-first-frame` 均存在；DSH 仍 0.2.2-rc.1）
-- [ ] **T10.2** M9 开屏：host 首帧 + client overlay 双半边、看门狗、刷新去重、可跳过（按桌面 20–30s 启动时长调参）
+- [x] **T10.2** M9 开屏（首版）：`motion.splash.video` 视频 / 纯 CSS 双模式；host 首帧注入；
+      播完 / 到点 / 点击 / 键盘 / 失败均淡出移除；reduced-motion 跳过；`oncePerSession` 生效
+- [ ] **T10.2b** 开屏收尾：两段式退场（内容先淡、底幕后淡）+ boot card 消失触发的看门狗
 - [ ] **T10.3** M6 壁纸/玻璃（默认关闭 + 性能降级）
 - [ ] **T10.4** M7 皮肤中心 + M8 安全模式
 - [ ] **T10.5** 回归：三模式 / 980×640 / 卸载残留 / reduced-motion

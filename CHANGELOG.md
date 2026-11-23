@@ -75,6 +75,16 @@
 
 > 结论：**开屏可以走 host 首帧**，不必退化为纯 client。真正动画留待 v1.9 继续。
 
+### Added（v1.9 开发中，post-tag）
+
+- **视频开屏**：`motion.splash.video` 指定用户素材目录里的视频文件名，缺省 `null` 走纯 CSS 开屏。
+  - 首帧由 head 脚本自建 `#sdt-splash`（`position:fixed` + `<video muted autoplay playsinline>`），
+    播完 / 到点 / 点击 / 键盘 / 加载失败都会淡出并移除，**不留 DOM 残留**；
+  - 用户素材 `fgo.mp4`（5.06s，1280×720）放在 `$DSH_HOME/sdt/assets/`，**不入仓库、不进包**；
+  - 素材路由新增 `.mp4`(`video/mp4`) / `.webm`(`video/webm`)；
+  - `prefers-reduced-motion: reduce` 直接跳过开屏；`oncePerSession` 生效。
+- 截图：`docs/preview/v19-splash-video.png`（视频首帧）、`v19-splash-desktop.png`（CSS 版）。
+
 ### Notes
 
 - **桌面首帧已在 post-tag 补验：`index-inject` 生效**（见上表），开屏走 host 首帧；动画本体留 v1.9。

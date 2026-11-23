@@ -5,6 +5,37 @@
 
 ---
 
+## 2026-11-24 · v1.9 开屏（进行中）—— 视频首帧
+
+**做了什么**
+
+- 首帧探针升级为可配置开屏：
+  - `motion.splash.video` 指定用户素材名（本例 `fgo.mp4`），为空则走纯 CSS 版；
+  - head 脚本自建 `#sdt-splash` + `<video muted autoplay playsinline>`，播完/到点/点击/键盘/失败都淡出并移除；
+  - 素材路由新增 `.mp4` / `.webm`；视频放 `$DSH_HOME/sdt/assets/`，**不入仓库**（D26）。
+- 约束：`prefers-reduced-motion` 直接跳过；`oncePerSession` 生效；时长按视频 5.06s 设为 5200ms。
+
+**验证（桌面端实测）**
+
+| 项 | 结果 |
+|---|---|
+| 模式 | `__sdtSplash = {mode:"video", video:"fgo.mp4", duration:5200}` |
+| 播放 | `readyState=4`、`currentTime=1.14s`、`videoWidth=1280`、`error=null` |
+| 素材源 | `dsh-app://app/sdt/asset/fgo.mp4`（相对路由可用） |
+| 淡出 | 5.2s 后 `#sdt-splash` 已移除，无残留 |
+| 跳过 | 手动点亮后派发 `pointerdown`，标记即刻清除 |
+| DSH 版本 | 仍 `0.2.2-rc.1`，未更新 |
+
+**未做**
+
+- 两段式退场（当前单段 0.38s 淡出）；
+- 以 boot card 消失为触发的看门狗（当前用绝对时长）；
+- 视频比例非 16:9 时的构图裁切策略（当前 `object-fit: cover`）。
+
+**回滚点**：`stage-09-v1.8`（v1.9 未打标签）
+
+---
+
 ## 2026-11-24 · v1.8 阶段审查（post-tag）+ 桌面首帧结论
 
 **审查范围**：`client.js` / `index.js` / `lib/{config,assets,routes}.js` / `console.html` / `features.json`。

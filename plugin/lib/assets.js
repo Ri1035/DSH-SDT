@@ -23,6 +23,8 @@ export const CONTENT_TYPES = Object.freeze({
   '.ttf': 'font/ttf',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
 });
 
 export const MAX_ASSET_BYTES = 4 * 1024 * 1024;

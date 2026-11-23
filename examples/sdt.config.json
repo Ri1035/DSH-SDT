@@ -14,7 +14,8 @@
       "enabled": true,
       "duration": 2200,
       "skippable": true,
-      "oncePerSession": true
+      "oncePerSession": true,
+      "video": null
     },
     "ambience": {
       "enabled": true,

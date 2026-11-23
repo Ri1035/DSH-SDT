@@ -152,13 +152,13 @@
       "id": "M9",
       "name": "开屏动画",
       "layer": "L4",
-      "status": "planned",
+      "status": "partial",
       "since": "v1.9",
       "seam": "host: webserver/index-inject + shell.overlay",
-      "detail": "双半边、看门狗、刷新去重、可跳过",
-      "evidence": "桌面首帧未验证",
+      "detail": "视频/CSS 双模式开屏：首帧覆盖、播完/到点/点击淡出、reduced-motion 跳过",
+      "evidence": "桌面实测 readyState=4、无残留",
       "placeholder": true,
-      "placeholderNote": "依赖桌面端首帧结论；未验证前不开工"
+      "placeholderNote": "两段式退场与 boot-card 看门狗待补"
     },
     {
       "id": "M10",
@@ -248,12 +248,10 @@
     },
     {
       "version": "v1.9",
-      "status": "planned",
+      "status": "wip",
       "items": [
-        "开屏 M9",
-        "壁纸/玻璃 M6",
-        "皮肤中心 M7",
-        "安全模式 M8",
+        "M9 开屏（首版）",
+        "两段式/看门狗",
         "回归"
       ]
     },

@@ -17,6 +17,7 @@
 | 配置 | `$DSH_HOME/sdt/sdt.config.json`，改颜色/动效/素材即可换一套外观 |
 | 品牌 | 自绘 SVG 字标替换 `sidebar.brand.mark` |
 | 素材 | `/sdt/asset/<name>` 提供 logo、纹理、字体，用户目录优先、内置回退 |
+| 开屏 | `motion.splash.video` 指定用户素材名（如 `fgo.mp4`）；缺省纯 CSS；可跳过、每会话一次 |
 | 结论 | DSH 能改什么、改到什么程度，写进 [`docs/MODULARITY.md`](./docs/MODULARITY.md) |
 
 ## 安装
