@@ -26,6 +26,9 @@ export const DEFAULT_CONFIG = Object.freeze({
     inkDark: '#e9e6df',
   },
   tokens: {},
+  appearance: {
+    mode: 'auto',
+  },
   motion: {
     splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true },
     ambience: { enabled: true, intensity: 0.4 },
@@ -155,6 +158,13 @@ export function validateConfig(raw) {
     warn('motion', '必须是对象');
   }
 
+  const appearance = { ...DEFAULT_CONFIG.appearance };
+  if (isPlainObject(raw.appearance)) {
+    const mode = raw.appearance.mode;
+    if (mode === 'auto' || mode === 'light' || mode === 'dark') appearance.mode = mode;
+    else if (mode !== undefined) warn('appearance.mode', "需为 'auto' | 'light' | 'dark'");
+  }
+
   const assets = { ...DEFAULT_CONFIG.assets };
   if (isPlainObject(raw.assets)) {
     for (const key of ['logo', 'texture']) {
@@ -170,6 +180,7 @@ export function validateConfig(raw) {
       version: Number.isInteger(raw.version) ? raw.version : DEFAULT_CONFIG.version,
       colors,
       tokens: checkTokens(raw.tokens, warn),
+      appearance,
       motion: { splash, ambience },
       assets,
     },

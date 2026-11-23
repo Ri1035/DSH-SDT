@@ -13,6 +13,40 @@
 
 ---
 
+## v1.3 — 2026-11-23
+
+**L1 全覆盖 + L2 视觉语法 + 品牌字标（M3）**。
+
+### Added
+
+- **L1 133/133 token 覆盖**：不再手写清单，改为「运行时扫描 + 实测基线 + 语义族映射」
+  - 133 个 `--dsw-alias-*` / `--dsw-specific-*` 全部映射到明/暗两套值（`__sdtDebug.mapped = 133`）
+  - 族规则覆盖 bg / border / brand / label / state / button / code-diff / illustration /
+    interactive / sidebar / markdown / menu / toast / tooltip / bubble / input 等
+- **L2 视觉语法**（只用稳定锚点，不动布局）：深色菱格底纹（G6）、侧栏金色发丝线与内阴影、
+  会话头金色下边框、`::selection` 金色高亮
+- **M3 品牌字标**：向 `sidebar.brand.mark` 注册自绘 SVG（金色菱形 + `SDT`），实测替换成功
+- `appearance.mode`（`auto|light|dark`）：经 `theme.setTheme` 走正规路径，避免与宿主 publish 抢顺序
+- 演示截图 `docs/preview/theme-{light,dark}.png` 改为**实机 headless 抓取**（1423×900）
+
+### Fixed
+
+- 首轮运行时只扫到 37 个变量 → 改为「基线 133 + 延迟补扫」，覆盖稳定在 133
+- 移除会与宿主 drop 态虚线叠加的 composer 描边规则（观感问题）
+
+### Verified（Web 端）
+
+- `__sdtDebug`: `{ version: "1.3", mapped: 133, total: 133, skipped: [] }`
+- 深色：`data-ds-dark-theme` 生效，背景 `#0d1117`，字标为品牌金 `#c8a24a`
+- 自验证脚本 7/7
+
+### Notes
+
+- 按约定**只做 Web 端验证**；桌面端（Electron）本轮未安装、未测试
+- 深色截图通过 `theme.setTheme('dark')` 得到，属真实偏好切换路径
+
+---
+
 ## v1.2 — 2026-11-23
 
 **默认主题成稿 + 模块化能力矩阵首版**。
@@ -170,6 +204,7 @@
 
 | 版本 | 日期 | 内容 |
 |---|---|---|
+| **v1.3** | 2026-11-23 | L1 133/133 全量 + L2 视觉语法 + M3 字标 + 实机截图 |
 | **v1.2** | 2026-11-23 | 默认主题成稿 + 模块化矩阵 + 阶段标记 |
 | **v1.1** | 2026-11-23 | 插件骨架落地：bundle + host/client 半边 + 配置与素材路由 + 14 token 实测生效 |
 | **v1.0** | 2026-11-22 | 更名 DSH-SDT（灵衣缝制）；版本管理启用；本机契约实测；生态调研；文档基线可交接 |

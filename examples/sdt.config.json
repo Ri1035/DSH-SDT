@@ -24,5 +24,8 @@
   "assets": {
     "logo": "logo.svg",
     "texture": null
+  },
+  "appearance": {
+    "mode": "dark"
   }
 }

@@ -34,7 +34,7 @@ DSH 的可自定义面**集中在"外观数据"**：颜色 token、素材字节�
 | 项 | 结论 | 证据 |
 |---|---|---|
 | `Theme.listTokens` 白名单 | **14 项，全部 `requiresLightAndDark: true`** | 【实测】源码 `BUILTIN_INSPECT_TOKENS` |
-| `overrideTokens` 是否校验名字 | **不校验**：任意 `--dsw-*` 名都会被接受并写入 `body` 内联样式 | 【实测】v1.2 写入 18 项，`__sdtDebug.tokens = 18` |
+| `overrideTokens` 是否校验名字 | **不校验**：任意 `--dsw-*` 名都会被接受并写入 `body` 内联样式 | 【实测】v1.3 写入 **133 项**，`__sdtDebug.mapped = 133 / 133` |
 | 非白名单变量是否被消费 | **取决于组件是否读它**：同一批里有被消费的，也有写了没人用的 | 【实测】见下表 |
 | 结论 | 色面足够做完整主题；**布局仍不可替换** | — |
 
@@ -58,6 +58,16 @@ DSH 的可自定义面**集中在"外观数据"**：颜色 token、素材字节�
   `docs/preview/theme-dark.png` 是**用同一算法算出的暗色值直接应用**得到的预览，不是偏好切换的结果。
 
 ---
+
+
+## 2.3 v1.3 实测结论补充
+
+| 结论 | 证据 |
+|---|---|
+| 133 个变量可全部覆盖 | `__sdtDebug = { mapped: 133, total: 133, skipped: [] }` |
+| 品牌字标可替换 | `sidebar.brand.mark` 注册自绘 SVG 后，侧栏出现「金菱形 + SDT」 |
+| 深色必须走偏好切换 | 直接写 inline 会被宿主 publish 覆盖；`theme.setTheme('dark')` 才生效 |
+| 宿主 drop 态自带虚线 | composer 的虚线不是插件产生，改描边前需先确认宿主默认态 |
 
 ## 3. 不可自定义（红线）
 

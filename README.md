@@ -1,6 +1,6 @@
 # DSH-SDT
 
-<img alt="version" src="https://img.shields.io/badge/version-v1.2-2ea44f?style=flat-square">
+<img alt="version" src="https://img.shields.io/badge/version-v1.3-2ea44f?style=flat-square">
 <img alt="dsh" src="https://img.shields.io/badge/DSH-0.2.2--rc.1-1f6feb?style=flat-square">
 
 **DeepSeek Harness 主题插件**：提供一套默认 FGO 风格主题，并以此为探针，测量 DSH 的模块化自定义上限。
@@ -13,6 +13,7 @@
 |---|---|
 | 默认主题 | 装插件即生效：明暗两套 token、字体与圆角变量、强调色 |
 | 配置 | `$DSH_HOME/sdt/sdt.config.json`，改颜色/动效/素材即可换一套外观 |
+| 品牌 | 自绘 SVG 字标替换 `sidebar.brand.mark` |
 | 素材 | `/sdt/asset/<name>` 提供 logo、纹理、字体，用户目录优先、内置回退 |
 | 结论 | DSH 能改什么、改到什么程度，写进 [`docs/MODULARITY.md`](./docs/MODULARITY.md) |
 
@@ -31,8 +32,8 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 |---|---|
 | v1.0 | 合同与实测基线（DSH 0.2.2-rc.1：4 条接缝、14 项 token、插件契约） |
 | v1.1 | 插件骨架：bundle / host + client 半边 / 配置与素材路由 / 14 token 生效 |
-| **v1.2** | **默认主题成稿 + 模块化矩阵首版 + 阶段标记** |
-| 下一阶段 | 首帧注入（开屏）、覆盖层、安全模式 |
+| **v1.3** | **L1 133/133 全量覆盖 + L2 语法 + 品牌字标 + 实机截图** |
+| 下一阶段 | v1.4：L3 密度 + 图标替换（M5）+ 设置只读卡（M4） |
 
 ## 文档
 
