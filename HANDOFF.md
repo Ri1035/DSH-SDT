@@ -9,16 +9,16 @@
 
 DSH 主题插件 **DSH-SDT** 已可安装运行：bundle + host/client 两边、`/sdt/*` 三路由、
 配置系统、**133/133 个 `--dsw-*` token 全覆盖**、自绘品牌字标、蓝青配色、
-L3 间距/几何、设置页只读卡、**控制台 `/sdt/console`（含 13 项功能占位矩阵）**。
-**只在 `web` profile 验证过；桌面端（Electron）从未安装、未测试。**
+L3 间距/几何、设置页只读卡、控制台 `/sdt/console`、M2 输入 dock、M1 覆盖层骨架。
+**`web` 与 `desktop` 均已安装验证**；桌面首帧 `index-inject` 仍未测（v1.9 开屏前置）。
 
 文档基线已于 2026-11-23 校正，v1.6 起 `docs/DENSITY.md` 记录 `--dsh-*` 归属与 M5 负结论；
 许可定为 MIT（仅代码），第三方美术不入库（ADR D26）。
 
 | 项 | 值 |
 |---|---|
-| 版本 | `v1.7`（`VERSION` / manifest `1.7.0`） |
-| 阶段标记 | `stage-08-v1.7`（另有 `stage-01-v1.0` … `stage-07-v1.6`） |
+| 版本 | `v1.8`（`VERSION` / manifest `1.8.0`） |
+| 阶段标记 | `stage-09-v1.8`（另有 `stage-01-v1.0` … `stage-08-v1.7`） |
 | 仓库 | `https://github.com/Ri1035/DSH-SDT`（public） |
 | 本地工作区 | `C:\Users\KOKA\Desktop\FGO` |
 | 代码量 | `plugin/` 约 960 行（JS + JSON + SVG） |
@@ -44,7 +44,7 @@ L3 间距/几何、设置页只读卡、**控制台 `/sdt/console`（含 13 项�
 | DSH 安装目录 | `C:\DSH`（`DeepSeek Harness.exe`） |
 | DSH 包内容 | `C:\DSH\resources\app.asar`（203 MB，**只读归档**） |
 | `$DSH_HOME` | `C:\DSH\.dsh` |
-| 当前 profile | `desktop`（Electron 独占，**别动**）；`web`（开发沙盒，`dsh-sdt` 以 `link:` 指向本仓库 `plugin/`，改码即生效，刷新页面重载） |
+| 当前 profile | `desktop`（Electron 独占；**已装 dsh-sdt**，改代码后需重启应用）；`web`（开发沙盒，`dsh-sdt` 以 `link:` 指向本仓库 `plugin/`，改码即生效，刷新页面重载） |
 | 内置 Node / pnpm | `C:\DSH\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe`（v24.21.0）/ 同目录 `pnpm\bin\pnpm.mjs` |
 | dsh CLI | `C:\DSH\resources\runtime\cli\bin\dsh.cmd`（`0.2.2-rc.1`） |
 | 用户配置 | `C:\DSH\.dsh\sdt\sdt.config.json` |
@@ -76,6 +76,21 @@ curl.exe -sS -c c.txt -b c.txt -o NUL -w "%{http_code}" "http://127.0.0.1:18990/
 & msedge --headless=old --disable-gpu --hide-scrollbars --window-size=1423,900 `
   --timeout=14000 "--screenshot=docs\preview\theme-dark.png" "http://127.0.0.1:PORT/?token=$T"
 ```
+
+### 3.4 桌面端启动（有坑）
+
+```powershell
+# 必须清掉 WorkBuddy 终端注入的变量，否则 Electron 以 Node 模式静默退出（exit 0、无窗口）
+$env:ELECTRON_RUN_AS_NODE = $null
+$env:NODE_OPTIONS = $null
+$env:HTTPS_PROXY = $null; $env:https_proxy = $null
+& "C:\DSH\DeepSeek Harness.exe"
+```
+
+- 到界面约 **20–30 秒**，期间 `HARNESS Loading plugins…` 属正常；页面重载也会卡这么久。
+- 需要远程检查时加 `--remote-debugging-port=9222`，用 `tools/cdp_*.mjs` 读 `__sdtDebug` / 截图；检查完重启去掉端口。
+- 桌面渲染源是 `dsh-app://app/`，但 `fetch('/sdt/config.json')` **相对路径可用**；
+  绝对地址 `http://127.0.0.1:<port>/sdt/*` 会被 CORS/栅栏拒绝。
 
 ---
 
@@ -117,6 +132,9 @@ plugin/
 | M4 只读信息卡 | ✅ | 设置 → 通用设置底部：版本 / token / 来源 / 目录 |
 | M5 图标替换 | ❌ **负结论** | `ctx.theme` 13 个方法无 icon 接口；无稳定图标锚点 → 降级（D30） |
 | 控制台（v1.7） | ✅ | `/sdt/console` 200；未鉴权 401；13 卡矩阵 / 明暗预览 / 自检全 200 |
+| M2 输入 dock（v1.8） | ✅ | 桌面 / 宿主 web 均挂载，16px，点击穿透 |
+| M1 覆盖层骨架（v1.8） | 🟡 | 配置 `appearance.overlay` 默认关；开启后四角标，`pointer-events:none` |
+| 桌面端（v1.8） | ✅ 已安装 | 133/133、菱形字标 + `DSH-SDT`、dock 生效；首帧未测 |
 
 **已知未做**：L3 的侧栏密度与圆角体系（哈希类，无锚点）、覆盖层（M1/M2）、
 开屏（M9）、壁纸/玻璃（M6）、皮肤中心（M7）、安全模式（M8）、对话动画、桌面端验证。
@@ -137,6 +155,9 @@ plugin/
 | K8 | 网络 | `hosts` 被 Steam++ 写死 `127.0.0.1`，schannel 不可用 → 推送走 Git Data API（`tools/gh_push.py`），拉取走 DoH |
 | K9 | 打包漏文件 | `package.json` 的 `files` 漏了 `assets` 会把内置素材丢掉（本轮已修） |
 | K10 | 双挂载 | client 用 `window.__dshSdtApplied` 挡住第二次；副作用是 HMR 重载不会重新应用，需刷新页面 |
+| K11 | 桌面端静默退出 | `ELECTRON_RUN_AS_NODE=1` 或 `NODE_OPTIONS` 存在时，`DeepSeek Harness.exe` 以 Node 模式跑完即退（exit 0、无窗口）；启动前必须清掉 |
+| K12 | 桌面端加载慢 | 冷启动与页面重载都可能 20–30 秒停在 `Loading plugins…`，不要误判为崩溃 |
+| K13 | single slot 抢位 | 单槽位用 `priority`（越小越优先），`order`/`id` 只对 list slot 有效；官方字标 priority 0，替换用 -10 |
 
 ---
 
@@ -178,7 +199,8 @@ plugin/
 | `stage-05-v1.4` | 蓝青配色定版 |
 | `stage-06-v1.5` | bug 修复 + 转手文档 |
 | `stage-07-v1.6` | L3 间距 + M4 只读卡 + M5 负结论 |
-| **`stage-08-v1.7`** | **控制台 + 功能矩阵（当前）** |
+| `stage-08-v1.7` | 控制台 + 功能矩阵 |
+| **`stage-09-v1.8`** | **M2 dock + M1 覆盖层骨架 + 桌面端首验（当前）** |
 
 ```powershell
 git reset --hard stage-05-v1.4      # 回退到配色定版
@@ -192,11 +214,11 @@ git log --oneline --decorate -10    # 看标签与提交
 > v1.6 已完成：`--dsh-*` 盘点（实测 49 个）→ L3 间距、M4 只读卡、M5 负结论。
 > 剩余项如下。
 
-1. **桌面端验证**（用户主力端，目前 0 验证）：装进 `desktop` 需应用内插件管理或手动加依赖，**会重启应用**；需用户授权。同时验证 `webserver/index-inject` 是否在 Electron 生效 —— 它决定开屏走哪条路。
-2. **M1/M2 覆盖层与输入 dock**（v1.8）：`shell.overlay` + `conversation.input.dock`，点击特效优先。
-3. **M6/M7/M8**（v1.9）：壁纸/玻璃、皮肤中心（`skin.json`）、安全模式。
-4. **M9 开屏**（v1.9）：client overlay 为主，`index-inject` 作增强（取决于第 1 项结论）。
-5. **P5 对话动画**：被 B3（参考项目名）/ B4（轻量 or 重度）阻塞。
+1. **桌面首帧**（v1.9 前置）：验证 `webserver/index-inject` 在 Electron 是否生效 —— 决定开屏走 host 首帧还是纯 client。
+2. **M9 开屏**（v1.9）：双半边、看门狗、刷新去重、可跳过；`motion.splash.*` 已在配置里。
+3. **M6/M7/M8**（v1.9）：壁纸/玻璃（默认关）、皮肤中心（`skin.json`）、安全模式。
+4. **M1 收尾**：点击特效 + 覆盖层视觉；`appearance.overlay` 打开后的观感验收。
+5. **M4 可交互**：改色 / 切主题，与安全模式一起做。
 6. **P3.5 框架化收尾**：`slots.js` 单一数据源、doctor 校验器、Agent Skill 分发、`overrides.css`。
 7. **发布准备**：双语 README、演示物料、市场元数据；`private: true` 需在首发前移除。
 

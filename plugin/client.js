@@ -1,5 +1,5 @@
 /**
- * dsh-sdt — browser client bundle (v1.5)
+ * dsh-sdt — browser client bundle (v1.8)
  *
  * 三件事：
  *   1) L1 全量：把界面里实际存在的 `--dsw-alias-*` / `--dsw-specific-*` 变量（实测 133 个）
@@ -13,7 +13,7 @@
 window.__ModuleLoader__.load({
   id: 'dsh-sdt',
   factory: (require) => {
-    const VERSION = '1.7';
+    const VERSION = '1.8';
     const SOURCE = 'dsh-sdt';
     if (window.__dshSdtApplied) return { inject: ['theme', 'slots'], apply() {} };
     window.__dshSdtApplied = true;
@@ -298,6 +298,62 @@ body[data-ds-dark-theme]{
       };
     }
 
+    /* ---------------- M2：输入 dock 氛围条 ---------------- */
+    function makeDock() {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React) return null;
+      const h = React.createElement;
+      return function SdtDock() {
+        return h("div", {
+          "data-sdt-dock": "",
+          style: {
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            height: 16, padding: "0 2px", fontSize: 10, letterSpacing: ".14em",
+            color: "var(--dsw-alias-label-secondary)", opacity: 0.72,
+            pointerEvents: "none", userSelect: "none",
+          },
+        },
+          h("span", null, "DSH-SDT"),
+          h("span", null, "v" + VERSION));
+      };
+    }
+
+    /* ---------------- M1：覆盖层骨架（默认关闭） ---------------- */
+    function makeOverlay() {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React) return null;
+      const h = React.createElement;
+      const corner = (style, key) => h("div", {
+        key,
+        style: Object.assign({
+          position: "absolute", width: 12, height: 12,
+          borderColor: "var(--dsw-alias-brand-primary)", borderStyle: "solid",
+          opacity: 0.35,
+        }, style),
+      });
+      return function SdtHud() {
+        return h("div", {
+          "data-sdt-overlay": "",
+          style: {
+            position: "fixed", inset: 0, zIndex: 1, pointerEvents: "none",
+            fontFamily: "var(--dsh-font-family-text)",
+          },
+        },
+          h("div", {
+            style: {
+              position: "absolute", top: 10, right: 16, fontSize: 9, letterSpacing: ".18em",
+              color: "var(--dsw-alias-brand-primary)", opacity: 0.55,
+            },
+          }, "SDT HUD"),
+          corner({ top: 8, left: 8, borderWidth: "1px 0 0 1px" }, "tl"),
+          corner({ top: 8, right: 8, borderWidth: "1px 1px 0 0" }, "tr"),
+          corner({ bottom: 8, left: 8, borderWidth: "0 0 1px 1px" }, "bl"),
+          corner({ bottom: 8, right: 8, borderWidth: "0 1px 1px 0" }, "br"));
+      };
+    }
+
     /* ---------------- M3：自绘字标 ---------------- */
     function makeBrandMark() {
       let React = null;
@@ -306,14 +362,30 @@ body[data-ds-dark-theme]{
       const h = React.createElement;
       return function SdtBrandMark() {
         return h("svg", {
-          viewBox: "0 0 44 20", width: 44, height: 20, "aria-hidden": true,
+          viewBox: "0 0 20 20", width: 20, height: 20, "aria-hidden": true,
+          "data-sdt-brand": "",
           style: { display: "block", pointerEvents: "none" },
-        },
-          h("path", { d: "M4 2 L10 10 L4 18 L-2 10 Z", transform: "translate(2 0)", fill: "var(--bj-gold, #c8a24a)" }),
-          h("text", {
-            x: 16, y: 14, fill: "var(--bj-gold, #c8a24a)",
-            fontFamily: "Georgia, serif", fontSize: 10, letterSpacing: "1.4",
-          }, "SDT"));
+        }, h("path", {
+          d: "M10 2 L17.5 10 L10 18 L2.5 10 Z",
+          fill: "var(--bj-gold, #37a3d6)",
+        }));
+      };
+    }
+
+    /* ---------------- M3b：品牌名 ---------------- */
+    function makeBrandName() {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React) return null;
+      const h = React.createElement;
+      return function SdtBrandName() {
+        return h("span", {
+          "data-sdt-brand-name": "",
+          style: {
+            fontSize: 12, fontWeight: 600, letterSpacing: ".14em",
+            color: "var(--dsw-alias-brand-primary)", whiteSpace: "nowrap",
+          },
+        }, "DSH-SDT");
       };
     }
 
@@ -333,15 +405,39 @@ body[data-ds-dark-theme]{
           console.warn("[dsh-sdt] token override rejected:", error && error.message);
         }
 
-        // 字标：失败不影响主题
+        // 字标：桌面端宿主会在插件之后注册默认标，故加延迟重挂（DOM 里已有我们的标记即跳过）
+        const brandTimers = [];
+        const mountBrand = () => {
+          try {
+            const BrandMark = makeBrandMark();
+            const BrandName = makeBrandName();
+            if (!ctx.slots?.inject) return;
+            if (!document.querySelector("[data-sdt-brand]") && BrandMark) {
+              // single slot：用 priority 抢在官方默认标（priority 0）之前，order/id 对 single 无效
+              ctx.slots.inject("sidebar.brand.mark", () =>
+                ctx.slots.register({ name: "sidebar.brand.mark", priority: -10 }, BrandMark));
+            }
+            if (!document.querySelector("[data-sdt-brand-name]") && BrandName) {
+              ctx.slots.inject("sidebar.brand.name", () =>
+                ctx.slots.register({ name: "sidebar.brand.name", priority: -10 }, BrandName));
+            }
+          } catch (error) {
+            console.warn("[dsh-sdt] brand mark unavailable:", error && error.message);
+          }
+        };
+        mountBrand();
+        [600, 1500, 3000].forEach((ms) => brandTimers.push(setTimeout(mountBrand, ms)));
+        ctx.effect(() => () => brandTimers.forEach((id) => clearTimeout(id)));
+
+        // M2 输入 dock：失败不影响主题
         try {
-          const BrandMark = makeBrandMark();
-          if (BrandMark && ctx.slots?.inject) {
-            ctx.slots.inject("sidebar.brand.mark", () =>
-              ctx.slots.register({ name: "sidebar.brand.mark", id: "sdt-brand", order: 20 }, BrandMark));
+          const Dock = makeDock();
+          if (Dock && ctx.slots?.inject) {
+            ctx.slots.inject("conversation.input.dock", () =>
+              ctx.slots.register({ name: "conversation.input.dock", id: "sdt-dock", order: 10 }, Dock));
           }
         } catch (error) {
-          console.warn("[dsh-sdt] brand mark unavailable:", error && error.message);
+          console.warn("[dsh-sdt] input dock unavailable:", error && error.message);
         }
 
         // M4 只读信息卡：失败不影响主题
@@ -386,6 +482,19 @@ body[data-ds-dark-theme]{
               skipped: built.stats.skipped, source: payload.exists ? "file" : "defaults",
             };
             document.documentElement.dataset.sdtSource = payload.exists ? "file" : "defaults";
+
+            // M1 覆盖层骨架：仅在配置显式开启时注册，默认零影响
+            if (payload.config.appearance && payload.config.appearance.overlay === true) {
+              try {
+                const Hud = makeOverlay();
+                if (Hud && ctx.slots?.inject) {
+                  ctx.slots.inject("shell.overlay", () =>
+                    ctx.slots.register({ name: "shell.overlay", id: "sdt-hud", order: 5 }, Hud));
+                }
+              } catch (error) {
+                console.warn("[dsh-sdt] overlay unavailable:", error && error.message);
+              }
+            }
           })
           .catch(() => {});
 

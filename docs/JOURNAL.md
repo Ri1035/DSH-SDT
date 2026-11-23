@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-11-24 · 阶段 9 · v1.8 —— M1 覆盖层骨架 + M2 输入 dock + 桌面端首验
+
+**做了什么**
+
+- **M2**：`conversation.input.dock` 注册 16px 氛围条（左 `DSH-SDT`、右版本），`pointer-events:none`。
+- **M1**：`shell.overlay` 骨架，配置 `appearance.overlay`（默认 false）；开启只画四角标 + HUD 文字。
+- **桌面端**：`link:` 进 `desktop` profile（dependencies + bundles），pnpm 安装，冷启动验证通过。
+- **字标修复**：桌面端字标不生效的根因是 single slot 用 `order`/`id` 无效，必须用 `priority: -10`；
+  同时把 `sidebar.brand.name` 换成 `DSH-SDT`，字标简化为菱形。
+
+**验证（实测）**
+
+| 环境 | 结果 |
+|---|---|
+| Web | dock 768×14、卡片 728、980/1423 无溢出；覆盖层 pointer-events:none、hit-test 穿透 |
+| Desktop | `mapped 133/133`、`source:file`、字标/名字各 1、dock 挂载、卡片 729×98、1282 无溢出 |
+| 桌面安装 | `dsh-sdt 1.8.0 <- ..\plugin`；启动后插件生效 |
+
+**踩坑**
+
+1. **`ELECTRON_RUN_AS_NODE=1`**：WorkBuddy 终端里直接 Start-Process 会让桌面端以 Node 模式静默退出（exit 0），
+   必须清掉 `ELECTRON_RUN_AS_NODE` 与 `NODE_OPTIONS`。已记入 HANDOFF。
+2. **Start-Process 被安全策略拦截**（`HTTPS_PROXY` 大小写重复键），清空代理变量后可启动。
+3. **桌面端启动慢**：约 20–30 秒，期间 `HARNESS Loading plugins…` 属正常，不是卡死。
+4. **single slot 语义**：`priority` 越小越优先；官方默认标 priority 0，替换需 -10。
+5. **桌面端页面重载**会长时间停在 Loading（约 20s），排查时勿误判为崩溃。
+
+**没做**
+
+- 桌面首帧 `webserver/index-inject` 未验证（属 M9，v1.9）。
+- 覆盖层只验证了 web，桌面未开启。
+- M1 的点击特效未做。
+
+**回滚点**：`stage-09-v1.8`（桌面端回滚见 CHANGELOG v1.8 Notes）
+
+---
+
 ## 2026-11-24 · 阶段 8 · v1.7 —— 控制台 + 功能占位矩阵
 
 **做了什么**

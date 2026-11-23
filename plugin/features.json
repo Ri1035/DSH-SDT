@@ -3,97 +3,284 @@
   "product": "DSH-SDT",
   "updated": "2026-11-24",
   "stats": {
-    "tokens": { "mapped": 133, "total": 133, "verifiedIn": "v1.3", "note": "客户端覆盖数需在 DSH 页面看 window.__sdtDebug" },
+    "tokens": {
+      "mapped": 133,
+      "total": 133,
+      "verifiedIn": "v1.3",
+      "note": "客户端覆盖数需在 DSH 页面看 window.__sdtDebug"
+    },
     "routes": 3,
-    "profiles": { "web": "verified", "desktop": "unverified" }
+    "profiles": {
+      "web": "verified",
+      "desktop": "installed"
+    }
   },
   "layers": [
-    { "id": "L1", "name": "颜色 token", "status": "done", "detail": "133/133，明暗双套", "evidence": "__sdtDebug.mapped = 133" },
-    { "id": "L2", "name": "视觉语法", "status": "done", "detail": "菱格底纹 / 发丝线 / ::selection", "evidence": "docs/preview/theme-*.png" },
-    { "id": "L3", "name": "密度", "status": "partial", "detail": "间距已做；字号归宿主；侧栏密度不可碰", "evidence": "docs/DENSITY.md" },
-    { "id": "L4", "name": "覆盖层", "status": "planned", "detail": "M1 / M2 / M9 依赖此层", "evidence": "—" },
-    { "id": "L5", "name": "系统级", "status": "planned", "detail": "桌宠 / 原生窗口 / 音频子进程", "evidence": "—" }
+    {
+      "id": "L1",
+      "name": "颜色 token",
+      "status": "done",
+      "detail": "133/133，明暗双套",
+      "evidence": "__sdtDebug.mapped = 133"
+    },
+    {
+      "id": "L2",
+      "name": "视觉语法",
+      "status": "done",
+      "detail": "菱格底纹 / 发丝线 / ::selection",
+      "evidence": "docs/preview/theme-*.png"
+    },
+    {
+      "id": "L3",
+      "name": "密度",
+      "status": "partial",
+      "detail": "间距已做；字号归宿主；侧栏密度不可碰",
+      "evidence": "docs/DENSITY.md"
+    },
+    {
+      "id": "L4",
+      "name": "覆盖层",
+      "status": "planned",
+      "detail": "M1 / M2 / M9 依赖此层",
+      "evidence": "—"
+    },
+    {
+      "id": "L5",
+      "name": "系统级",
+      "status": "planned",
+      "detail": "桌宠 / 原生窗口 / 音频子进程",
+      "evidence": "—"
+    }
   ],
   "modules": [
     {
-      "id": "M3", "name": "品牌字标", "layer": "L2", "status": "done", "since": "v1.3",
-      "seam": "slots: sidebar.brand.mark", "detail": "自绘 SVG（菱形 + SDT），跟随主题色",
-      "evidence": "运行时 DOM 可见", "placeholder": false
+      "id": "M3",
+      "name": "品牌字标",
+      "layer": "L2",
+      "status": "done",
+      "since": "v1.3",
+      "seam": "slots: sidebar.brand.mark",
+      "detail": "自绘 SVG（菱形 + SDT），跟随主题色",
+      "evidence": "运行时 DOM 可见",
+      "placeholder": false
     },
     {
-      "id": "M4", "name": "设置只读卡", "layer": "L2", "status": "partial", "since": "v1.6",
-      "seam": "slots: settings.general.item", "detail": "版本 / token / 来源 / 目录；可交互版待 v1.9",
-      "evidence": "设置 → 通用设置底部", "placeholder": true,
+      "id": "M4",
+      "name": "设置只读卡",
+      "layer": "L2",
+      "status": "partial",
+      "since": "v1.6",
+      "seam": "slots: settings.general.item",
+      "detail": "版本 / token / 来源 / 目录；可交互版待 v1.9",
+      "evidence": "设置 → 通用设置底部",
+      "placeholder": true,
       "placeholderNote": "可交互设置（改色、切主题）尚未接线"
     },
     {
-      "id": "M1", "name": "覆盖层", "layer": "L4", "status": "planned", "since": "v1.8",
-      "seam": "slots: shell.overlay", "detail": "全屏浮层骨架 / 点击特效",
-      "evidence": "—", "placeholder": true, "placeholderNote": "待 v1.8 接线；先在真 DSH 验证 pointer-events 与遮挡"
+      "id": "M1",
+      "name": "覆盖层",
+      "layer": "L4",
+      "status": "partial",
+      "since": "v1.8",
+      "seam": "slots: shell.overlay",
+      "detail": "覆盖层骨架（默认关闭）：开启后仅四角标 + HUD 文字，无交互",
+      "evidence": "web 实测 pointer-events:none；桌面未开启",
+      "placeholder": true,
+      "placeholderNote": "视觉与点击特效待后续版本"
     },
     {
-      "id": "M2", "name": "输入 dock", "layer": "L4", "status": "planned", "since": "v1.8",
-      "seam": "slots: conversation.input.dock", "detail": "输入卡上下氛围条 / 状态提示",
-      "evidence": "—", "placeholder": true, "placeholderNote": "槽位名曾变过，接线前先查实时 slot 树"
+      "id": "M2",
+      "name": "输入 dock",
+      "layer": "L4",
+      "status": "done",
+      "since": "v1.8",
+      "seam": "slots: conversation.input.dock",
+      "detail": "输入 dock 氛围条：左 DSH-SDT、右版本号，点击穿透",
+      "evidence": "桌面 / 宿主 web 均挂载",
+      "placeholder": false,
+      "placeholderNote": "槽位名曾变过，接线前先查实时 slot 树"
     },
     {
-      "id": "M5", "name": "图标替换", "layer": "L2", "status": "no-seam", "since": "—",
-      "seam": "无（theme 无 icon 接口）", "detail": "降级：只装饰自有元素，不碰宿主图标",
-      "evidence": "docs/DENSITY.md §5（13 个方法实测）", "placeholder": true,
+      "id": "M5",
+      "name": "图标替换",
+      "layer": "L2",
+      "status": "no-seam",
+      "since": "—",
+      "seam": "无（theme 无 icon 接口）",
+      "detail": "降级：只装饰自有元素，不碰宿主图标",
+      "evidence": "docs/DENSITY.md §5（13 个方法实测）",
+      "placeholder": true,
       "placeholderNote": "官方无接缝；硬做只能依赖哈希类，已放弃"
     },
     {
-      "id": "M6", "name": "壁纸 / 玻璃", "layer": "L4", "status": "planned", "since": "v1.9",
-      "seam": "自有背景层 + backdrop-filter", "detail": "静态图 / 视频 / 磨砂；默认关闭",
-      "evidence": "—", "placeholder": true, "placeholderNote": "需先做性能与 reduced-motion 降级"
+      "id": "M6",
+      "name": "壁纸 / 玻璃",
+      "layer": "L4",
+      "status": "planned",
+      "since": "v1.9",
+      "seam": "自有背景层 + backdrop-filter",
+      "detail": "静态图 / 视频 / 磨砂；默认关闭",
+      "evidence": "—",
+      "placeholder": true,
+      "placeholderNote": "需先做性能与 reduced-motion 降级"
     },
     {
-      "id": "M7", "name": "皮肤中心", "layer": "L4", "status": "planned", "since": "v1.9",
-      "seam": "自有 skin.json + 列表 UI", "detail": "导入 / 导出 / 切换；坏包回退",
-      "evidence": "—", "placeholder": true, "placeholderNote": "依赖 M4 可交互设置先落地"
+      "id": "M7",
+      "name": "皮肤中心",
+      "layer": "L4",
+      "status": "planned",
+      "since": "v1.9",
+      "seam": "自有 skin.json + 列表 UI",
+      "detail": "导入 / 导出 / 切换；坏包回退",
+      "evidence": "—",
+      "placeholder": true,
+      "placeholderNote": "依赖 M4 可交互设置先落地"
     },
     {
-      "id": "M8", "name": "安全模式", "layer": "L4", "status": "planned", "since": "v1.9",
-      "seam": "配置校验失败 → 回退默认", "detail": "一键停用全部装饰，保住可用性",
-      "evidence": "—", "placeholder": true, "placeholderNote": "与 M7 同版，避免坏包把界面打黑"
+      "id": "M8",
+      "name": "安全模式",
+      "layer": "L4",
+      "status": "planned",
+      "since": "v1.9",
+      "seam": "配置校验失败 → 回退默认",
+      "detail": "一键停用全部装饰，保住可用性",
+      "evidence": "—",
+      "placeholder": true,
+      "placeholderNote": "与 M7 同版，避免坏包把界面打黑"
     },
     {
-      "id": "M9", "name": "开屏动画", "layer": "L4", "status": "planned", "since": "v1.9",
-      "seam": "host: webserver/index-inject + shell.overlay", "detail": "双半边、看门狗、刷新去重、可跳过",
-      "evidence": "桌面首帧未验证", "placeholder": true, "placeholderNote": "依赖桌面端首帧结论；未验证前不开工"
+      "id": "M9",
+      "name": "开屏动画",
+      "layer": "L4",
+      "status": "planned",
+      "since": "v1.9",
+      "seam": "host: webserver/index-inject + shell.overlay",
+      "detail": "双半边、看门狗、刷新去重、可跳过",
+      "evidence": "桌面首帧未验证",
+      "placeholder": true,
+      "placeholderNote": "依赖桌面端首帧结论；未验证前不开工"
     },
     {
-      "id": "M10", "name": "Agent Skill", "layer": "L5", "status": "planned", "since": "v1.9+",
-      "seam": "ctx.skills.registerProvider", "detail": "素材 inbox → Agent 自动适配",
-      "evidence": "API 存在，未接线", "placeholder": true, "placeholderNote": "需验证插件注册的 skill 是否对所有会话可见"
+      "id": "M10",
+      "name": "Agent Skill",
+      "layer": "L5",
+      "status": "planned",
+      "since": "v1.9+",
+      "seam": "ctx.skills.registerProvider",
+      "detail": "素材 inbox → Agent 自动适配",
+      "evidence": "API 存在，未接线",
+      "placeholder": true,
+      "placeholderNote": "需验证插件注册的 skill 是否对所有会话可见"
     },
     {
-      "id": "P3", "name": "氛围层", "layer": "L2", "status": "partial", "since": "v1.3",
-      "seam": "稳定 data-* 锚点", "detail": "已有菱格底纹与发丝线；常驻循环动画未做",
-      "evidence": "docs/DESIGN.md §3.7", "placeholder": true, "placeholderNote": "循环动画需先过性能与 reduced-motion"
+      "id": "P3",
+      "name": "氛围层",
+      "layer": "L2",
+      "status": "partial",
+      "since": "v1.3",
+      "seam": "稳定 data-* 锚点",
+      "detail": "已有菱格底纹与发丝线；常驻循环动画未做",
+      "evidence": "docs/DESIGN.md §3.7",
+      "placeholder": true,
+      "placeholderNote": "循环动画需先过性能与 reduced-motion"
     },
     {
-      "id": "P5", "name": "对话动画", "layer": "L4", "status": "blocked", "since": "—",
-      "seam": "conversation.chat.node / 官方 data-*", "detail": "入场 / 流式节奏 / 工具卡缓动",
-      "evidence": "生态空白，无先例", "placeholder": true, "placeholderNote": "被 B3（参考项目）/ B4（轻量 or 重度）阻塞"
+      "id": "P5",
+      "name": "对话动画",
+      "layer": "L4",
+      "status": "blocked",
+      "since": "—",
+      "seam": "conversation.chat.node / 官方 data-*",
+      "detail": "入场 / 流式节奏 / 工具卡缓动",
+      "evidence": "生态空白，无先例",
+      "placeholder": true,
+      "placeholderNote": "被 B3（参考项目）/ B4（轻量 or 重度）阻塞"
     },
     {
-      "id": "P7", "name": "桌面端", "layer": "—", "status": "unverified", "since": "v1.8",
-      "seam": "desktop profile bundle", "detail": "安装 / 首帧 / 差异修正",
-      "evidence": "从未安装", "placeholder": true, "placeholderNote": "需要授权；会重启 DSH 应用"
+      "id": "P7",
+      "name": "桌面端",
+      "layer": "—",
+      "status": "partial",
+      "since": "v1.8",
+      "seam": "desktop profile bundle",
+      "detail": "已装进 desktop profile：主题 / 字标 / dock 生效；首帧 index-inject 待验",
+      "evidence": "桌面实测 133/133 + 蓝青 + 菱形字标",
+      "placeholder": true,
+      "placeholderNote": "首帧结论留待 v1.9 开屏"
     }
   ],
   "roadmap": [
-    { "version": "v1.5", "status": "done", "items": ["6 个 bug 修复", "转手文档", "文档基线校正"] },
-    { "version": "v1.6", "status": "done", "items": ["L3 间距", "M4 只读卡", "M5 负结论"] },
-    { "version": "v1.7", "status": "done", "items": ["控制台（本页）", "features.json", "功能占位矩阵"] },
-    { "version": "v1.8", "status": "planned", "items": ["M1 覆盖层", "M2 输入 dock", "桌面端首验"] },
-    { "version": "v1.9", "status": "planned", "items": ["开屏 M9", "壁纸/玻璃 M6", "皮肤中心 M7", "安全模式 M8", "回归"] },
-    { "version": "v2.0", "status": "planned", "items": ["发布准备", "首发"] }
+    {
+      "version": "v1.5",
+      "status": "done",
+      "items": [
+        "6 个 bug 修复",
+        "转手文档",
+        "文档基线校正"
+      ]
+    },
+    {
+      "version": "v1.6",
+      "status": "done",
+      "items": [
+        "L3 间距",
+        "M4 只读卡",
+        "M5 负结论"
+      ]
+    },
+    {
+      "version": "v1.7",
+      "status": "done",
+      "items": [
+        "控制台（本页）",
+        "features.json",
+        "功能占位矩阵"
+      ]
+    },
+    {
+      "version": "v1.8",
+      "status": "done",
+      "items": [
+        "M1 覆盖层骨架",
+        "M2 输入 dock",
+        "桌面端首验"
+      ]
+    },
+    {
+      "version": "v1.9",
+      "status": "planned",
+      "items": [
+        "开屏 M9",
+        "壁纸/玻璃 M6",
+        "皮肤中心 M7",
+        "安全模式 M8",
+        "回归"
+      ]
+    },
+    {
+      "version": "v2.0",
+      "status": "planned",
+      "items": [
+        "发布准备",
+        "首发"
+      ]
+    }
   ],
   "blockers": [
-    { "id": "B3", "text": "第二个参考项目名称（对话动画）", "affects": "P5" },
-    { "id": "B4", "text": "对话动画路线：轻量 / 重度", "affects": "P5" },
-    { "id": "B12", "text": "桌面端安装授权（会重启应用）", "affects": "P7" }
+    {
+      "id": "B3",
+      "text": "第二个参考项目名称（对话动画）",
+      "affects": "P5"
+    },
+    {
+      "id": "B4",
+      "text": "对话动画路线：轻量 / 重度",
+      "affects": "P5"
+    },
+    {
+      "id": "B12",
+      "text": "桌面端安装授权（会重启应用）",
+      "affects": "P7"
+    }
   ]
 }

@@ -13,6 +13,57 @@
 
 ---
 
+## v1.8 — 2026-11-24
+
+**第一个真正插入宿主 DOM 的版本：M1 覆盖层骨架 + M2 输入 dock + 桌面端首验。**
+
+### Added
+
+- **M2 输入 dock**（`conversation.input.dock`）：16px 细条，左 `DSH-SDT`、右版本号，
+  `pointer-events:none`，不挤压输入卡（实测 dock 底边与卡片顶边间隔 8px）。
+- **M1 覆盖层骨架**（`shell.overlay`）：配置 `appearance.overlay` 默认 `false`；
+  开启后仅渲染四角标 + `SDT HUD` 文字，`pointer-events:none`，无交互、无遮挡。
+- 配置层新增 `appearance.overlay` 布尔校验（非法值只丢弃并给 warning）。
+- **桌面端安装验证**：`dsh-sdt` 以 `link:` 进入 `desktop` profile 的 dependencies 与 bundles。
+
+### Changed
+
+- **品牌字标改为 single-slot 的 `priority: -10`**（`order`/`id` 对 single 无效）——
+  这是桌面端字标不生效的根因；同时替换 `sidebar.brand.name` 为 `DSH-SDT`。
+- 字标 SVG 简化为菱形（去文字），与名字组合成「◇ DSH-SDT」。
+- 字标增加 0.6s / 1.5s / 3s 延迟重挂：桌面端宿主会在插件之后注册默认标。
+- `VERSION` / manifest / `client.js` 同步到 `1.8`。
+
+### Verified（Web）
+
+| 项 | 结果 |
+|---|---|
+| dock | 768×14，位于卡片上方 8px，不重叠 |
+| 覆盖层开启 | `pointer-events:none`、z-index 1、中心 hit-test 命中宿主元素 |
+| 980×640 | `scrollWidth == innerWidth`，无溢出 |
+| 字标 | 菱形 + `DSH-SDT`，无重复 |
+
+### Verified（Desktop，`dsh-app://app/`）
+
+| 项 | 结果 |
+|---|---|
+| 插件加载 | `__sdtDebug = {version:"1.8", mapped:133, total:133, source:"file"}` |
+| 主题 | `body` 背景 `#eef6fb`、L3 clearance 20px |
+| 字标 | `[data-sdt-brand]` ×1、`[data-sdt-brand-name]` = `DSH-SDT` |
+| dock | 挂载，16px |
+| 输入卡 | 729×98，1282 宽无横向溢出 |
+| 覆盖层 | 默认关闭（未在桌面开启验证） |
+
+### Notes
+
+- **桌面首帧 `webserver/index-inject` 仍未验证**，留待 v1.9 开屏；本版只证明「装得上、界面正常」。
+- 桌面端启动约 20–30 秒（插件多），期间显示 `HARNESS Loading plugins…`，不是卡死。
+- 启动环境坑：WorkBuddy 终端里 `ELECTRON_RUN_AS_NODE=1` 与 `NODE_OPTIONS` 会让桌面端**以 Node 模式静默退出**；
+  必须清掉这两个变量再启动。已写入 `HANDOFF.md` §6。
+- 桌面端回滚：删 `desktop/package.json` 的 `dsh-sdt` 依赖与 bundle 条目 → `pnpm install` → 重启。
+
+---
+
 ## v1.7 — 2026-11-24
 
 **可观测性：插件控制台 + 全功能占位矩阵**（版本调整见 Notes）。
@@ -363,6 +414,7 @@
 
 | 版本 | 日期 | 内容 |
 |---|---|---|
+| **v1.8** | 2026-11-24 | M1 覆盖层骨架 + M2 输入 dock + 桌面端首验（字标根因：single slot 用 priority） |
 | **v1.7** | 2026-11-24 | 插件控制台 + 全功能占位矩阵 + features.json 单一数据源 |
 | **v1.6** | 2026-11-24 | L3 间距/几何 + M4 只读信息卡 + M5 负结论（无图标接缝） |
 | **v1.5** | 2026-11-23 | 全面 bug 审查与修复（6 项）+ 转手文档重写 |
@@ -372,4 +424,4 @@
 | **v1.1** | 2026-11-23 | 插件骨架落地：bundle + host/client 半边 + 配置与素材路由 + 14 token 实测生效 |
 | **v1.0** | 2026-11-22 | 更名 DSH-SDT（灵衣缝制）；版本管理启用；本机契约实测；生态调研；文档基线可交接 |
 
-> 下一次发版为 `v1.8`（M1 覆盖层 + M2 输入 dock + 桌面端首验），之后 `v1.9` 开屏/壁纸/皮肤中心/安全模式与回归，`v2.0` 首发。
+> 下一次发版为 `v1.9`（M9 开屏 + M6 壁纸/玻璃 + M7 皮肤中心 + M8 安全模式 + 回归），之后 `v2.0` 首发。

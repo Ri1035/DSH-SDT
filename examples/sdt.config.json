@@ -26,6 +26,7 @@
     "texture": null
   },
   "appearance": {
-    "mode": "dark"
+    "mode": "dark",
+    "overlay": false
   }
 }

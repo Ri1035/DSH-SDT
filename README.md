@@ -1,6 +1,6 @@
 # DSH-SDT
 
-<img alt="version" src="https://img.shields.io/badge/version-v1.7-2ea44f?style=flat-square">
+<img alt="version" src="https://img.shields.io/badge/version-v1.8-2ea44f?style=flat-square">
 <img alt="dsh" src="https://img.shields.io/badge/DSH-0.2.2--rc.1-1f6feb?style=flat-square">
 
 **DeepSeek Harness 主题插件**：提供一套默认 FGO 风格主题，并以此为探针，测量 DSH 的模块化自定义上限。
@@ -28,6 +28,10 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 
 装完打开界面即为默认主题；改配色只动 `sdt.config.json`，不用改代码。
 
+> **桌面端**：CLI 会拒绝 `desktop` profile。需在 `$DSH_HOME/profiles/desktop/package.json` 的
+> `dependencies` 加 `"dsh-sdt": "link:<repo>/plugin"`、`dsh.profile.bundles` 加 `"dsh-sdt"`，
+> 跑一次 pnpm 安装后重启应用。启动前清掉 `ELECTRON_RUN_AS_NODE` / `NODE_OPTIONS`（见 HANDOFF §3.4）。
+
 ## 控制台
 
 访问 `http://127.0.0.1:<port>/sdt/console`（先用 `/?token=` 换 cookie；加 `?mode=dark` 看深色）：
@@ -50,10 +54,12 @@ dsh plugin --profile web add dsh-sdt               # 发布后
 | **v1.5** | 稳定化：6 个 bug 修复 + 转手文档 + 文档基线校正 |
 | **v1.6** | L3 间距/几何 + M4 只读信息卡 + M5 负结论（无图标接缝） |
 | **v1.7** | 插件控制台 `/sdt/console` + 功能矩阵占位 + `features.json` 单一数据源 |
-| 下一阶段 | v1.8：M1/M2 覆盖层与输入 dock + **桌面端首验** |
+| **v1.8** | M2 输入 dock + M1 覆盖层骨架 + **桌面端安装验证**（字标修复） |
+| 下一阶段 | v1.9：开屏 M9 + 壁纸/皮肤中心/安全模式 + 回归 |
 
-**验证范围（重要）**：全部能力只在 `web` profile 实测；**桌面端（Electron）从未安装、未测试**。
-桌面端是用户主力端，安装验证需要授权（会重启应用），见 `HANDOFF.md` §10。
+**验证范围**：`web` 与 `desktop` 均已实测（v1.8）。桌面端为 `dsh-app://` 渲染，
+主题 / 133 token / 菱形字标 / 输入 dock 均生效；**桌面首帧 `index-inject` 尚未验证**（v1.9 开屏前置）。
+桌面端启动有环境坑，见 `HANDOFF.md` §3.4 与 §6 K11–K13。
 
 ## 文档
 

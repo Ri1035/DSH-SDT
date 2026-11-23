@@ -92,3 +92,26 @@ plugin/
 ```
 
 **内容与引擎分离**：新增一套主题 = 换 `sdt.config.json` + 素材，不改上述任何 JS。
+
+---
+
+## 5. 桌面端实测（v1.8，DSH `0.2.2-rc.1` / Electron 44.7.0）
+
+| 能力 | 桌面端结果 | 证据 |
+|---|---|---|
+| 安装 | ✅ `link:` 进 `desktop` 的 dependencies + bundles，pnpm 安装，冷启动加载 | `__sdtDebug` 存在 |
+| 主题 token | ✅ 133/133 | `mapped:133, total:133, source:file` |
+| 自定义路由 | ✅ **相对路径可用**：`dsh-app://app/sdt/*` 直接命中插件路由 | `fetch('/sdt/config.json')` → 200 |
+| 跨源绝对地址 | ❌ `http://127.0.0.1:<port>/sdt/*` 被拒 | `Failed to fetch`（CORS/栅栏） |
+| 品牌字标 | ✅ `priority:-10` 替换官方默认标 + `sidebar.brand.name` = `DSH-SDT` | DOM 有 `[data-sdt-brand]` |
+| 输入 dock | ✅ 挂载并渲染 | `[data-sdt-dock]` 高 16px |
+| 覆盖层 | ⏸ 默认关闭，未在桌面开启验证 | — |
+| 首帧 `index-inject` | ❓ **未验证**（留待 v1.9 开屏） | — |
+| 启动耗时 | 约 20–30 秒（插件多），`Loading plugins…` 属正常 | 冷启动观测 |
+
+**桌面端特有坑**
+
+1. `ELECTRON_RUN_AS_NODE=1` 会让 `DeepSeek Harness.exe` 以 Node 模式**静默退出**（exit 0，无窗口）。
+   从 WorkBuddy 终端启动必须先清掉它和 `NODE_OPTIONS`。
+2. 桌面端页面**重载**会长时间停在 `Loading plugins…`（约 20s），排查时不要误判为崩溃。
+3. single slot 的替换用 `priority`（越小越优先），`order` / `id` 只对 list slot 有效。

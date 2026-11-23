@@ -28,6 +28,8 @@ export const DEFAULT_CONFIG = Object.freeze({
   tokens: {},
   appearance: {
     mode: 'auto',
+    /** M1 覆盖层骨架：默认关闭，开启后只渲染无交互的角标，验证接缝用 */
+    overlay: false,
   },
   motion: {
     splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true },
@@ -164,6 +166,9 @@ export function validateConfig(raw) {
     const mode = raw.appearance.mode;
     if (mode === 'auto' || mode === 'light' || mode === 'dark') appearance.mode = mode;
     else if (mode !== undefined) warn('appearance.mode', "需为 'auto' | 'light' | 'dark'");
+    const overlay = raw.appearance.overlay;
+    if (typeof overlay === 'boolean') appearance.overlay = overlay;
+    else if (overlay !== undefined) warn('appearance.overlay', '需为 true | false');
   }
 
   const assets = { ...DEFAULT_CONFIG.assets };
