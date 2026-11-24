@@ -194,19 +194,20 @@
       "slots": "shell.overlay + /sdt/asset",
       "status": "done",
       "since": "v2.0",
-      "detail": "PNG 立绘：可拖、点击换装、位置记忆；配置 pet.enabled/images/size",
-      "evidence": "桌面端 512px 源图渲染 240px，点击 mash-17→mash-20；截图 v20-pet.png",
+      "detail": "PNG 立绘：可拖、点击换装、位置记忆；滚轮缩放 + 面板滑杆（120–420px，写 localStorage）",
+      "evidence": "桌面实测滚轮 240→252 即时生效；面板滑杆同步；截图 v21-global-glass.png",
       "placeholder": false
     },
     {
       "id": "M14",
       "name": "全局毛玻璃",
       "slots": "CSS + data-sdt-glass",
-      "status": "partial",
+      "status": "done",
       "since": "v2.0",
-      "detail": "侧栏/顶栏/输入卡 blur；主区大面板按面积标记；插件整页场景待验",
-      "evidence": "header backdrop-filter=blur(14px)；侧栏 85%、输入卡 88%",
-      "placeholder": false
+      "detail": "面积≥20% 视口的不透明容器统一玻璃化（侧栏/右栏/开始页/设置页/插件页）；React 重建后 3s 补回",
+      "evidence": "设置面板 color(srgb .89 .92 .94/.72)+blur18；右栏同；截图 v21-settings-glass.png",
+      "placeholder": false,
+      "title": "全局毛玻璃"
     },
     {
       "id": "M15",

@@ -651,3 +651,35 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 
 **截图**：`docs/preview/v21-effort.png`
 
+
+---
+
+## 2026-11-25 · 全局主题 / 菜单整行可点 / 桌宠尺寸
+
+**用户反馈四条，逐条对应**
+
+| 反馈 | 根因 | 处理 |
+|---|---|---|
+| 面板里「都不可以点击」 | 卡片是纯展示，只有页签/页脚可点 | 卡片改成可展开：点一下显示接缝 / 证据 / 备注，再点收起（带键盘 Enter/Space） |
+| 侧栏列表「DSH-SDT」点不动 | 宿主把条目包在 `<button class="…panelRow">`，内层又套了 `<button>`（非法嵌套），只有 16px 图标能点 | 内层换成 `<span data-sdt-menu>` 标记 + 文档级 capture：点行内任意位置都打开面板（真鼠标点击实测通过） |
+| 侧栏 / 右栏 / 设置页没主题 | 壁纸清底只处理 `main`，其它页面各有不透明底 | 新增「面积 ≥20% 视口 + alpha≥0.95 → 打 `data-sdt-glass`」的通用扫描；3s 重扫（跳过 `document.hidden`）；关闭壁纸即全部移除 |
+| 桌宠不能调大小 | 只有配置文件 `pet.size` | 滚轮悬停缩放（120–420，步进 12）+ 面板「状态」滑杆；写 `localStorage: sdt-pet-size`，实时双向同步 |
+
+**实测（桌面端）**
+
+| 项 | 结果 |
+|---|---|
+| 行点击 | 真鼠标点行中心（x=140,y=310）→ 面板打开，`功能矩阵` 可见 |
+| 设置面板 | `background: color(srgb .89 .92 .94 / .72)`、`backdrop-filter: blur(18px)`、`z-index:1` |
+| 右栏 / 开始页 | 同一 pane 0.72 + blur18 |
+| 桌宠 | 滚轮 240 → 252，元素宽度同步 252；面板滑杆显示/写入一致 |
+| 面板卡片 | 点击展开详情，边框转品牌色 |
+| 诊断残留 | `__sdtReg / __sdtEffort*` 全部移除 |
+
+**踩坑**
+
+- 中途一次冷启动卡在 `Loading plugins…` 2 分钟以上，`Page.reload` 后恢复；不是代码问题（无 console 错误，web 端口随后正常启动）。
+- 页面加载完成前探测会看到「品牌 0 / 菜单 false」的假阴性，必须等 `[data-slot]` 出现后再判定。
+
+**截图**：`docs/preview/v21-global-glass.png`、`docs/preview/v21-settings-glass.png`
+

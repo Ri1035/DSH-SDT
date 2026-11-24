@@ -23,8 +23,8 @@
 | 英雄区 | `appearance.heroTitle` / `heroMark`：改标题与图标（如「迦勒底亚斯」+ FGO 图标） |
 | 皮肤包 | `skins/<id>.json` + `appearance.skin` 切换；坏包自动回退；控制台列出已装皮肤 |
 | 思考强度 | 输入区右侧「思考 中」丸弹 + 滑杆；`effort.enabled` 可关；模型无档位时自动隐藏 |
-| 桌宠 | 静态立绘（可拖、点击换装、位置记忆）；Live2D 待 Cubism 运行时素材 |
-| 毛玻璃 | 侧栏/顶栏/输入卡 `backdrop-filter`；视频壁纸下统一遮罩与文字投影 |
+| 桌宠 | 静态立绘（可拖、点击换装、滚轮缩放、面板滑杆、位置与尺寸记忆）；Live2D 待 Cubism 素材 |
+| 毛玻璃 | 全局：侧栏 / 右栏 / 开始页 / 设置页 / 插件页统一 `backdrop-filter`，视频透出 |
 | 应用内面板 | 侧栏列表「DSH-SDT」或顶部品牌名打开：功能矩阵 / 皮肤切换 / 状态 |
 | 安全模式 | 坏配置自动回退并报行列号；设置页可一键停用，控制台可退出（`sdt/disabled` 标记） |
 | 结论 | DSH 能改什么、改到什么程度，写进 [`docs/MODULARITY.md`](./docs/MODULARITY.md) |

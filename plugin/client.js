@@ -332,9 +332,9 @@ window.__ModuleLoader__.load({
         rules.push(`html body[data-ds-dark-theme]{background-image:linear-gradient(${rgba(colors.bgDark, 0.50)},${rgba(colors.bgDark, 0.50)}),var(--sdt-wall)!important;}`);
       }
       if (surface.glass) {
-        rules.push(`[data-sdt-glass]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 86%,transparent)!important;background-image:none!important;backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);}`);
-        rules.push(`[data-slot="conversation.session.header"],[data-slot="conversation.header"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 82%,transparent)!important;backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px) saturate(1.1);}`);
-        rules.push(`[data-slot="sidebar"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 85%,transparent)!important;backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);}`);
+        rules.push(`[data-sdt-glass]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 72%,transparent)!important;background-image:none!important;backdrop-filter:blur(18px) saturate(1.12);-webkit-backdrop-filter:blur(18px) saturate(1.12);}`);
+        rules.push(`[data-slot="conversation.session.header"],[data-slot="conversation.header"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 70%,transparent)!important;backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px) saturate(1.1);}`);
+        rules.push(`[data-slot="sidebar"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 72%,transparent)!important;backdrop-filter:blur(18px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);}`);
         rules.push(`[data-composer-card]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 88%,transparent)!important;backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);}`);
         rules.push(`@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){[data-slot="sidebar"],[data-composer-card]{background:var(--dsw-alias-bg-l1)!important;}}`);
       }
@@ -828,20 +828,42 @@ ${surfaceCss(colors, surface)}
     }
 
     /* ---------------- M14：大面板毛玻璃 ---------------- */
+    /** 颜色 alpha：兼容 rgba() / color(srgb … / a) / transparent */
+    function alphaOf(color) {
+      if (!color) return 1;
+      if (color === "transparent") return 0;
+      const rgb = /^rgba?\(([^)]+)\)$/.exec(color);
+      if (rgb) {
+        const parts = rgb[1].split(",").map((x) => parseFloat(x));
+        return parts.length > 3 ? parts[3] : 1;
+      }
+      const sc = /\/\s*([0-9.]+)\s*\)$/.exec(color);
+      if (sc) return parseFloat(sc[1]);
+      return 1;
+    }
+
+    /** 全局表面玻璃化：面积 ≥20% 视口且不透明的容器一律变玻璃（设置/开始/插件/右栏都能透出视频）。
+     *  React 重建会丢属性，所以靠 3s 重扫补回；关掉壁纸/玻璃时统一移除。 */
     function syncGlassDom(enabled) {
-      const marked = document.querySelectorAll('[data-sdt-glass]');
       if (!enabled) {
-        for (const el of marked) el.removeAttribute('data-sdt-glass');
+        for (const el of document.querySelectorAll("[data-sdt-glass]")) {
+          el.removeAttribute("data-sdt-glass");
+          el.style.removeProperty("z-index");
+        }
         return;
       }
       const vw = window.innerWidth, vh = window.innerHeight;
-      for (const el of document.querySelectorAll('[data-slot="main"] div, [data-slot="main"] section, [data-slot="main"] header')) {
-        if (el.hasAttribute('data-sdt-glass')) continue;
+      for (const el of document.querySelectorAll("div,section,aside,main,header,nav")) {
+        if (el.id === "dsh-sdt-wall" || el.id === "sdt-splash" || el.hasAttribute("data-sdt-pet")) continue;
+        if (el.hasAttribute("data-sdt-glass")) continue;
         const cs = getComputedStyle(el);
-        if (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && cs.backgroundImage === 'none') continue;
+        if (cs.backgroundImage !== "none") continue;
+        if (alphaOf(cs.backgroundColor) < 0.95) continue;
         const r = el.getBoundingClientRect();
-        if (r.width * r.height < vw * vh * 0.18) continue;
-        el.setAttribute('data-sdt-glass', '1');
+        if (r.width * r.height < vw * vh * 0.2) continue;
+        el.setAttribute("data-sdt-glass", "1");
+        const pageLevel = cs.position === "fixed" || el.parentElement === document.body || (el.parentElement && el.parentElement.id === "root");
+        if (pageLevel) el.style.setProperty("z-index", "1", "important");
       }
     }
 
@@ -856,26 +878,57 @@ ${surfaceCss(colors, surface)}
       const useRef = React.useRef;
       const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
+      const SIZE_MIN = 120, SIZE_MAX = 420;
+      const readSize = () => {
+        try {
+          const saved = Number(localStorage.getItem("sdt-pet-size"));
+          if (saved >= SIZE_MIN && saved <= SIZE_MAX) return saved;
+        } catch { /* ignore */ }
+        return pet.size;
+      };
+
       return function SdtPet() {
         const [idx, setIdx] = useState(0);
+        const [size, setSize] = useState(readSize);
         const [pos, setPos] = useState(() => {
           try {
             const saved = JSON.parse(localStorage.getItem("sdt-pet-pos") || "null");
             if (saved && typeof saved.x === "number" && typeof saved.y === "number") return saved;
           } catch { /* ignore */ }
-          return { x: window.innerWidth - pet.size - 24, y: window.innerHeight - pet.size - 24 };
+          const s0 = readSize();
+          return { x: window.innerWidth - s0 - 24, y: window.innerHeight - s0 - 24 };
         });
         const posRef = useRef(pos);
         posRef.current = pos;
 
         useEffect(() => {
           const onResize = () => setPos((p) => ({
-            x: clamp(p.x, 0, window.innerWidth - pet.size),
-            y: clamp(p.y, 0, window.innerHeight - pet.size),
+            x: clamp(p.x, 0, window.innerWidth - size),
+            y: clamp(p.y, 0, window.innerHeight - size),
           }));
           window.addEventListener("resize", onResize);
           return () => window.removeEventListener("resize", onResize);
+        }, [size]);
+
+        // 面板里的滑杆通过自定义事件同步过来（同一页面内即时生效）
+        useEffect(() => {
+          const onSize = (e) => {
+            const next = Number(e && e.detail);
+            if (next >= SIZE_MIN && next <= SIZE_MAX) setSize(next);
+          };
+          window.addEventListener("sdt-pet-size", onSize);
+          return () => window.removeEventListener("sdt-pet-size", onSize);
         }, []);
+
+        const applySize = (next) => {
+          const v = clamp(Math.round(next), SIZE_MIN, SIZE_MAX);
+          setSize(v);
+          try { localStorage.setItem("sdt-pet-size", String(v)); } catch { /* ignore */ }
+          setPos((p) => ({
+            x: clamp(p.x, 0, window.innerWidth - v),
+            y: clamp(p.y, 0, window.innerHeight - v),
+          }));
+        };
 
         const onPointerDown = (e) => {
           e.preventDefault();
@@ -884,8 +937,8 @@ ${surfaceCss(colors, surface)}
             const dx = ev.clientX - start.sx, dy = ev.clientY - start.sy;
             if (Math.hypot(dx, dy) > 4) start.moved = true;
             setPos({
-              x: clamp(start.ox + dx, 0, window.innerWidth - pet.size),
-              y: clamp(start.oy + dy, 0, window.innerHeight - pet.size),
+              x: clamp(start.ox + dx, 0, window.innerWidth - size),
+              y: clamp(start.oy + dy, 0, window.innerHeight - size),
             });
           };
           const onUp = () => {
@@ -904,10 +957,16 @@ ${surfaceCss(colors, surface)}
         const src = `/sdt/asset/${encodeURIComponent(pet.images[idx % pet.images.length])}`;
         return h("div", {
           "data-sdt-pet": "",
-          title: pet.images.length > 1 ? "拖动移动 · 点击换装" : "拖动移动",
+          "data-pet-size": size,
+          title: (pet.images.length > 1 ? "拖动移动 · 点击换装" : "拖动移动") + " · 滚轮缩放",
           onPointerDown,
+          onWheel: (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            applySize(size + (e.deltaY > 0 ? -12 : 12));
+          },
           style: {
-            position: "fixed", left: pos.x, top: pos.y, width: pet.size,
+            position: "fixed", left: pos.x, top: pos.y, width: size,
             zIndex: 2147482000, pointerEvents: "auto", cursor: "grab",
             userSelect: "none", touchAction: "none",
             filter: "drop-shadow(0 10px 24px rgba(0,0,0,.35))",
@@ -1025,6 +1084,19 @@ ${surfaceCss(colors, surface)}
 
       return function SdtPanel() {
         const [st, setSt] = useState({ ...panelState });
+        const [openId, setOpenId] = useState(null);
+        useEffect(() => {
+          if (!st.open) return undefined;
+          const saved = Number(localStorage.getItem("sdt-pet-size"));
+          if (saved >= 120 && saved <= 420) setPetSize(saved);
+          const onSize = (e) => setPetSize(Number(e.detail));
+          window.addEventListener("sdt-pet-size", onSize);
+          return () => window.removeEventListener("sdt-pet-size", onSize);
+        }, [st.open]);
+        const [petSize, setPetSize] = useState(() => {
+          const saved = Number(localStorage.getItem("sdt-pet-size"));
+          return saved >= 120 && saved <= 420 ? saved : 240;
+        });
         useEffect(() => {
           panelSubs.add(setSt);
           return () => panelSubs.delete(setSt);
@@ -1046,19 +1118,33 @@ ${surfaceCss(colors, surface)}
 
         let body = null;
         if (st.tab === "features") {
-          body = modules.length ? modules.map((m) => h("div", {
-            key: m.id,
-            style: {
-              padding: "8px 10px", marginBottom: 6, borderRadius: 8,
-              border: "1px solid var(--dsw-alias-border-l1)",
-              background: "color-mix(in srgb, var(--dsw-alias-bg-l2) 60%, transparent)",
+          body = modules.length ? modules.map((m) => {
+            const expanded = openId === m.id;
+            return h("div", {
+              key: m.id,
+              onClick: () => setOpenId(expanded ? null : m.id),
+              role: "button",
+              tabIndex: 0,
+              onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenId(expanded ? null : m.id); } },
+              title: expanded ? "点击收起" : "点击查看证据与接缝",
+              style: {
+                padding: "8px 10px", marginBottom: 6, borderRadius: 8, cursor: "pointer",
+                border: "1px solid " + (expanded ? "var(--dsw-alias-brand-primary)" : "var(--dsw-alias-border-l1)"),
+                background: "color-mix(in srgb, var(--dsw-alias-bg-l2) " + (expanded ? "78%" : "60%") + ", transparent)",
+                transition: "border-color .15s ease, background .15s ease",
+              },
             },
-          },
-            h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
-              h("span", { style: { fontSize: 12, fontWeight: 600, color: "var(--dsw-alias-label-primary)" } }, m.name),
-              chip(m.status),
-              h("span", { style: { fontSize: 10, color: "var(--dsw-alias-label-secondary)" } }, m.since || "")),
-            h("div", { style: { fontSize: 11, color: "var(--dsw-alias-label-secondary)", marginTop: 3, lineHeight: 1.7 } }, m.detail || "")))
+              h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+                h("span", { style: { fontSize: 12, fontWeight: 600, color: "var(--dsw-alias-label-primary)" } }, m.name),
+                chip(m.status),
+                h("span", { style: { flex: 1, fontSize: 10, color: "var(--dsw-alias-label-secondary)" } }, m.since || ""),
+                h("span", { style: { fontSize: 10, color: "var(--dsw-alias-label-secondary)" } }, expanded ? "收起" : "详情")),
+              h("div", { style: { fontSize: 11, color: "var(--dsw-alias-label-secondary)", marginTop: 3, lineHeight: 1.7 } }, m.detail || ""),
+              expanded ? h("div", { style: { marginTop: 6, fontSize: 10, color: "var(--dsw-alias-label-secondary)", lineHeight: 1.8, borderTop: "1px dashed var(--dsw-alias-border-l1)", paddingTop: 6 } },
+                h("div", null, "接缝：" + (m.seam || "—")),
+                h("div", null, "证据：" + (m.evidence || "—")),
+                m.placeholderNote ? h("div", null, "备注：" + m.placeholderNote) : null) : null);
+          })
             : h("div", { style: { fontSize: 12, color: "var(--dsw-alias-label-secondary)" } }, "功能清单读取失败");
         } else if (st.tab === "skins") {
           body = [
@@ -1104,6 +1190,28 @@ ${surfaceCss(colors, surface)}
             row("安全模式", health.safeMode ? "已开启" : "关闭"),
             row("皮肤", activeSkin || "默认"),
             row("控制台", "/sdt/console"),
+            h("div", {
+              style: {
+                marginTop: 10, padding: "9px 10px", borderRadius: 8,
+                border: "1px solid var(--dsw-alias-border-l1)",
+              },
+            },
+              h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--dsw-alias-label-secondary)", marginBottom: 6 } },
+                h("span", null, "桌宠大小"),
+                h("span", { style: { color: "var(--dsw-alias-brand-primary)", fontWeight: 600 } }, petSize + " px")),
+              h("input", {
+                type: "range", min: 120, max: 420, step: 12, value: petSize,
+                "data-sdt-pet-size-range": "",
+                style: { width: "100%", accentColor: "var(--dsw-alias-brand-primary)", cursor: "pointer" },
+                onChange: (e) => {
+                  const v = Number(e.target.value);
+                  setPetSize(v);
+                  try { localStorage.setItem("sdt-pet-size", String(v)); } catch { /* ignore */ }
+                  window.dispatchEvent(new CustomEvent("sdt-pet-size", { detail: v }));
+                },
+              }),
+              h("div", { style: { fontSize: 10, color: "var(--dsw-alias-label-secondary)", marginTop: 2 } },
+                "也可以直接把鼠标放在桌宠上滚滚轮")),
           ];
         }
 
@@ -1163,17 +1271,12 @@ ${surfaceCss(colors, surface)}
       if (!React) return null;
       const h = React.createElement;
       return function SdtMenuEntry() {
-        return h("button", {
-          type: "button",
+        // 宿主会把条目包进 <button class="…panelRow">；这里只放标记，点击由文档级监听接管，
+        // 这样点图标、点文字都能打开（内层再套 button 是非法嵌套，也是之前点不动的根因）。
+        return h("span", {
           "data-sdt-menu": "",
           title: "打开 DSH-SDT 面板",
-          onClick: () => openPanel("features"),
-          style: {
-            display: "flex", alignItems: "center", gap: 8, width: "100%",
-            padding: "7px 10px", borderRadius: 8, border: "none", cursor: "pointer",
-            background: "transparent", color: "var(--dsw-alias-label-primary)",
-            fontSize: 13, textAlign: "left",
-          },
+          style: { display: "inline-flex", alignItems: "center", pointerEvents: "none" },
         },
           h("svg", { viewBox: "0 0 20 20", width: 16, height: 16, style: { width: 16, height: 16, flex: "0 0 16px" }, "aria-hidden": true },
             h("path", { d: "M10 2 L18 10 L10 18 L2 10 Z", fill: "var(--dsw-alias-brand-primary)" })));
@@ -1363,6 +1466,19 @@ ${surfaceCss(colors, surface)}
           };
           mountMenu();
           [700, 1600, 3200].forEach((ms) => setTimeout(mountMenu, ms));
+          // 整行可点：宿主把条目包在 <button class="…panelRow"> 里，内层只是标记
+          if (!window.__sdtMenuClickBound) {
+            window.__sdtMenuClickBound = true;
+            document.addEventListener("click", (event) => {
+              const mark = document.querySelector("[data-sdt-menu]");
+              if (!mark) return;
+              const host = mark.parentElement && mark.parentElement.closest("button");
+              if (!host || !host.contains(event.target)) return;
+              event.preventDefault();
+              event.stopPropagation();
+              openPanel("features");
+            }, true);
+          }
         } catch (error) {
           console.warn("[dsh-sdt] menu entry unavailable:", error && error.message);
         }
