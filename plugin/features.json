@@ -116,13 +116,12 @@
       "id": "M6",
       "name": "壁纸 / 玻璃",
       "layer": "L4",
-      "status": "partial",
+      "status": "done",
       "since": "v2.0",
       "seam": "自有背景层 + backdrop-filter",
-      "detail": "壁纸（用户素材）+ 玻璃质感，默认关；@supports 降级",
-      "evidence": "计算样式：frame/body 均带 scrim+url，backdrop-filter 生效；视觉待真机",
-      "placeholder": false,
-      "placeholderNote": "需先做性能与 reduced-motion 降级"
+      "detail": "图片/视频壁纸 + 玻璃；视频用固定层 + 全屏容器清底，主区文字投影",
+      "evidence": "桌面端视频播放 readyState=4，截图 v20-chaldeas.png",
+      "placeholder": false
     },
     {
       "id": "M7",
@@ -177,6 +176,16 @@
       "since": "v2.0",
       "detail": "侧栏菱形按钮打开抽屉：功能矩阵 / 皮肤（可一键切换）/ 状态；Esc/遮罩关闭",
       "evidence": "桌面端实测 13→14 卡、切皮肤 brand #7c5cff、恢复 #37a3d6",
+      "placeholder": false
+    },
+    {
+      "id": "M12",
+      "name": "英雄区改写",
+      "slots": "conversation.hero.brand.mark + 运行时文案",
+      "status": "done",
+      "since": "v2.0",
+      "detail": "标题改「迦勒底亚斯」、鲸鱼换用户图标；配置 heroTitle / heroMark 驱动",
+      "evidence": "桌面端标题金色、图标 naturalWidth=656，截图 v20-chaldeas.png",
       "placeholder": false
     },
     {

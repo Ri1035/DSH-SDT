@@ -37,6 +37,10 @@ export const DEFAULT_CONFIG = Object.freeze({
     glass: false,
     /** M7 皮肤包 id：$DSH_HOME/sdt/skins/<id>.json；null = 只用主配置 */
     skin: null,
+    /** 英雄区标题文案；null = 保留宿主原文（“探索未至之境”） */
+    heroTitle: null,
+    /** 英雄区图标（用户素材文件名）；null = 保留宿主鲸鱼 */
+    heroMark: null,
   },
   motion: {
     splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true, video: null },
@@ -208,6 +212,17 @@ export function validateConfig(raw) {
     if (skin === null) appearance.skin = null;
     else if (isSafeSkinId(skin)) appearance.skin = skin;
     else if (skin !== undefined) warn('appearance.skin', '需为 skins 目录内的文件名（不含 .json 与路径分隔符）');
+
+    const heroTitle = raw.appearance.heroTitle;
+    if (heroTitle === null) appearance.heroTitle = null;
+    else if (typeof heroTitle === 'string' && heroTitle.trim() && heroTitle.length <= 40) appearance.heroTitle = heroTitle.trim();
+    else if (heroTitle !== undefined) warn('appearance.heroTitle', '需为 1–40 字的文本，或 null');
+
+    const heroMark = raw.appearance.heroMark;
+    if (heroMark === null) appearance.heroMark = null;
+    else if (typeof heroMark === 'string' && heroMark.length > 0 && heroMark.length <= 120 &&
+      !heroMark.includes('..') && !path.isAbsolute(heroMark) && !/[\\/]/.test(heroMark)) appearance.heroMark = heroMark;
+    else if (heroMark !== undefined) warn('appearance.heroMark', '需为素材目录内的图片文件名（不含路径分隔符与 ..）');
   }
 
   const assets = { ...DEFAULT_CONFIG.assets };

@@ -19,9 +19,10 @@
 | 素材 | `/sdt/asset/<name>` 提供 logo、纹理、字体，用户目录优先、内置回退 |
 | 开屏 | `motion.splash.video` 指定用户素材名（如 `fgo.mp4`）；缺省纯 CSS；可跳过、每会话一次 |
 | 点击特效 | canvas 菱形爆发（默认开）；`motion.click.scale` 0.5–3 调大小；`motion.click.enabled` 可关；reduced-motion 不启动 |
-| 壁纸 / 玻璃 | `appearance.wallpaper` 指定用户素材图片；`appearance.glass` 开启磨砂半透明（默认关，低配友好） |
+| 壁纸 / 玻璃 | `appearance.wallpaper` 支持图片或 **mp4/webm 视频**；`appearance.glass` 磨砂半透明 |
+| 英雄区 | `appearance.heroTitle` / `heroMark`：改标题与图标（如「迦勒底亚斯」+ FGO 图标） |
 | 皮肤包 | `skins/<id>.json` + `appearance.skin` 切换；坏包自动回退；控制台列出已装皮肤 |
-| 应用内面板 | 侧栏菱形按钮打开：功能矩阵 / 皮肤切换 / 状态；不再需要另开网页 |
+| 应用内面板 | 侧栏列表「DSH-SDT」或顶部品牌名打开：功能矩阵 / 皮肤切换 / 状态 |
 | 安全模式 | 坏配置自动回退并报行列号；设置页可一键停用，控制台可退出（`sdt/disabled` 标记） |
 | 结论 | DSH 能改什么、改到什么程度，写进 [`docs/MODULARITY.md`](./docs/MODULARITY.md) |
 

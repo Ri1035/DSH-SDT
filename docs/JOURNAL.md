@@ -537,3 +537,26 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 
 **截图**：`docs/preview/v20-panel.png`、`v20-panel-skins.png`
 
+
+---
+
+## 2026-11-24 · 英雄区 / 视频背景 / 菜单迁移
+
+**四项需求**
+
+| 需求 | 实现 | 实测 |
+|---|---|---|
+| 标题改「迦勒底亚斯」 | `appearance.heroTitle` + MutationObserver 改写宿主文案 | 标题金色 + 投影可读 |
+| 鲸鱼换 FGO 图标 | `conversation.hero.brand.mark`（priority -10）加载 `/sdt/asset/fgo-icon.jpg` | `naturalWidth=656` |
+| 聊天背景用视频 | `appearance.wallpaper` 支持 mp4/webm：固定 `<video>` 层 + 全屏容器清底（语义锚点 + 祖先链）+ 主区文字投影 | `readyState=4`、可见、截图 |
+| 菜单不放左下角 | 从 `sidebar.footer.action` 迁到 `sidebar.panellist`（列表项 label `DSH-SDT`）；顶部品牌名亦可点开 | 侧栏列表出现 DSH-SDT 行 |
+
+**踩坑记录**
+
+- 清底最初用「尺寸谓词」扫描，聊天主区（宽 78%）被 80% 阈值漏掉；改为**语义锚点 + 祖先链**。
+- React 会重写内联 `style`，清底改为「`data-sdt-wall-clear` 属性 + 全局 CSS 规则」。
+- 视频层与 UI 的层级：给被清底的宿主面板 `z-index:1`，视频层保持 `0`，避免盖住 UI。
+- `sidebar.panellist` 是面板图标列表（label 需函数）；条目渲染有延迟，加了 700/1600/3200ms 重试。
+
+**截图**：`docs/preview/v20-chaldeas.png`
+

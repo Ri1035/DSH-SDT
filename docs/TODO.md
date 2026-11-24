@@ -127,9 +127,10 @@ M9 开屏、M6 壁纸/玻璃、M7 皮肤中心、M8 安全模式、P5 对话动�
 
 ## 📋 下一步（v2.0 剩余）
 
-- [~] **T10.3** M6 壁纸/玻璃：配置 `appearance.wallpaper` / `glass` 已落地，
-      壁纸挂宿主全屏 frame + body 双保险，玻璃用 color-mix + backdrop-filter（含 @supports 降级）；
-      **真实窗口视觉待验收**（headless 合成帧不可信）
+- [x] **T10.3** M6 壁纸/玻璃：图片 + **视频壁纸**（固定层 + 全屏容器清底 + 主区文字投影）；
+      玻璃 color-mix + backdrop-filter；桌面端真机验收（截图 v20-chaldeas.png）
+- [x] **T12.3** M12 英雄区：标题改「迦勒底亚斯」+ 鲸鱼换 FGO 图标（heroTitle / heroMark）
+- [x] **T12.4** 菜单移入侧栏列表（sidebar.panellist），左下角不再放按钮
 - [x] **T10.4a** M7 皮肤中心：`skins/<id>.json` + 宿主机合并 + 列表；
       **面板内一键切换**（POST /sdt/skin 原子写配置）；坏包回退并告警
 - [x] **T12.2** M11 应用内面板：侧栏按钮 → 抽屉（功能矩阵 / 皮肤 / 状态），Esc/遮罩关闭

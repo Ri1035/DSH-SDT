@@ -223,27 +223,60 @@ window.__ModuleLoader__.load({
     const WALL_CLEAR = "data-sdt-wall-clear";
     /** 壁纸开时：挑一个「全屏、非 fixed」的宿主容器挂壁纸，其余全屏层清底。
      *  避免依赖 body/伪元素（实测宿主自己的全屏 frame 才是实际绘制面）。 */
-    function syncWallpaperDom(enabled) {
+    let wallVideo = null;
+    function clearWallVideo() {
+      if (wallVideo) { wallVideo.remove(); wallVideo = null; }
+    }
+    function ensureWallVideo(url) {
+      if (wallVideo) return;
+      const wrap = document.createElement("div");
+      wrap.id = "dsh-sdt-wall";
+      wrap.style.cssText = "position:fixed;inset:0;z-index:0;pointer-events:none;background:#0a1626;overflow:hidden";
+      const video = document.createElement("video");
+      video.src = url; video.muted = true; video.loop = true; video.autoplay = true; video.playsInline = true;
+      video.setAttribute("muted", ""); video.setAttribute("playsinline", "");
+      video.style.cssText = "width:100%;height:100%;object-fit:cover;display:block";
+      const scrim = document.createElement("div");
+      scrim.style.cssText = "position:absolute;inset:0;background:rgba(4,8,14,.62)";
+      wrap.appendChild(video); wrap.appendChild(scrim);
+      document.body.prepend(wrap);
+      wallVideo = wrap;
+      video.play().catch(() => {});
+    }
+    function syncWallpaperDom(enabled, wallpaper) {
+      window.__sdtWallPass = (window.__sdtWallPass || 0) + 1;
+      window.__sdtWallArgs = { enabled: !!enabled, wallpaper: wallpaper || null };
+      const isVideo = !!wallpaper && /\.(mp4|webm)$/i.test(wallpaper);
       if (!enabled) {
+        clearWallVideo();
         for (const el of document.querySelectorAll(`[${WALL_ATTR}],[${WALL_CLEAR}]`)) {
           el.style.removeProperty("background-color");
           el.style.removeProperty("background-image");
+          el.style.removeProperty("z-index");
           el.removeAttribute(WALL_ATTR);
           el.removeAttribute(WALL_CLEAR);
         }
         return;
       }
+      if (isVideo) ensureWallVideo(`/sdt/asset/${encodeURIComponent(wallpaper)}`);
+      else clearWallVideo();
       const vw = window.innerWidth, vh = window.innerHeight;
       let walled = false;
+      window.__sdtWallSeen = 0; window.__sdtWallHit = 0; window.__sdtWallHits = [];
+      try {
       for (const el of document.querySelectorAll("div,main")) {
+        window.__sdtWallSeen += 1;
         if (el.id === "sdt-splash") continue;
         const cs = getComputedStyle(el);
         if (cs.position === "fixed") continue;
         const r = el.getBoundingClientRect();
         if (r.width < vw * 0.8 || r.height < vh * 0.8) continue;
         if (cs.backgroundColor === "rgba(0, 0, 0, 0)" && cs.backgroundImage === "none" && walled) continue;
+        window.__sdtWallHit += 1;
+        (window.__sdtWallHits = window.__sdtWallHits || []).push((el.className || "").toString().slice(0, 30));
         el.style.setProperty("background-color", "transparent", "important");
-        if (!walled) {
+        if (isVideo) el.style.setProperty("z-index", "1", "important");
+        if (!walled && !isVideo) {
           el.removeAttribute(WALL_CLEAR);
           el.setAttribute(WALL_ATTR, "1");
           walled = true;
@@ -252,6 +285,42 @@ window.__ModuleLoader__.load({
           el.setAttribute(WALL_CLEAR, "1");
         }
       }
+      } catch (error) { window.__sdtWallErr = String((error && error.message) || error); }
+
+      // 语义锚点：聊天区/侧栏内所有不透明 div 一律清底（不依赖尺寸猜测）
+      try {
+        for (const anchor of ['[data-slot="main.conversation"]']) {
+          const root = document.querySelector(anchor);
+          if (!root) continue;
+          for (const el of [root, ...root.querySelectorAll('div')]) {
+            if (el.id === 'sdt-splash' || el.id === 'dsh-sdt-wall') continue;
+            const cs = getComputedStyle(el);
+            if (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && cs.backgroundImage === 'none') continue;
+            el.style.setProperty('background-color', 'transparent', 'important');
+            el.style.setProperty('background-image', 'none', 'important');
+            if (isVideo) el.style.setProperty('z-index', '1', 'important');
+            el.setAttribute(WALL_CLEAR, '1');
+          }
+        }
+      } catch (error) { window.__sdtWallErr2 = String((error && error.message) || error); }
+
+      // 锚点祖先链：main / sidebar 的父级包装层（centerCol、frame 等）也在其中
+      try {
+        for (const anchor of ['[data-slot="main"]']) {
+          let node = document.querySelector(anchor);
+          node = node && node.parentElement;
+          while (node && node !== document.body) {
+            const cs = getComputedStyle(node);
+            if (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || cs.backgroundImage !== 'none') {
+              node.style.setProperty('background-color', 'transparent', 'important');
+              node.style.setProperty('background-image', 'none', 'important');
+              if (isVideo) node.style.setProperty('z-index', '1', 'important');
+              node.setAttribute(WALL_CLEAR, '1');
+            }
+            node = node.parentElement;
+          }
+        }
+      } catch (error) { window.__sdtWallErr3 = String((error && error.message) || error); }
     }
 
     function surfaceCss(colors, surface) {
@@ -267,8 +336,8 @@ window.__ModuleLoader__.load({
         rules.push(`html body[data-ds-dark-theme]{background-image:linear-gradient(${rgba(colors.bgDark, 0.50)},${rgba(colors.bgDark, 0.50)}),var(--sdt-wall)!important;}`);
       }
       if (surface.glass) {
-        rules.push(`[data-slot="sidebar"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 62%,transparent)!important;backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);}`);
-        rules.push(`[data-composer-card]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 58%,transparent)!important;backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);}`);
+        rules.push(`[data-slot="sidebar"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 85%,transparent)!important;backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);}`);
+        rules.push(`[data-composer-card]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 88%,transparent)!important;backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);}`);
         rules.push(`@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){[data-slot="sidebar"],[data-composer-card]{background:var(--dsw-alias-bg-l1)!important;}}`);
       }
       return rules.join("\n");
@@ -312,6 +381,8 @@ body[data-ds-dark-theme]{
 [data-slot="shell.overlay"] > *{ --bj-in-overlay: 1; }
 ::selection{ background: var(--bj-gold-glow); color: inherit; }
 ${surfaceCss(colors, surface)}
+[data-sdt-wall-clear]{background-color:transparent!important;background-image:none!important;z-index:1!important}
+[data-slot="main"]{text-shadow:0 1px 10px rgba(0,0,0,.55)}
 `;
     }
 
@@ -634,6 +705,45 @@ ${surfaceCss(colors, surface)}
       };
     }
 
+    /* ---------------- M12：英雄区改写（标题 / 图标） ---------------- */
+    function applyHeroTitle(text) {
+      const set = () => {
+        let changed = 0;
+        for (const el of document.querySelectorAll("span")) {
+          if (el.children.length === 0 && (el.textContent || "").trim() === "探索未至之境") {
+            el.textContent = text;
+            el.style.color = "#f7e7c2";
+            el.style.fontWeight = "600";
+            el.style.textShadow = "0 2px 16px rgba(0,0,0,.85)";
+            changed += 1;
+          }
+        }
+        return changed;
+      };
+      set();
+      let timer = 0;
+      const mo = new MutationObserver(() => {
+        clearTimeout(timer);
+        timer = setTimeout(set, 60);
+      });
+      mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+      return () => { mo.disconnect(); clearTimeout(timer); };
+    }
+
+    function makeHeroMark(mark) {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React) return null;
+      const h = React.createElement;
+      return function SdtHeroMark() {
+        return h("img", {
+          src: `/sdt/asset/${encodeURIComponent(mark)}`,
+          alt: "", "data-sdt-hero-mark": "",
+          style: { width: 34, height: 34, objectFit: "contain", display: "block", borderRadius: 8 },
+        });
+      };
+    }
+
     /* ---------------- M10：应用内面板（占位矩阵 / 皮肤 / 状态） ---------------- */
     const panelState = {
       open: false, tab: "features", loading: false, error: null,
@@ -832,6 +942,30 @@ ${surfaceCss(colors, surface)}
       };
     }
 
+    /* ---------------- M4b：侧栏面板入口（列表项） ---------------- */
+    function makeMenuEntry() {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React) return null;
+      const h = React.createElement;
+      return function SdtMenuEntry() {
+        return h("button", {
+          type: "button",
+          "data-sdt-menu": "",
+          title: "打开 DSH-SDT 面板",
+          onClick: () => openPanel("features"),
+          style: {
+            display: "flex", alignItems: "center", gap: 8, width: "100%",
+            padding: "7px 10px", borderRadius: 8, border: "none", cursor: "pointer",
+            background: "transparent", color: "var(--dsw-alias-label-primary)",
+            fontSize: 13, textAlign: "left",
+          },
+        },
+          h("svg", { viewBox: "0 0 20 20", width: 16, height: 16, style: { width: 16, height: 16, flex: "0 0 16px" }, "aria-hidden": true },
+            h("path", { d: "M10 2 L18 10 L10 18 L2 10 Z", fill: "var(--dsw-alias-brand-primary)" })));
+      };
+    }
+
     /* ---------------- M4b：侧栏控制台入口 ---------------- */
     function makeConsoleButton() {
       let React = null;
@@ -885,10 +1019,14 @@ ${surfaceCss(colors, surface)}
       if (!React) return null;
       const h = React.createElement;
       return function SdtBrandName() {
-        return h("span", {
+        return h("button", {
+          type: "button",
           "data-sdt-brand-name": "",
+          title: "打开 DSH-SDT 面板",
+          onClick: () => openPanel("features"),
           style: {
-            fontSize: 12, fontWeight: 600, letterSpacing: ".14em",
+            fontSize: 12, fontWeight: 600, letterSpacing: ".14em", padding: 0,
+            border: "none", background: "transparent", cursor: "pointer",
             color: "var(--dsw-alias-brand-primary)", whiteSpace: "nowrap",
           },
         }, "DSH-SDT");
@@ -909,11 +1047,14 @@ ${surfaceCss(colors, surface)}
         // 点击特效：默认开，配置可关；失败/减动效时静默不启用
         let fxHandle = null; // { dispose, setScale }
         let wallpaperOn = false;
+        let currentWallpaper = null;
+        let heroMarkRegistered = false;
         let wallTimer = 0;
+        let wallInterval = 0;
         window.addEventListener("resize", () => {
           if (!wallpaperOn) return;
           clearTimeout(wallTimer);
-          wallTimer = setTimeout(() => syncWallpaperDom(true), 200);
+          wallTimer = setTimeout(() => syncWallpaperDom(true, currentWallpaper), 200);
         });        const syncClickEffect = (enabled, scale) => {
           if (enabled && !fxHandle) {
             try {
@@ -997,15 +1138,18 @@ ${surfaceCss(colors, surface)}
           console.warn("[dsh-sdt] panel unavailable:", error && error.message);
         }
 
-        // 侧栏面板入口：失败不影响主题
+        // 侧栏列表入口：失败不影响主题；延迟重试（桌面端槽位挂载较晚）
         try {
-          const ConsoleButton = makeConsoleButton();
-          if (ConsoleButton && ctx.slots?.inject) {
-            ctx.slots.inject("sidebar.footer.action", () =>
-              ctx.slots.register({ name: "sidebar.footer.action", id: "sdt-console", order: 20 }, ConsoleButton));
-          }
+          const MenuEntry = makeMenuEntry();
+          const mountMenu = () => {
+            if (!MenuEntry || !ctx.slots?.inject || document.querySelector('[data-sdt-menu]')) return;
+            ctx.slots.inject("sidebar.panellist", () =>
+              ctx.slots.register({ name: "sidebar.panellist", id: "sdt-menu", label: () => "DSH-SDT", order: 100 }, MenuEntry));
+          };
+          mountMenu();
+          [700, 1600, 3200].forEach((ms) => setTimeout(mountMenu, ms));
         } catch (error) {
-          console.warn("[dsh-sdt] console button unavailable:", error && error.message);
+          console.warn("[dsh-sdt] menu entry unavailable:", error && error.message);
         }
 
         fetch("/sdt/config.json", { credentials: "same-origin" })
@@ -1051,9 +1195,26 @@ ${surfaceCss(colors, surface)}
             );
 
             // 壁纸：清全屏容器底色（晚挂载再补一次）
-            wallpaperOn = Boolean(payload.config.appearance && payload.config.appearance.wallpaper);
-            syncWallpaperDom(wallpaperOn);
-            if (wallpaperOn) setTimeout(() => syncWallpaperDom(true), 800);
+            const appearance = payload.config.appearance || {};
+            wallpaperOn = Boolean(appearance.wallpaper);
+            currentWallpaper = appearance.wallpaper;
+            syncWallpaperDom(wallpaperOn, currentWallpaper);
+            if (wallpaperOn) setTimeout(() => syncWallpaperDom(true, currentWallpaper), 800);
+            clearInterval(wallInterval);
+            if (wallpaperOn) {
+              wallInterval = setInterval(() => syncWallpaperDom(true, currentWallpaper), 2500);
+            }
+
+            // 英雄区：标题改写 + 图标替换（均配置驱动，缺省不动宿主）
+            if (appearance.heroTitle) applyHeroTitle(appearance.heroTitle);
+            if (appearance.heroMark && !heroMarkRegistered) {
+              const HeroMark = makeHeroMark(appearance.heroMark);
+              if (HeroMark) {
+                ctx.slots.inject("conversation.hero.brand.mark", () =>
+                  ctx.slots.register({ name: "conversation.hero.brand.mark", priority: -10 }, HeroMark));
+                heroMarkRegistered = true;
+              }
+            }
 
             // M1 覆盖层骨架：仅在配置显式开启时注册，默认零影响
             if (payload.config.appearance && payload.config.appearance.overlay === true) {
