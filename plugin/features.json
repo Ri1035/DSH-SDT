@@ -189,6 +189,48 @@
       "placeholder": false
     },
     {
+      "id": "M13",
+      "name": "静态桌宠",
+      "slots": "shell.overlay + /sdt/asset",
+      "status": "done",
+      "since": "v2.0",
+      "detail": "PNG 立绘：可拖、点击换装、位置记忆；配置 pet.enabled/images/size",
+      "evidence": "桌面端 512px 源图渲染 240px，点击 mash-17→mash-20；截图 v20-pet.png",
+      "placeholder": false
+    },
+    {
+      "id": "M14",
+      "name": "全局毛玻璃",
+      "slots": "CSS + data-sdt-glass",
+      "status": "partial",
+      "since": "v2.0",
+      "detail": "侧栏/顶栏/输入卡 blur；主区大面板按面积标记；插件整页场景待验",
+      "evidence": "header backdrop-filter=blur(14px)；侧栏 85%、输入卡 88%",
+      "placeholder": false
+    },
+    {
+      "id": "M15",
+      "name": "推理强度滑杆",
+      "slots": "conversation.input.right + llm-pi-ai settings",
+      "status": "planned",
+      "since": "v2.1",
+      "detail": "参考 dsh-reasoning-effort：host 补 provider efforts，client 滑杆；先只读探测",
+      "evidence": "调研完成，见 docs/PLAN-PET-EFFORT.md",
+      "placeholder": true,
+      "placeholderNote": "需先只读探测本机 provider 配置"
+    },
+    {
+      "id": "M16",
+      "name": "Live2D 桌宠",
+      "slots": "pet.json + Cubism 运行时",
+      "status": "blocked",
+      "since": "v2.1",
+      "detail": "吃 Cubism 导出目录（model3/moc3/textures/motions/expressions/physics3）",
+      "evidence": "静态版已上线；Live2D 待用户提供运行时目录",
+      "placeholder": true,
+      "placeholderNote": "需要素材：见 PLAN-PET-EFFORT.md §B"
+    },
+    {
       "id": "P3",
       "name": "氛围层",
       "layer": "L2",

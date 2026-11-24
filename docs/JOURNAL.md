@@ -588,3 +588,31 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 | 配置 | `heroTitle/heroMark/wallpaper/glass` 均生效，`skin: null` |
 | 截图 | `docs/preview/v20-hero-icon.png` |
 
+
+---
+
+## 2026-11-25 · 调研：推理滑杆 / Live2D 桌宠 + 静态桌宠与全局玻璃
+
+**调研（npm 实查）**
+
+- `dsh-reasoning-effort@0.2.8`：host 补 `llm-pi-ai` provider/model 推理档位，client 在发送按钮旁出滑杆；
+  不能只做假 UI。个人化方案与风险见 `docs/PLAN-PET-EFFORT.md` §A。
+- `dsh-pet-live2d@3.7.0`：只吃 Cubism 运行时目录（`pet.json` + `model3/moc3/textures/motions/expressions/physics3`），
+  不支持静态 PNG；Core 由宿主首次联网缓存。素材清单见 §B。
+
+**已实现**
+
+| 项 | 结果 |
+|---|---|
+| M13 静态桌宠 | 两套玛修立绘（自带 alpha）、240px、可拖、点击换装、位置写 localStorage |
+| M14 毛玻璃 | 顶栏 `blur(14px)`、侧栏 85%、输入卡 88%；主区大面板按面积标记 `data-sdt-glass` |
+| 配置 | `pet.enabled/images/size`；用户已启用 mash-17/mash-20 |
+
+**未完成**
+
+- 插件管理整页压视频的毛玻璃：CDP 点击未成功导航，标记数量仍为 0，待真实点一次再调阈值；
+- M15 推理滑杆：只读探测 provider 后再动 host settings；
+- M16 Live2D：需要用户提供 Cubism 导出目录。
+
+**截图**：`docs/preview/v20-pet.png`
+

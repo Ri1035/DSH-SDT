@@ -332,6 +332,8 @@ window.__ModuleLoader__.load({
         rules.push(`html body[data-ds-dark-theme]{background-image:linear-gradient(${rgba(colors.bgDark, 0.50)},${rgba(colors.bgDark, 0.50)}),var(--sdt-wall)!important;}`);
       }
       if (surface.glass) {
+        rules.push(`[data-sdt-glass]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 86%,transparent)!important;background-image:none!important;backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);}`);
+        rules.push(`[data-slot="conversation.session.header"],[data-slot="conversation.header"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 82%,transparent)!important;backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px) saturate(1.1);}`);
         rules.push(`[data-slot="sidebar"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 85%,transparent)!important;backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);}`);
         rules.push(`[data-composer-card]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 88%,transparent)!important;backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);}`);
         rules.push(`@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){[data-slot="sidebar"],[data-composer-card]{background:var(--dsw-alias-bg-l1)!important;}}`);
@@ -698,6 +700,98 @@ ${surfaceCss(colors, surface)}
           drawA(b, a); drawB(b, a); drawDebris(b, a);
           canvas.dataset.preview = "1";
         },
+      };
+    }
+
+    /* ---------------- M14：大面板毛玻璃 ---------------- */
+    function syncGlassDom(enabled) {
+      const marked = document.querySelectorAll('[data-sdt-glass]');
+      if (!enabled) {
+        for (const el of marked) el.removeAttribute('data-sdt-glass');
+        return;
+      }
+      const vw = window.innerWidth, vh = window.innerHeight;
+      for (const el of document.querySelectorAll('[data-slot="main"] div, [data-slot="main"] section, [data-slot="main"] header')) {
+        if (el.hasAttribute('data-sdt-glass')) continue;
+        const cs = getComputedStyle(el);
+        if (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && cs.backgroundImage === 'none') continue;
+        const r = el.getBoundingClientRect();
+        if (r.width * r.height < vw * vh * 0.18) continue;
+        el.setAttribute('data-sdt-glass', '1');
+      }
+    }
+
+    /* ---------------- M13：静态桌宠 ---------------- */
+    function makePet(pet) {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React || !React.useState) return null;
+      const h = React.createElement;
+      const useState = React.useState;
+      const useEffect = React.useEffect;
+      const useRef = React.useRef;
+      const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+
+      return function SdtPet() {
+        const [idx, setIdx] = useState(0);
+        const [pos, setPos] = useState(() => {
+          try {
+            const saved = JSON.parse(localStorage.getItem("sdt-pet-pos") || "null");
+            if (saved && typeof saved.x === "number" && typeof saved.y === "number") return saved;
+          } catch { /* ignore */ }
+          return { x: window.innerWidth - pet.size - 24, y: window.innerHeight - pet.size - 24 };
+        });
+        const posRef = useRef(pos);
+        posRef.current = pos;
+
+        useEffect(() => {
+          const onResize = () => setPos((p) => ({
+            x: clamp(p.x, 0, window.innerWidth - pet.size),
+            y: clamp(p.y, 0, window.innerHeight - pet.size),
+          }));
+          window.addEventListener("resize", onResize);
+          return () => window.removeEventListener("resize", onResize);
+        }, []);
+
+        const onPointerDown = (e) => {
+          e.preventDefault();
+          const start = { sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y, moved: false };
+          const onMove = (ev) => {
+            const dx = ev.clientX - start.sx, dy = ev.clientY - start.sy;
+            if (Math.hypot(dx, dy) > 4) start.moved = true;
+            setPos({
+              x: clamp(start.ox + dx, 0, window.innerWidth - pet.size),
+              y: clamp(start.oy + dy, 0, window.innerHeight - pet.size),
+            });
+          };
+          const onUp = () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+            if (start.moved) {
+              try { localStorage.setItem("sdt-pet-pos", JSON.stringify(posRef.current)); } catch { /* ignore */ }
+            } else if (pet.images.length > 1) {
+              setIdx((i) => (i + 1) % pet.images.length);
+            }
+          };
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp);
+        };
+
+        const src = `/sdt/asset/${encodeURIComponent(pet.images[idx % pet.images.length])}`;
+        return h("div", {
+          "data-sdt-pet": "",
+          title: pet.images.length > 1 ? "拖动移动 · 点击换装" : "拖动移动",
+          onPointerDown,
+          style: {
+            position: "fixed", left: pos.x, top: pos.y, width: pet.size,
+            zIndex: 2147482000, pointerEvents: "auto", cursor: "grab",
+            userSelect: "none", touchAction: "none",
+            filter: "drop-shadow(0 10px 24px rgba(0,0,0,.35))",
+          },
+        }, h("img", {
+          src, draggable: false, alt: "",
+          style: { width: "100%", display: "block", pointerEvents: "none" },
+        }));
       };
     }
 
@@ -1201,8 +1295,21 @@ ${surfaceCss(colors, surface)}
               wallInterval = setInterval(() => {
                 if (document.hidden) return;
                 syncWallpaperDom(true, currentWallpaper);
+                syncGlassDom(Boolean(appearance.glass));
               }, 3000);
             }
+
+            // 桌宠：配置开启且有素材时挂到 overlay
+            if (payload.config.pet && payload.config.pet.enabled && payload.config.pet.images.length) {
+              const Pet = makePet(payload.config.pet);
+              if (Pet && ctx.slots?.inject) {
+                ctx.slots.inject("shell.overlay", () =>
+                  ctx.slots.register({ name: "shell.overlay", id: "sdt-pet", order: 20 }, Pet));
+              }
+            }
+
+            // 玻璃：大面板 + 顶栏
+            syncGlassDom(Boolean(appearance.glass));
 
             // 英雄区：标题改写 + 图标替换（均配置驱动，缺省不动宿主）
             if (appearance.heroTitle) applyHeroTitle(appearance.heroTitle);

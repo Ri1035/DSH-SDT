@@ -17,6 +17,7 @@ export const CONFIG_DIR_NAME = 'sdt';
 export const CONFIG_FILE_NAME = 'sdt.config.json';
 
 export const DEFAULT_CONFIG = Object.freeze({
+  pet: { enabled: false, images: [], size: 220 },
   version: 1,
   colors: {
     brand: '#37a3d6',
@@ -235,9 +236,21 @@ export function validateConfig(raw) {
     }
   }
 
+  const pet = { ...DEFAULT_CONFIG.pet };
+  if (isPlainObject(raw.pet)) {
+    if (typeof raw.pet.enabled === 'boolean') pet.enabled = raw.pet.enabled;
+    if (Array.isArray(raw.pet.images)) {
+      const images = raw.pet.images.filter((v) => typeof v === 'string' && v.length > 0 && v.length <= 120 &&
+        !v.includes('..') && !path.isAbsolute(v) && !/[\\/]/.test(v)).slice(0, 6);
+      pet.images = images;
+    }
+    if (typeof raw.pet.size === 'number' && raw.pet.size >= 120 && raw.pet.size <= 420) pet.size = raw.pet.size;
+  }
+
   return {
     config: {
       version: Number.isInteger(raw.version) ? raw.version : DEFAULT_CONFIG.version,
+      pet,
       colors,
       tokens: checkTokens(raw.tokens, warn),
       appearance,
