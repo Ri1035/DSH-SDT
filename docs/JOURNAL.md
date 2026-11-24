@@ -496,3 +496,18 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 **说明**
 
 - POST 只允许 `/sdt/safe-mode`，且仍先过 `requestRejection`（同源/鉴权），未放宽其他路由。
+
+---
+
+## 2026-11-24 · v2.0 回归（自动可测部分）
+
+| 项 | 结果 |
+|---|---|
+| 深色模式 | `body` = `rgb(10, 22, 38)`，`data-ds-dark-theme` 存在，字标 1 |
+| 浅色还原 | `#eef6fb`，1.9，dock 正常 |
+| 980×640 | `scrollWidth=980=innerWidth`，输入卡 728×114，dock 在，开屏已退 |
+| reduced-motion | `__sdtFx=undefined`、无 `#dsh-sdt-fx`、无开屏标记；主题仍生效 |
+| 安全模式 | 进入后 `__sdtDebug=null`/无 brand；退出后恢复（上一节） |
+| 控制台 | 四路由自检 200（health/config/features/asset） |
+
+**未测**：卸载残留、长会话性能、auto 跟随系统主题。
