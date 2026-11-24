@@ -849,10 +849,27 @@ ${surfaceCss(colors, surface)}
         for (const el of document.querySelectorAll("[data-sdt-glass]")) {
           el.removeAttribute("data-sdt-glass");
           el.style.removeProperty("z-index");
+          el.style.removeProperty("background");
+          el.style.removeProperty("backdrop-filter");
+          el.style.removeProperty("-webkit-backdrop-filter");
         }
         return;
       }
       const vw = window.innerWidth, vh = window.innerHeight;
+      // 插件/技能市场等页面正文容器本身是透明的，而 [data-slot="main"] 是 display:contents（0×0），
+      // 真正的面板是它的父元素；聊天页跳过，避免把视频压住。
+      if (!document.querySelector('[data-slot="main.conversation"]')) {
+        const slot = document.querySelector('[data-slot="main"]');
+        const panel = slot && slot.parentElement;
+        if (panel && panel.getBoundingClientRect().width > vw * 0.5 && !panel.hasAttribute("data-sdt-glass")) {
+          panel.setAttribute("data-sdt-glass", "1");
+          panel.style.setProperty("z-index", "1", "important");
+          // 宿主对该面板有更高优先级的底色规则，这里用内联 !important 兜底
+          panel.style.setProperty("background", "color-mix(in srgb,var(--dsw-alias-bg-l1) 82%,transparent)", "important");
+          panel.style.setProperty("backdrop-filter", "blur(18px) saturate(1.1)", "important");
+          panel.style.setProperty("-webkit-backdrop-filter", "blur(18px) saturate(1.1)", "important");
+        }
+      }
       for (const el of document.querySelectorAll("div,section,aside,main,header,nav")) {
         if (el.id === "dsh-sdt-wall" || el.id === "sdt-splash" || el.hasAttribute("data-sdt-pet")) continue;
         if (el.hasAttribute("data-sdt-glass")) continue;
@@ -1466,6 +1483,12 @@ ${surfaceCss(colors, surface)}
           };
           mountMenu();
           [700, 1600, 3200].forEach((ms) => setTimeout(mountMenu, ms));
+          if (!window.__sdtRemountTimer) {
+            window.__sdtRemountTimer = setInterval(() => {
+              try { mountBrand(); } catch { /* ignore */ }
+              try { mountMenu(); } catch { /* ignore */ }
+            }, 3500);
+          }
           // 整行可点：宿主把条目包在 <button class="…panelRow"> 里，内层只是标记
           if (!window.__sdtMenuClickBound) {
             window.__sdtMenuClickBound = true;
@@ -1534,7 +1557,7 @@ ${surfaceCss(colors, surface)}
             clearInterval(wallInterval);
             if (wallpaperOn) {
               wallInterval = setInterval(() => {
-                if (document.hidden) return;
+                // 后台也扫：窗口失焦时 document.hidden 为真，漏扫会导致切页后没玻璃
                 syncWallpaperDom(true, currentWallpaper);
                 syncGlassDom(Boolean(appearance.glass));
               }, 3000);

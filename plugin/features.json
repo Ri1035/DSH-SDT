@@ -204,8 +204,8 @@
       "slots": "CSS + data-sdt-glass",
       "status": "done",
       "since": "v2.0",
-      "detail": "面积≥20% 视口的不透明容器统一玻璃化（侧栏/右栏/开始页/设置页/插件页）；React 重建后 3s 补回",
-      "evidence": "设置面板 color(srgb .89 .92 .94/.72)+blur18；右栏同；截图 v21-settings-glass.png",
+      "detail": "面积≥20% 视口的不透明容器统一玻璃化；非聊天页正文面板（display:contents 的父级）额外内联兜底",
+      "evidence": "设置面板 0.72+blur18；插件页 mainPanel 内联 82%+blur18；侧栏/右栏同",
       "placeholder": false,
       "title": "全局毛玻璃"
     },

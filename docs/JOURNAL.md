@@ -683,3 +683,37 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 
 **截图**：`docs/preview/v21-global-glass.png`、`docs/preview/v21-settings-glass.png`
 
+
+---
+
+## 2026-11-25 · 事故与修复：桌面端启动鉴权失败（非插件问题）
+
+**现象**：连续几次冷启动卡在 `Loading plugins…`，日志报
+`desktop welcome: Web authentication failed`；DSH 触发「Desktop profile recovery」。
+
+**排查过程**
+
+| 假设 | 验证 | 结论 |
+|---|---|---|
+| 我们插件阻塞启动 | 移除 `dsh-sdt`、只留官方两个 bundle | 仍失败 → 不是插件 |
+| profile 补丁损坏 | 发现 `cordis.patch.yml` 被恢复机制截成 217B（内容 `[]`） | 用 `.bak-1795541253615` 还原 2826B |
+| bundle 列表被裁 | 恢复后列表只剩 2 项 | 从 `package.json.bak-20261124-0040` 还原 11 项 + `dsh-sdt` |
+| Electron Cookie 库损坏 | 备份并移走 `Network/Cookies*` 与 `Session Storage` | **启动恢复正常，鉴权通过** ← 根因 |
+
+**处理**
+
+- Cookie 备份在 `%APPDATA%\@deepseek-ai\dsh-desktop\_bak_auth\`（需要回滚可放回）；
+- `cordis.patch.yml` 备份链：`bak-1795541253615`（好）、`bak-truncated-1795541253`（坏）；
+- bundle 列表已还原为 12 项（含 `dsh-sdt`）。
+
+**顺带修掉的真问题**
+
+- 插件/技能市场等页面正文容器是透明的，视频直接糊在文字后面 → 非聊天页给
+  `[data-slot="main"]` 的**真实父容器**（display:contents 的 slot 本身是 0×0）打玻璃标记，
+  并用**内联 `!important`** 兜底（宿主对该面板有更高优先级规则）；
+- 页面切换会重建侧栏，single slot 的品牌注册会丢 → 3.5s 低频补挂；
+- 玻璃扫描不再因 `document.hidden` 跳过。
+
+**教训**：不要在启动过程中强杀进程——DSH 会判定 profile 损坏并做「恢复」，
+把 `cordis.patch.yml` 与 bundle 列表一起回退，症状却是「鉴权失败」，很容易误判。
+
