@@ -139,13 +139,12 @@
       "id": "M8",
       "name": "安全模式",
       "layer": "L4",
-      "status": "planned",
-      "since": "v1.9",
+      "status": "done",
+      "since": "v2.0",
       "seam": "配置校验失败 → 回退默认",
-      "detail": "一键停用全部装饰，保住可用性",
-      "evidence": "—",
-      "placeholder": true,
-      "placeholderNote": "与 M7 同版，避免坏包把界面打黑"
+      "detail": "坏配置自动回退（带行列号）+ 一键停用（标记文件 + 首帧开关）+ 控制台退出",
+      "evidence": "进入后 __sdtDebug=null / brand=0 / body 白；退出后 1.9/brand=1 恢复",
+      "placeholder": false
     },
     {
       "id": "M9",

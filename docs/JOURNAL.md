@@ -470,3 +470,29 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 
 - 应用内导入/导出与一键切换（现在靠改 `appearance.skin` + 刷新）；留 v2.0 收尾。
 
+
+---
+
+## 2026-11-24 · M8 安全模式
+
+**做了什么**
+
+- 坏配置：`createConfigStore` 捕获 `ConfigError`，返回 `ok:false` + 默认配置 + 带行列号的错误（原本已有，本轮补单测）。
+- 一键停用：`POST /sdt/safe-mode {enabled}` 写/删 `$DSH_HOME/sdt/disabled`；
+  `index-inject` 检测到标记就注入 `window.__sdtSafeMode=true`；client `apply()` 首行直接 return（零副作用）。
+- 入口：设置卡「进入安全模式（停用主题）」；控制台横幅 + 「退出安全模式」。
+- `/sdt/health` 增加 `safeMode` 字段。
+
+**验证**
+
+| 项 | 结果 |
+|---|---|
+| 坏 JSON（单测） | `ok:false`，brand 回落 `#37a3d6`，error 带 `sdt.config.json:3:1` |
+| 进入 | `POST` 200 → health `safeMode:true` → 根 HTML 含 `__sdtSafeMode=true` |
+| 生效 | 页面 `__sdtSafeMode=true`、`__sdtDebug=null`、无 brand/dock/style、body 白 |
+| 退出 | `POST {enabled:false}` → 重载后 `1.9`、brand=1、body `#eef6fb` |
+| 标记清理 | `sdt/disabled` 已删 |
+
+**说明**
+
+- POST 只允许 `/sdt/safe-mode`，且仍先过 `requestRejection`（同源/鉴权），未放宽其他路由。

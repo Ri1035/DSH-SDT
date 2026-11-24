@@ -8,6 +8,7 @@
  *
  * 不在 apply 里做任何布局/样式工作 —— 那是 client 半边的事。
  */
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createConfigStore } from './lib/config.js';
@@ -152,6 +153,15 @@ export function apply(ctx) {
   ctx.on('webserver/index-inject', (table) => {
     table.push({ kind: 'style', text: FIRST_FRAME_STYLE });
     table.push({ kind: 'script', placement: 'head', text: FIRST_FRAME_SCRIPT });
+
+    // M8 安全模式：标记文件存在时，client 直接不接管主题（刷新页面即生效）
+    try {
+      if (fs.existsSync(path.join(dshHome, 'sdt', 'disabled'))) {
+        table.push({ kind: 'script', placement: 'head', text: 'window.__sdtSafeMode=true;' });
+      }
+    } catch {
+      // 读不到标记按正常模式处理
+    }
 
     try {
       const snapshot = readConfig();

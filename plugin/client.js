@@ -353,7 +353,24 @@ ${surfaceCss(colors, surface)}
           row("token", `${debug.mapped ?? "?"} / ${debug.total ?? "?"}`),
           row("配置", source),
           row("控制台", "/sdt/console"),
-          row("目录", "$DSH_HOME/sdt/"));
+          row("目录", "$DSH_HOME/sdt/"),
+          h("div", { style: { marginTop: 10 } },
+            h("button", {
+              type: "button",
+              onClick: () => {
+                fetch("/sdt/safe-mode", {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({ enabled: true }),
+                }).then(() => location.reload()).catch(() => {});
+              },
+              style: {
+                fontSize: 12, padding: "5px 10px", borderRadius: 6, cursor: "pointer",
+                border: "1px solid var(--dsw-alias-border-l1)", background: "transparent",
+                color: "var(--dsw-alias-label-secondary)",
+              },
+            }, "进入安全模式（停用主题）")));
       };
     }
 
@@ -690,6 +707,8 @@ ${surfaceCss(colors, surface)}
     return {
       inject: ["theme", "slots"],
       apply(ctx) {
+        // M8 安全模式：首帧注入的标记，存在即完全不接管（卸载/排障用）
+        if (window.__sdtSafeMode) return;
         let disposeTokens = null;
         let currentColors = DEFAULTS;
         const initial = buildPairs(currentColors);

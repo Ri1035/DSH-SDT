@@ -161,6 +161,8 @@
     </div>
   </section>
 
+  <div id="safeBanner" style="display:none;margin:14px 0;padding:10px 12px;border-radius:8px;border:1px solid var(--warn);color:var(--warn);font-size:13px"></div>
+
   <section id="matrix">
     <h2>功能矩阵</h2>
     <p class="hint">占位卡片表示「有位置、没实现」，不是可用功能。状态与证据来自 <code>features.json</code>。</p>
@@ -410,6 +412,7 @@
     renderModules();
     renderRoad();
     renderSkins();
+    renderSafeBanner();
     var sub = document.getElementById("sub");
     var v = (state.health && state.health.version) || "?";
     var src = state.configExists ? "sdt.config.json" : "内置默认";
@@ -424,6 +427,27 @@
     }
     var modeBtn = document.getElementById("modeBtn");
     if (modeBtn) modeBtn.textContent = state.mode === "dark" ? "切换浅色预览" : "切换深色预览";
+  }
+  function renderSafeBanner() {
+    var box = document.getElementById("safeBanner");
+    if (!box) return;
+    if (!(state.health && state.health.safeMode)) { box.style.display = "none"; return; }
+    box.style.display = "block";
+    box.innerHTML = "";
+    box.appendChild(document.createTextNode("安全模式已开启：主题完全不接管。"));
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "退出安全模式";
+    btn.style.cssText = "margin-left:10px;padding:4px 10px;border-radius:6px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer";
+    onActivate(btn, function () {
+      fetch("/sdt/safe-mode", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ enabled: false }),
+      }).then(function () { location.reload(); }).catch(function () {});
+    });
+    box.appendChild(btn);
   }
   function renderSkins() {
     var host = document.getElementById("skinList");

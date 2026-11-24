@@ -19,6 +19,8 @@ import { fileURLToPath } from 'node:url';
 import { resolveAsset } from './assets.js';
 import { listSkins } from './skins.js';
 
+const SAFE_MODE_FILE = 'disabled';
+
 const PLUGIN_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 /** 读插件自身文件（console.html / features.json / package.json），失败返回 null。 */
@@ -101,8 +103,8 @@ export function createHandler({ ctx, readConfig, userAssetDir, dshHome }) {
         return;
       }
 
-      if (req.method !== 'GET' && req.method !== 'HEAD') {
-        send(res, 405, { ok: false, error: 'method_not_allowed' }, { allow: 'GET, HEAD' }, headOnly);
+      if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST') {
+        send(res, 405, { ok: false, error: 'method_not_allowed' }, { allow: 'GET, HEAD, POST' }, headOnly);
         return;
       }
 
@@ -116,8 +118,36 @@ export function createHandler({ ctx, readConfig, userAssetDir, dshHome }) {
 
       const route = url.pathname.slice('/sdt'.length) || '/';
 
+      if (req.method === 'POST') {
+        if (route !== '/safe-mode') {
+          send(res, 405, { ok: false, error: 'method_not_allowed' }, { allow: 'GET, HEAD, POST' }, headOnly);
+          return;
+        }
+        let body = '';
+        req.on('data', (chunk) => {
+          body += chunk;
+          if (body.length > 4096) { body = ''; req.destroy(); }
+        });
+        req.on('end', () => {
+          try {
+            const parsed = body ? JSON.parse(body) : {};
+            const enabled = parsed && parsed.enabled === true;
+            if (!dshHome) throw new Error('dshHome unavailable');
+            const file = path.join(dshHome, 'sdt', SAFE_MODE_FILE);
+            if (enabled) fs.writeFileSync(file, new Date().toISOString(), 'utf8');
+            else { try { fs.unlinkSync(file); } catch (e) { if (!e || e.code !== 'ENOENT') throw e; } }
+            send(res, 200, { ok: true, safeMode: enabled }, {}, false);
+          } catch (error) {
+            send(res, 500, { ok: false, error: String((error && error.message) || error) }, {}, false);
+          }
+        });
+        req.on('error', () => send(res, 400, { ok: false, error: 'bad_request' }, {}, false));
+        return;
+      }
+
       if (route === '/health') {
-        send(res, 200, { ok: true, plugin: 'dsh-sdt', version: VERSION, ready: true }, {}, headOnly);
+        const safeMode = dshHome ? fs.existsSync(path.join(dshHome, 'sdt', SAFE_MODE_FILE)) : false;
+        send(res, 200, { ok: true, plugin: 'dsh-sdt', version: VERSION, ready: true, safeMode }, {}, headOnly);
         return;
       }
 
