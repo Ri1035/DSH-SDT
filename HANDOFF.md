@@ -138,9 +138,17 @@ plugin/
 | M1b 点击特效（v1.9） | ✅ | canvas 菱形爆发，260ms 43k 亮像素 / 900ms 清零；`motion.click.enabled` / `.scale`(0.5–3) 可调 |
 | 控制台入口（v1.9） | ✅ | 侧栏按钮 + 设置卡「控制台」行 |
 | 插件图标（v1.9） | ✅ | 金色菱形格矢量；`fgo.png` 只作参考不入库 |
+| M9 开屏打磨（v2.0-wip） | ✅ | CSS 两段式 + 三路看门狗：fast 310ms / never 413ms / stuck 1201ms |
+| M6 壁纸/玻璃（v2.0-wip） | ✅ | 视频/图片壁纸；全局 `data-sdt-glass`（0.72+blur18），设置/右栏/插件页实测透出 |
+| M7 皮肤中心（v2.0-wip） | ✅ | `skins/<id>.json` + 面板一键切换（POST /sdt/skin 原子写）；坏包回退 |
+| M8 安全模式（v2.0-wip） | ✅ | `sdt/disabled` 标记 + 首帧 `__sdtSafeMode`；进入后 client 零副作用 |
+| M11 应用内面板（v2.0-wip） | ✅ | 侧栏列表「DSH-SDT」**整行可点**；卡片可展开证据；Esc/遮罩关 |
+| M12 英雄区（v2.0-wip） | ✅ | `heroTitle`「迦勒底亚斯」+ `heroMark`（透明 PNG） |
+| M13 桌宠（v2.0-wip） | ✅ | 可拖 / 点击换装 / 滚轮+滑杆缩放（120–420）/ 位置尺寸记忆 |
+| M15 思考强度（v2.0-wip） | ✅ | `conversation.input.right` 滑杆，经 `modelDirectories` 写 `reasoningEffort`（low/high/max 实测） |
 
-**已知未做**：L3 的侧栏密度与圆角体系（哈希类，无锚点）、覆盖层（M1/M2）、
-开屏（M9）、壁纸/玻璃（M6）、皮肤中心（M7）、安全模式（M8）、对话动画、桌面端验证。
+**已知未做**：L3 的侧栏密度与圆角体系（哈希类，无锚点）、对话动画（P5）、
+M16 Live2D 桌宠（等 Cubism 运行时目录）、卸载残留与长会话性能回归、发布清单。
 
 ---
 
@@ -160,6 +168,9 @@ plugin/
 | K10 | 双挂载 | client 用 `window.__dshSdtApplied` 挡住第二次；副作用是 HMR 重载不会重新应用，需刷新页面 |
 | K11 | 桌面端静默退出 | `ELECTRON_RUN_AS_NODE=1` 或 `NODE_OPTIONS` 存在时，`DeepSeek Harness.exe` 以 Node 模式跑完即退（exit 0、无窗口）；启动前必须清掉 |
 | K12 | 桌面端加载慢 | 冷启动与页面重载都可能 20–30 秒停在 `Loading plugins…`，不要误判为崩溃 |
+| K14 | **启动期强杀 → profile「恢复」** | 启动中杀进程会让 DSH 触发 `Desktop profile recovery`：`cordis.patch.yml` 被截成 `[]`、`dsh.profile.bundles` 被裁到 2 项；症状却是 `desktop welcome: Web authentication failed`，极易误判为插件问题。对策：等窗口就绪再动；恢复用 `cordis.patch.yml.bak-*` 与 `package.json.bak-*`；真正根因常是 Electron `Network/Cookies` 损坏（移走即可，备份在 `_bak_auth`） |
+| K15 | 非 chat 页容器透明 | 插件/技能市场页正文背景是透明的，`[data-slot=main]` 是 display:contents（0×0）；要玻璃化的是它的**父元素**，且回到聊天页要回收（`data-sdt-page-glass`） |
+| K16 | React wheel passive | 宿主 React 树里 `onWheel` 的 preventDefault 无效（passive）；要 `addEventListener("wheel", fn, { passive:false })` |
 | K13 | single slot 抢位 | 单槽位用 `priority`（越小越优先），`order`/`id` 只对 list slot 有效；官方字标 priority 0，替换用 -10 |
 
 ---
@@ -214,14 +225,13 @@ git log --oneline --decorate -10    # 看标签与提交
 
 ## 10. 下一步 backlog（按优先级）
 
-> v1.8 已完成：M2 dock、M1 覆盖层骨架、桌面端安装，**首帧 `index-inject` 已验证生效**。
-> 剩余项如下。
+> v2.0-wip 已完成：开屏打磨、M6 壁纸/玻璃（全局）、M7 皮肤中心、M8 安全模式、
+> M11 面板、M12 英雄区、M13 桌宠（可缩放）、M15 思考强度滑杆。剩余项如下。
 
-1. **开屏打磨**：两段式退场 + boot card 消失看门狗（现仅绝对时长）。
-2. **M6 壁纸/玻璃**（默认关 + 性能降级）、**M7 皮肤中心**、**M8 安全模式**。
-3. **M4 可交互**：改色 / 切主题。
-4. **回归**：三模式 / 980×640 / 卸载残留 / reduced-motion / 长会话性能。
-5. **发布清单**：双语 README、演示 GIF、`private:false`、市场元数据（v2.0 首发）。
+1. **M16 Live2D 桌宠**：等用户提供 Cubism 运行时目录（清单见 `docs/PLAN-PET-EFFORT.md` §B）。
+2. **回归补缺**：卸载残留、长会话性能（3s 全量扫描的代价）、auto 跟随系统主题。
+3. **发布清单**：双语 README、演示 GIF、`private:false`、市场元数据 → bump `v2.0` + `stage-11`。
+4. **v2.1（用户已点名）**：背景 / UI / 组件三部分独立换肤（见 `docs/PLAN-THEME-GLOBAL.md`）。
 
 ---
 

@@ -13,6 +13,44 @@
 
 ---
 
+## v2.0
+
+> **状态：开发中，未发版**（尚未 bump `VERSION`）。以下为已进树、已实测的能力，发布前还需「发布清单」。
+
+### Added
+
+- **M6 壁纸 / 玻璃**：`appearance.wallpaper` 支持图片与 **mp4/webm 视频**；视频用固定层 +
+  语义锚点清底；`appearance.glass` 开启磨砂。
+- **M7 皮肤中心**：`skins/<id>.json` + `appearance.skin`，宿主机合并、`/sdt/skins.json` 列表、
+  **面板内一键切换**（`POST /sdt/skin` 原子写配置）、坏包回退。
+- **M8 安全模式**：坏配置带行列号回退；`POST /sdt/safe-mode` 写标记 + 首帧注入 `__sdtSafeMode`，
+  client 首行直接让位。
+- **M11 应用内面板**：侧栏列表 / 顶部品牌名打开抽屉（功能矩阵 / 皮肤 / 状态），
+  卡片可点击展开「接缝 / 证据 / 备注」。
+- **M12 英雄区改写**：`appearance.heroTitle` / `heroMark`（如「迦勒底亚斯」+ FGO 图标）。
+- **M13 静态桌宠**：PNG 立绘，可拖动、点击换装、**滚轮缩放 / 面板滑杆（120–420）**、位置与尺寸记忆。
+- **M14 全局毛玻璃**：面积 ≥20% 视口的不透明容器统一 `data-sdt-glass`（72% + `blur(18px)`），
+  覆盖侧栏 / 右栏 / 开始页 / 设置页；非聊天页正文面板额外内联兜底；3s 重扫。
+- **M15 思考强度滑杆**：输入区右侧「思考 <档位>」丸弹 + 滑杆，经 `ctx.modelDirectories`
+  写 `reasoningEffort`，与官方模型选择共用会话状态；模型无档位时自动隐藏。
+- **开屏打磨**：CSS 两段式退场（文字先淡 → 底幕后淡）+ 三路退出看门狗
+  （boot 卡消失 / 350ms 快速启动 / 绝对时长）。
+- **`motion.click.scale`**：点击特效尺寸 0.5–3 可调。
+
+### Changed
+
+- 侧栏列表项「DSH-SDT」由「只有 16px 图标可点」改为**整行可点**（宿主行是 button，
+  内层改标记 + 文档级 capture）。
+- 壁纸/玻璃扫描不再因窗口失焦跳过；导航后补挂字标与菜单（3.5s，缺才挂）。
+
+### Fixed
+
+- 从插件/技能市场等页面回到聊天页时，页面面板的玻璃残留会盖住视频（新增 `data-sdt-page-glass` 并回收）。
+- 桌宠滚轮改为原生 `{ passive: false }` 监听，避免 React passive 警告与页面跟着滚动。
+- 桌面端启动 `desktop welcome: Web authentication failed`：根因是 Electron Cookie 库损坏；
+  DSH 的 profile recovery 又把 `cordis.patch.yml` 截断、bundle 列表裁到 2 项。
+  已从备份还原并用重建 Cookie 恢复正常（详见 `docs/JOURNAL.md`）。
+
 ## v1.9 — 2026-11-24
 
 **可玩性层：点击特效 + 视频开屏收口 + 控制台入口**（M6/M7/M8 顺延 v2.0）。

@@ -848,6 +848,7 @@ ${surfaceCss(colors, surface)}
       if (!enabled) {
         for (const el of document.querySelectorAll("[data-sdt-glass]")) {
           el.removeAttribute("data-sdt-glass");
+          el.removeAttribute("data-sdt-page-glass");
           el.style.removeProperty("z-index");
           el.style.removeProperty("background");
           el.style.removeProperty("backdrop-filter");
@@ -856,13 +857,26 @@ ${surfaceCss(colors, surface)}
         return;
       }
       const vw = window.innerWidth, vh = window.innerHeight;
+      const inChat = !!document.querySelector('[data-slot="main.conversation"]');
+      // 回到聊天页要把「页面面板」的玻璃撤掉，否则整块会被 82% 浅色盖住视频
+      if (inChat) {
+        for (const el of document.querySelectorAll("[data-sdt-page-glass]")) {
+          el.removeAttribute("data-sdt-page-glass");
+          el.removeAttribute("data-sdt-glass");
+          el.style.removeProperty("z-index");
+          el.style.removeProperty("background");
+          el.style.removeProperty("backdrop-filter");
+          el.style.removeProperty("-webkit-backdrop-filter");
+        }
+      }
       // 插件/技能市场等页面正文容器本身是透明的，而 [data-slot="main"] 是 display:contents（0×0），
       // 真正的面板是它的父元素；聊天页跳过，避免把视频压住。
-      if (!document.querySelector('[data-slot="main.conversation"]')) {
+      if (!inChat) {
         const slot = document.querySelector('[data-slot="main"]');
         const panel = slot && slot.parentElement;
         if (panel && panel.getBoundingClientRect().width > vw * 0.5 && !panel.hasAttribute("data-sdt-glass")) {
           panel.setAttribute("data-sdt-glass", "1");
+          panel.setAttribute("data-sdt-page-glass", "1");
           panel.style.setProperty("z-index", "1", "important");
           // 宿主对该面板有更高优先级的底色规则，这里用内联 !important 兜底
           panel.style.setProperty("background", "color-mix(in srgb,var(--dsw-alias-bg-l1) 82%,transparent)", "important");
@@ -907,6 +921,10 @@ ${surfaceCss(colors, surface)}
       return function SdtPet() {
         const [idx, setIdx] = useState(0);
         const [size, setSize] = useState(readSize);
+        const boxRef = useRef(null);
+        const sizeRef = useRef(size);
+        const applySizeRef = useRef(() => {});
+        sizeRef.current = size;
         const [pos, setPos] = useState(() => {
           try {
             const saved = JSON.parse(localStorage.getItem("sdt-pet-pos") || "null");
@@ -937,6 +955,19 @@ ${surfaceCss(colors, surface)}
           return () => window.removeEventListener("sdt-pet-size", onSize);
         }, []);
 
+        useEffect(() => {
+          const el = boxRef.current;
+          if (!el) return undefined;
+          const onWheel = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const next = sizeRef.current + (e.deltaY > 0 ? -12 : 12);
+            applySizeRef.current(next);
+          };
+          el.addEventListener("wheel", onWheel, { passive: false });
+          return () => el.removeEventListener("wheel", onWheel);
+        }, []);
+
         const applySize = (next) => {
           const v = clamp(Math.round(next), SIZE_MIN, SIZE_MAX);
           setSize(v);
@@ -946,6 +977,7 @@ ${surfaceCss(colors, surface)}
             y: clamp(p.y, 0, window.innerHeight - v),
           }));
         };
+        applySizeRef.current = applySize;
 
         const onPointerDown = (e) => {
           e.preventDefault();
@@ -973,15 +1005,11 @@ ${surfaceCss(colors, surface)}
 
         const src = `/sdt/asset/${encodeURIComponent(pet.images[idx % pet.images.length])}`;
         return h("div", {
+          ref: boxRef,
           "data-sdt-pet": "",
           "data-pet-size": size,
           title: (pet.images.length > 1 ? "拖动移动 · 点击换装" : "拖动移动") + " · 滚轮缩放",
           onPointerDown,
-          onWheel: (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            applySize(size + (e.deltaY > 0 ? -12 : 12));
-          },
           style: {
             position: "fixed", left: pos.x, top: pos.y, width: size,
             zIndex: 2147482000, pointerEvents: "auto", cursor: "grab",
