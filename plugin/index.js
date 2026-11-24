@@ -43,39 +43,58 @@ const FIRST_FRAME_STYLE = 'html{--sdt-first-frame:1}';
 const FIRST_FRAME_SCRIPT =
   'try{window.__sdtFirstFrame={at:Date.now()};document.documentElement.dataset.sdtFirst="1"}catch(e){}';
 
-/** 开屏首帧 CSS：纯 CSS 动画，不依赖 JS DOM，失败也只是不显示。 */
+/** 开屏首帧 CSS：纯 CSS 动画，不依赖 JS DOM，失败也只是不显示。
+ *  两段式退场：::after 文字先淡（55%→78%），::before 底幕后淡（80%→100%）。
+ *  `data-sdt-splash="out"` 供看门狗/跳过提前退场（0.26s 淡出后由脚本移除属性）。 */
 function splashCss(colors, duration) {
   const bg = colors.bgDark || '#0a1626';
   const ink = colors.inkDark || '#dbeaf5';
   const brand = colors.brand || '#37a3d6';
-  return `html[data-sdt-splash="1"]::before{
+  return `html[data-sdt-splash]::before{
   content:"";position:fixed;inset:0;z-index:2147483646;pointer-events:none;
   background:radial-gradient(120% 90% at 50% 0%, ${brand}22 0%, transparent 60%), ${bg};
-  animation:sdtSplashFade ${duration}ms ease forwards;
 }
-html[data-sdt-splash="1"]::after{
+html[data-sdt-splash]::after{
   content:"◇  DSH-SDT";position:fixed;inset:0;z-index:2147483647;pointer-events:none;
   display:flex;align-items:center;justify-content:center;
   color:${ink};font:600 15px/1 Georgia,"Noto Serif SC",serif;letter-spacing:.32em;
-  animation:sdtSplashFade ${duration}ms ease forwards;
 }
-@keyframes sdtSplashFade{0%,74%{opacity:1}100%{opacity:0}}
+html[data-sdt-splash="1"]::before{animation:sdtSplashBack ${duration}ms ease forwards}
+html[data-sdt-splash="1"]::after{animation:sdtSplashMark ${duration}ms ease forwards}
+html[data-sdt-splash="out"]::before,
+html[data-sdt-splash="out"]::after{animation:sdtSplashBye .26s ease forwards}
+@keyframes sdtSplashBack{0%,80%{opacity:1}100%{opacity:0}}
+@keyframes sdtSplashMark{0%,55%{opacity:1}78%,100%{opacity:0}}
+@keyframes sdtSplashBye{from{opacity:1}to{opacity:0}}
 @media (prefers-reduced-motion: reduce){
-  html[data-sdt-splash="1"]::before,html[data-sdt-splash="1"]::after{animation-duration:1ms}
+  html[data-sdt-splash]::before,html[data-sdt-splash]::after{animation-duration:1ms}
 }`;
 }
 
-/** 开屏脚本：打标记、会话内去重、可跳过、到点移除；不碰 DOM 结构。 */
+/** CSS 版开屏脚本：打标记、快速启动看门狗、可跳过；bye() 两段式退场后移除属性。 */
 function splashScript(duration, skippable, oncePerSession) {
   return `(function(){try{
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var root=document.documentElement;
   ${oncePerSession ? "if(sessionStorage.getItem('sdt-splash')) return;sessionStorage.setItem('sdt-splash','1');" : ''}
   root.dataset.sdtSplash='1';
-  window.__sdtSplash={at:Date.now(),duration:${duration},skippable:${skippable ? 'true' : 'false'}};
-  var timer=setTimeout(function(){try{delete root.dataset.sdtSplash}catch(e){}},${duration});
+  window.__sdtSplash={at:Date.now(),duration:${duration},skippable:${skippable ? 'true' : 'false'},mode:'css'};
+  var done=false; var t0=Date.now(); var seen=false;
+  function bye(){
+    if(done) return; done=true;
+    try{ root.dataset.sdtSplash='out'; }catch(e){}
+    setTimeout(function(){ try{ delete root.dataset.sdtSplash; }catch(e){} },300);
+  }
+  var iv=setInterval(function(){
+    try{
+      var boot=document.querySelector('[data-dsh-boot]');
+      if(boot) seen=true;
+      if((seen && !boot) || (!seen && Date.now()-t0>350)){ clearInterval(iv); bye(); }
+    }catch(e){ clearInterval(iv); bye(); }
+  },100);
+  var hard=setTimeout(function(){ clearInterval(iv); bye(); },${duration});
   if(${skippable ? 'true' : 'false'}){
-    var skip=function(){try{clearTimeout(timer);delete root.dataset.sdtSplash}catch(e){}};
+    var skip=function(){ clearInterval(iv); clearTimeout(hard); bye(); };
     addEventListener('keydown',skip,{once:true});
     addEventListener('pointerdown',skip,{once:true,capture:true});
   }
@@ -102,7 +121,13 @@ function splashVideoScript(video, duration, skippable, oncePerSession) {
     v.style.cssText='width:100%;height:100%;object-fit:cover;display:block';
     box.appendChild(v);root.appendChild(box);
     var done=false;
-    function finish(){if(done)return;done=true;box.style.opacity='0';setTimeout(function(){try{box.remove()}catch(e){}},420);}
+    function finish(){
+      if(done) return; done=true;
+      /* 两段式：内容（视频）先淡 → 底幕再淡 → 移除 */
+      try{ v.style.transition='opacity .3s ease'; v.style.opacity='0'; }catch(e){}
+      setTimeout(function(){ try{ box.style.transition='opacity .25s ease'; box.style.opacity='0'; }catch(e){} },300);
+      setTimeout(function(){ try{ box.remove(); }catch(e){} },580);
+    }
     v.addEventListener('ended',finish);
     v.addEventListener('error',finish);
     var timer=setTimeout(finish,D);

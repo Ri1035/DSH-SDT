@@ -379,3 +379,38 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 - 改配置后需刷新页面（client 启动时读取）；桌面端重启生效。
 - rAF 节流仅存在于无头验证环境；真实窗口（桌面端/浏览器前台）为正常 60fps。
 
+
+---
+
+## 2026-11-24 · T10.2b 开屏打磨（两段式 + 三路看门狗）
+
+**做了什么**
+
+- **CSS 版两段式退场**：`::after` 文字 55%→78% 先淡，`::before` 底幕 80%→100% 后淡；
+  `data-sdt-splash="out"` 供提前退场（0.26s 淡出后再移除属性）。
+- **三路退出**：
+  1. boot 卡出现后消失 → 立即退场；
+  2. 350ms 内没出现 boot 卡（快速启动）→ 退场；
+  3. 绝对时长兜底（`motion.splash.duration`）。
+- **视频版两段式**：内容（video）0.3s 淡出 → 底幕 0.25s 淡出 → 移除；跳过/失败同一条路径。
+
+**验证方法（不启动 DSH）**
+
+- 用真实 host 代码：`apply()` + `webserver/index-inject` 生成注入表，原样写进三个 file:// 夹具页
+  （`fast` / `never` / `stuck`），浏览器跑真实生命周期。
+- 结果：
+
+| 场景 | 观测 |
+|---|---|
+| fast（卡 202ms 移除） | `out` @310ms，属性移除 @618ms |
+| never（无卡） | `out` @413ms，移除 @724ms |
+| stuck（卡不消失） | `out` @1201ms ≈ duration，移除 @1507ms |
+| CSS 两段式（stuck） | 700–900ms: `::after 0.93 / ::before 1`；1050–1150ms: `::after 0 / ::before 0.166` |
+| 视频版 | `video opacity 0.735 → 0`，底幕保持后移除；跳过同路径 |
+
+**说明**
+
+- 夹具里视频用 file:// 加载必然 404（`videoErr=4`），只验证了退场时序；真实播放已在 v1.9 桌面端验过
+  （`readyState=4`、1280×720）。
+- 夹具与探针放在 `tools/_splash_test/`（gitignored），不入库。
+

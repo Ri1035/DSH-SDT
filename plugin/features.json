@@ -152,13 +152,12 @@
       "id": "M9",
       "name": "开屏动画",
       "layer": "L4",
-      "status": "partial",
+      "status": "done",
       "since": "v1.9",
       "seam": "host: webserver/index-inject + shell.overlay",
-      "detail": "视频/CSS 双模式开屏：首帧覆盖、播完/到点/点击淡出、reduced-motion 跳过",
-      "evidence": "桌面实测 readyState=4、无残留",
-      "placeholder": true,
-      "placeholderNote": "两段式退场与 boot-card 看门狗排入 v2.0 打磨"
+      "detail": "视频/CSS 双模式；两段式退场；三路退出看门狗；reduced-motion/去重/跳过",
+      "evidence": "fast 310ms 退场 / never 413ms / stuck 1201ms；CSS 两段式 ::after 先归零",
+      "placeholder": false
     },
     {
       "id": "M10",
