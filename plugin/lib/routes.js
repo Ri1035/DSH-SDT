@@ -5,6 +5,7 @@
  *   GET /sdt/health         存活检查
  *   GET /sdt/config.json    配置的运行时视图（不含绝对路径）
  *   GET /sdt/asset/<name>   素材字节流（用户目录优先，内置回退）
+ *   GET /sdt/skins.json     已装皮肤列表（id/name/颜色/坏包原因）
  *
  * 安全：
  *  - `ctx.webServer.register()` 的自定义路由**不继承**宿主的鉴权与 Host/Origin 栅栏，
@@ -16,6 +17,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolveAsset } from './assets.js';
+import { listSkins } from './skins.js';
 
 const PLUGIN_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
@@ -67,7 +69,7 @@ function send(res, status, body, headers = {}, headOnly = false) {
   res.end(headOnly ? undefined : payload);
 }
 
-export function createHandler({ ctx, readConfig, userAssetDir }) {
+export function createHandler({ ctx, readConfig, userAssetDir, dshHome }) {
   /**
    * 宿主对 requestRejection 的实现会解析请求的 Host/Origin 与 Peer；
    * 任何异常都必须当成「拒绝」处理（fail closed），否则会漏掉鉴权。
@@ -163,8 +165,14 @@ export function createHandler({ ctx, readConfig, userAssetDir }) {
           config: snapshot.config,
           warnings: snapshot.warnings ?? [],
           exists: snapshot.exists,
+          skin: snapshot.skin ?? null,
           error: snapshot.error,
         }, {}, headOnly);
+        return;
+      }
+
+      if (route === '/skins.json') {
+        send(res, 200, { ok: true, skins: dshHome ? listSkins(dshHome) : [] }, {}, headOnly);
         return;
       }
 

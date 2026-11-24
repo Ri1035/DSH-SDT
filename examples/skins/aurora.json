@@ -1,0 +1,16 @@
+{
+  "name": "Aurora（示例皮肤）",
+  "colors": {
+    "brand": "#7c5cff",
+    "accent": "#2fb8a6",
+    "bgLight": "#f3f1ff",
+    "bgDark": "#0d0a1f",
+    "inkLight": "#161228",
+    "inkDark": "#e6e1ff"
+  },
+  "appearance": {
+    "mode": "auto",
+    "wallpaper": null,
+    "glass": false
+  }
+}

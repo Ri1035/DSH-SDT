@@ -168,6 +168,13 @@
     <div class="grid" id="modules"></div>
   </section>
 
+  <section id="skins">
+    <h2>皮肤包</h2>
+    <p class="hint">把 <code>skins/&lt;id&gt;.json</code> 放进 <code>$DSH_HOME/sdt/skins/</code>，
+      再把主配置的 <code>appearance.skin</code> 指向它即可切换。坏包会自动回退主配置。</p>
+    <div class="grid" id="skinList"></div>
+  </section>
+
   <section id="roadmap">
     <h2>路线图</h2>
     <p class="hint">版本按 <code>vX.Y</code>，逢 10 进 1；每个版本必须有自验证与回滚标记。</p>
@@ -402,6 +409,7 @@
     renderFilters();
     renderModules();
     renderRoad();
+    renderSkins();
     var sub = document.getElementById("sub");
     var v = (state.health && state.health.version) || "?";
     var src = state.configExists ? "sdt.config.json" : "内置默认";
@@ -417,11 +425,42 @@
     var modeBtn = document.getElementById("modeBtn");
     if (modeBtn) modeBtn.textContent = state.mode === "dark" ? "切换浅色预览" : "切换深色预览";
   }
+  function renderSkins() {
+    var host = document.getElementById("skinList");
+    if (!host) return;
+    host.innerHTML = "";
+    if (!state.skins || !state.skins.length) {
+      host.appendChild(el("div", "empty", "还没有皮肤包：把 <id>.json 放进 $DSH_HOME/sdt/skins/"));
+      return;
+    }
+    state.skins.forEach(function (skin) {
+      var card = el("div", "card");
+      var head = el("div", "cardHead");
+      head.appendChild(el("span", "cardName", skin.name || skin.id));
+      head.appendChild(el("span", "chip " + (skin.id === state.skinId ? "c-done" : (skin.ok ? "" : "c-no")),
+        skin.id === state.skinId ? "当前" : (skin.ok ? "可用" : "坏包")));
+      card.appendChild(head);
+      card.appendChild(el("div", "cardDesc", "id: " + skin.id + (skin.ok ? "" : " · " + skin.error)));
+      if (skin.colors) {
+        var row = el("div", "meta");
+        ["brand", "accent", "bgLight", "bgDark"].forEach(function (k) {
+          if (!skin.colors[k]) return;
+          var sw = el("span", "swatch");
+          sw.style.background = skin.colors[k];
+          sw.title = k + " " + skin.colors[k];
+          row.appendChild(sw);
+        });
+        card.appendChild(row);
+      }
+      host.appendChild(card);
+    });
+  }
   function load() {
     Promise.all([
       getJSON("/sdt/features.json").catch(function () { return null; }),
       getJSON("/sdt/config.json").catch(function () { return null; }),
-      getJSON("/sdt/health").catch(function () { return null; })
+      getJSON("/sdt/health").catch(function () { return null; }),
+      getJSON("/sdt/skins.json").catch(function () { return null; })
     ]).then(function (r) {
       var payload = r[1];
       state.features = r[0];
@@ -429,8 +468,12 @@
       state.configExists = !!(payload && payload.exists);
       state.warnings = (payload && payload.warnings) || [];
       state.health = r[2];
+      state.skins = (r[3] && r[3].skins) || [];
+      state.skinId = (payload && payload.skin && payload.skin.id) || null;
       if (!state.features) {
-        document.getElementById("modules").appendChild(el("div", "empty", "features.json 读取失败：检查插件版本或路由。"));
+        var host = document.getElementById("modules");
+        host.innerHTML = "";
+        host.appendChild(el("div", "empty", "features.json 读取失败：检查插件版本或路由。"));
       }
       renderAll();
       runChecks();

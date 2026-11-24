@@ -20,6 +20,7 @@
 | 开屏 | `motion.splash.video` 指定用户素材名（如 `fgo.mp4`）；缺省纯 CSS；可跳过、每会话一次 |
 | 点击特效 | canvas 菱形爆发（默认开）；`motion.click.scale` 0.5–3 调大小；`motion.click.enabled` 可关；reduced-motion 不启动 |
 | 壁纸 / 玻璃 | `appearance.wallpaper` 指定用户素材图片；`appearance.glass` 开启磨砂半透明（默认关，低配友好） |
+| 皮肤包 | `skins/<id>.json` + `appearance.skin` 切换；坏包自动回退；控制台列出已装皮肤 |
 | 结论 | DSH 能改什么、改到什么程度，写进 [`docs/MODULARITY.md`](./docs/MODULARITY.md) |
 
 ## 安装

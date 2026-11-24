@@ -128,13 +128,12 @@
       "id": "M7",
       "name": "皮肤中心",
       "layer": "L4",
-      "status": "planned",
-      "since": "v1.9",
+      "status": "partial",
+      "since": "v2.0",
       "seam": "自有 skin.json + 列表 UI",
-      "detail": "导入 / 导出 / 切换；坏包回退",
-      "evidence": "—",
-      "placeholder": true,
-      "placeholderNote": "依赖 M4 可交互设置先落地"
+      "detail": "皮肤包：skins/<id>.json + appearance.skin；控制台列出；坏包回退",
+      "evidence": "aurora 皮肤 brand=#7c5cff；missing-skin 告警回落 #37a3d6",
+      "placeholder": false
     },
     {
       "id": "M8",

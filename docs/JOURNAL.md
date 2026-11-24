@@ -443,3 +443,30 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
   把该层加入清理选择器（而不是继续猜 body）。
 - 测试素材 `test-wall.png` 留在用户目录，配置已恢复 `wallpaper: null, glass: false`。
 
+
+---
+
+## 2026-11-24 · M7 皮肤中心（MVP）
+
+**做了什么**
+
+- `lib/skins.js`：读 `$DSH_HOME/sdt/skins/*.json`；id 安全校验、256KB 上限、坏文件带原因。
+- 配置：`appearance.skin`（默认 null）。loadConfig 在**校验前**把皮肤深度合并进主配置，
+  皮肤可覆盖 colors/tokens/appearance/motion；坏包/缺文件 → warning + 回退主配置。
+- 路由：`/sdt/skins.json` 列出已装皮肤；`/sdt/config.json` 增加 `skin: {id,name}`。
+- 控制台新增「皮肤包」区：名称、id、当前/可用/坏包、颜色 swatches。
+- 示例：`examples/skins/aurora.json`（紫/青），用户目录已放一份 `aurora.json` 可直接试。
+
+**验证**
+
+| 项 | 结果 |
+|---|---|
+| 选中 aurora | `skin={id:aurora,name:Aurora（示例皮肤）}`，`brand=#7c5cff`，warnings 空 |
+| 缺文件 | `appearance.skin: 皮肤文件不存在（已回退主配置）`，brand 回 `#37a3d6` |
+| 列表 | `/sdt/skins.json` 返回完整颜色与 appearance |
+| 控制台 | 皮肤区显示「Aurora（示例皮肤） 当前 · id: aurora」 |
+
+**没做**
+
+- 应用内导入/导出与一键切换（现在靠改 `appearance.skin` + 刷新）；留 v2.0 收尾。
+

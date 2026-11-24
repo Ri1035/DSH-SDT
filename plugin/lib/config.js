@@ -11,6 +11,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { readSkin, isSafeSkinId } from './skins.js';
 
 export const CONFIG_DIR_NAME = 'sdt';
 export const CONFIG_FILE_NAME = 'sdt.config.json';
@@ -34,6 +35,8 @@ export const DEFAULT_CONFIG = Object.freeze({
     wallpaper: null,
     /** M6 玻璃质感：半透明 + backdrop-filter；默认关闭，避免低配掉帧 */
     glass: false,
+    /** M7 皮肤包 id：$DSH_HOME/sdt/skins/<id>.json；null = 只用主配置 */
+    skin: null,
   },
   motion: {
     splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true, video: null },
@@ -200,6 +203,11 @@ export function validateConfig(raw) {
     const glass = raw.appearance.glass;
     if (typeof glass === 'boolean') appearance.glass = glass;
     else if (glass !== undefined) warn('appearance.glass', '需为 true | false');
+
+    const skin = raw.appearance.skin;
+    if (skin === null) appearance.skin = null;
+    else if (isSafeSkinId(skin)) appearance.skin = skin;
+    else if (skin !== undefined) warn('appearance.skin', '需为 skins 目录内的文件名（不含 .json 与路径分隔符）');
   }
 
   const assets = { ...DEFAULT_CONFIG.assets };
@@ -236,7 +244,7 @@ export function loadConfig(dshHome) {
     text = fs.readFileSync(file, 'utf8');
   } catch (error) {
     if (error && error.code === 'ENOENT') {
-      return { config: validateConfig(DEFAULT_CONFIG).config, warnings: [], file, exists: false };
+      return { config: validateConfig(DEFAULT_CONFIG).config, warnings: [], skin: null, file, exists: false };
     }
     throw new ConfigError(`读取失败：${error.message}`, file, undefined, undefined);
   }
@@ -249,9 +257,21 @@ export function loadConfig(dshHome) {
     throw new ConfigError(`JSON 语法错误：${error.message}`, file, line, column);
   }
 
-  const merged = mergeConfig(DEFAULT_CONFIG, parsed);
+  let merged = mergeConfig(DEFAULT_CONFIG, parsed);
+  const skinWarnings = [];
+  let skin = null;
+  const wantedSkin = merged.appearance && merged.appearance.skin;
+  if (wantedSkin) {
+    const hit = readSkin(dshHome, wantedSkin);
+    if (hit.ok) {
+      merged = mergeConfig(merged, hit.data);
+      skin = { id: hit.id, name: hit.name };
+    } else {
+      skinWarnings.push(`appearance.skin: ${hit.reason}（已回退主配置）`);
+    }
+  }
   const { config, warnings } = validateConfig(merged);
-  return { config, warnings, file, exists: true };
+  return { config, warnings: [...skinWarnings, ...warnings], skin, file, exists: true };
 }
 
 /** 按 mtime 缓存，避免每次请求都读盘。 */
@@ -267,6 +287,13 @@ export function createConfigStore(dshHome) {
     } catch {
       mtime = 0;
     }
+    if (cached && cached.ok && cached.skin) {
+      try {
+        mtime += fs.statSync(path.join(dshHome, CONFIG_DIR_NAME, 'skins', `${cached.skin.id}.json`)).mtimeMs;
+      } catch {
+        // 皮肤被删：下一次 loadConfig 会走 warning 回退
+      }
+    }
     if (cached && stamp === mtime) return cached;
     try {
       cached = { ok: true, ...loadConfig(dshHome) };
@@ -275,6 +302,7 @@ export function createConfigStore(dshHome) {
         ok: false,
         config: validateConfig(DEFAULT_CONFIG).config,
         warnings: [],
+        skin: null,
         file,
         exists: true,
         error: error instanceof ConfigError ? error.describe() : String(error),

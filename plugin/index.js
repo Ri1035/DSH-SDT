@@ -147,7 +147,7 @@ export function apply(ctx) {
   const dshHome = resolveDshHome(ctx);
   const readConfig = createConfigStore(dshHome);
   const userAssetDir = ensureUserAssetDir(dshHome);
-  const handler = createHandler({ ctx, readConfig, userAssetDir });
+  const handler = createHandler({ ctx, readConfig, userAssetDir, dshHome });
 
   ctx.on('webserver/index-inject', (table) => {
     table.push({ kind: 'style', text: FIRST_FRAME_STYLE });
