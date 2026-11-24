@@ -511,3 +511,29 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 | 控制台 | 四路由自检 200（health/config/features/asset） |
 
 **未测**：卸载残留、长会话性能、auto 跟随系统主题。
+
+---
+
+## 2026-11-24 · M11 应用内面板 + 皮肤一键切换
+
+**做了什么**
+
+- 侧栏菱形按钮改为打开**应用内抽屉**（`shell.overlay` + `sidebar.footer.action`），三页签：
+  - 功能矩阵：直接读 `features.json`，状态 chip（含 13→14 卡）；
+  - 皮肤：列表 + 「应用」按钮（`POST /sdt/skin`）+「恢复默认皮肤」；
+  - 状态：版本 / token / 配置来源 / 模式 / 安全模式 / 皮肤。
+- 交互：遮罩点击或 Esc 关闭；底部保留「浏览器打开完整控制台」。
+- `POST /sdt/skin`：校验 id 与皮肤存在性，读主配置 → 改 `appearance.skin` → tmp + rename 原子写。
+
+**验证（桌面端实测）**
+
+| 项 | 结果 |
+|---|---|
+| 面板 | 抽屉存在，三页签，14 卡（新增 M11） |
+| 皮肤切换 | 点「应用」→ 重载后 `--dsw-alias-brand-primary = #7c5cff` |
+| 恢复默认 | `#37a3d6` |
+| Esc/遮罩 | 关闭正常，无残留 |
+| DSH 版本 | 0.2.2-rc.1 未变 |
+
+**截图**：`docs/preview/v20-panel.png`、`v20-panel-skins.png`
+

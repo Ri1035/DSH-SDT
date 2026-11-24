@@ -71,7 +71,7 @@
       "status": "partial",
       "since": "v1.6",
       "seam": "slots: settings.general.item",
-      "detail": "版本 / token / 来源 / 目录；可交互版待 v1.9",
+      "detail": "版本 / token / 来源 / 目录 / 控制台入口；可交互改色待 v2.0 收尾",
       "evidence": "设置 → 通用设置底部",
       "placeholder": true,
       "placeholderNote": "可交互设置（改色、切主题）尚未接线"
@@ -128,10 +128,10 @@
       "id": "M7",
       "name": "皮肤中心",
       "layer": "L4",
-      "status": "partial",
+      "status": "done",
       "since": "v2.0",
       "seam": "自有 skin.json + 列表 UI",
-      "detail": "皮肤包：skins/<id>.json + appearance.skin；控制台列出；坏包回退",
+      "detail": "皮肤包 + 面板内一键切换 + 控制台列表 + 坏包回退；导入/导出=放/拷文件",
       "evidence": "aurora 皮肤 brand=#7c5cff；missing-skin 告警回落 #37a3d6",
       "placeholder": false
     },
@@ -168,6 +168,16 @@
       "evidence": "API 存在，未接线",
       "placeholder": true,
       "placeholderNote": "需验证插件注册的 skill 是否对所有会话可见"
+    },
+    {
+      "id": "M11",
+      "name": "应用内面板",
+      "slots": "shell.overlay + sidebar.footer.action",
+      "status": "done",
+      "since": "v2.0",
+      "detail": "侧栏菱形按钮打开抽屉：功能矩阵 / 皮肤（可一键切换）/ 状态；Esc/遮罩关闭",
+      "evidence": "桌面端实测 13→14 卡、切皮肤 brand #7c5cff、恢复 #37a3d6",
+      "placeholder": false
     },
     {
       "id": "P3",

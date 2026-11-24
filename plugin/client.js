@@ -634,6 +634,204 @@ ${surfaceCss(colors, surface)}
       };
     }
 
+    /* ---------------- M10：应用内面板（占位矩阵 / 皮肤 / 状态） ---------------- */
+    const panelState = {
+      open: false, tab: "features", loading: false, error: null,
+      features: null, skins: null, config: null, health: null,
+    };
+    const panelSubs = new Set();
+    function pushPanel(patch) {
+      Object.assign(panelState, patch);
+      const snapshot = { ...panelState };
+      for (const fn of panelSubs) { try { fn(snapshot); } catch { /* 单个订阅者失败不影响其他 */ } }
+    }
+    function loadPanel() {
+      if (panelState.loading) return;
+      pushPanel({ loading: true, error: null });
+      const get = (url) => fetch(url, { credentials: "same-origin" })
+        .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      Promise.all([
+        get("/sdt/features.json"), get("/sdt/skins.json"),
+        get("/sdt/config.json"), get("/sdt/health"),
+      ]).then(([features, skins, config, health]) => {
+        pushPanel({ loading: false, features, skins, config, health });
+      }).catch((error) => pushPanel({ loading: false, error: String((error && error.message) || error) }));
+    }
+    function openPanel(tab) {
+      pushPanel({ open: true, tab: tab || panelState.tab });
+      loadPanel();
+    }
+    function closePanel() { pushPanel({ open: false }); }
+
+    function makePanel() {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React || !React.useState) return null;
+      const h = React.createElement;
+      const useState = React.useState;
+      const useEffect = React.useEffect;
+
+      const STATUS = {
+        done: ["已实现", "#2f9e6f"], partial: ["部分", "#b8862b"],
+        planned: ["计划", "#7a8699"], "no-seam": ["无接缝", "#a05a5a"],
+        placeholder: ["占位", "#7a8699"],
+      };
+      const chip = (status) => {
+        const [label, color] = STATUS[status] || ["未知", "#7a8699"];
+        return h("span", {
+          style: {
+            fontSize: 10, padding: "1px 6px", borderRadius: 999, color,
+            border: "1px solid " + color, whiteSpace: "nowrap",
+          },
+        }, label);
+      };
+      const row = (k, v) => h("div", { style: { display: "flex", gap: 10, fontSize: 12, lineHeight: 1.9 } },
+        h("span", { style: { minWidth: 88, color: "var(--dsw-alias-label-secondary)" } }, k),
+        h("span", { style: { color: "var(--dsw-alias-label-primary)", wordBreak: "break-all" } }, v));
+      const tabBtn = (id, label, active) => h("button", {
+        type: "button",
+        onClick: () => pushPanel({ tab: id }),
+        style: {
+          fontSize: 12, padding: "4px 10px", borderRadius: 999, cursor: "pointer",
+          border: "1px solid " + (active ? "var(--dsw-alias-brand-primary)" : "var(--dsw-alias-border-l1)"),
+          background: active ? "color-mix(in srgb, var(--dsw-alias-brand-primary) 14%, transparent)" : "transparent",
+          color: active ? "var(--dsw-alias-brand-primary)" : "var(--dsw-alias-label-secondary)",
+        },
+      }, label);
+
+      return function SdtPanel() {
+        const [st, setSt] = useState({ ...panelState });
+        useEffect(() => {
+          panelSubs.add(setSt);
+          return () => panelSubs.delete(setSt);
+        }, []);
+        useEffect(() => {
+          if (!st.open) return undefined;
+          const onKey = (e) => { if (e.key === "Escape") closePanel(); };
+          window.addEventListener("keydown", onKey);
+          return () => window.removeEventListener("keydown", onKey);
+        }, [st.open]);
+        if (!st.open) return null;
+
+        const features = st.features || (st.config && st.config.features) || null;
+        const modules = (features && features.modules) || [];
+        const skins = (st.skins && st.skins.skins) || [];
+        const cfg = st.config || {};
+        const activeSkin = (cfg.skin && cfg.skin.id) || null;
+        const health = st.health || {};
+
+        let body = null;
+        if (st.tab === "features") {
+          body = modules.length ? modules.map((m) => h("div", {
+            key: m.id,
+            style: {
+              padding: "8px 10px", marginBottom: 6, borderRadius: 8,
+              border: "1px solid var(--dsw-alias-border-l1)",
+              background: "color-mix(in srgb, var(--dsw-alias-bg-l2) 60%, transparent)",
+            },
+          },
+            h("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
+              h("span", { style: { fontSize: 12, fontWeight: 600, color: "var(--dsw-alias-label-primary)" } }, m.name),
+              chip(m.status),
+              h("span", { style: { fontSize: 10, color: "var(--dsw-alias-label-secondary)" } }, m.since || "")),
+            h("div", { style: { fontSize: 11, color: "var(--dsw-alias-label-secondary)", marginTop: 3, lineHeight: 1.7 } }, m.detail || "")))
+            : h("div", { style: { fontSize: 12, color: "var(--dsw-alias-label-secondary)" } }, "功能清单读取失败");
+        } else if (st.tab === "skins") {
+          body = [
+            h("div", { style: { fontSize: 12, color: "var(--dsw-alias-label-secondary)", marginBottom: 8 } },
+              "把 <id>.json 放进 $DSH_HOME/sdt/skins/，再改 appearance.skin 并刷新。"),
+            ...(skins.length ? skins.map((s) => h("div", {
+              key: s.id,
+              style: {
+                display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", marginBottom: 6,
+                borderRadius: 8, border: "1px solid var(--dsw-alias-border-l1)",
+              },
+            },
+              h("span", { style: { flex: 1, fontSize: 12, color: "var(--dsw-alias-label-primary)" } }, s.name || s.id),
+              s.id === activeSkin ? chip("done") : (s.ok ? null : chip("no-seam")),
+              s.ok ? h("button", {
+                type: "button",
+                onClick: () => {
+                  fetch("/sdt/skin", {
+                    method: "POST", credentials: "same-origin",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ id: s.id }),
+                  }).then((r) => { if (!r.ok) throw new Error("切换失败"); location.reload(); })
+                    .catch((e) => pushPanel({ error: String((e && e.message) || e) }));
+                },
+                style: { fontSize: 10, padding: "2px 7px", borderRadius: 6, cursor: "pointer", border: "1px solid var(--dsw-alias-border-l1)", background: "transparent", color: "var(--dsw-alias-brand-primary)" },
+              }, "应用") : null,
+              h("span", { style: { fontSize: 10, color: "var(--dsw-alias-label-secondary)" } }, s.id))) : []),
+            activeSkin ? h("button", {
+              type: "button",
+              onClick: () => {
+                fetch("/sdt/skin", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: null }) })
+                  .then(() => location.reload()).catch(() => {});
+              },
+              style: { marginTop: 8, fontSize: 11, padding: "4px 9px", borderRadius: 6, cursor: "pointer", border: "1px solid var(--dsw-alias-border-l1)", background: "transparent", color: "var(--dsw-alias-label-secondary)" },
+            }, "恢复默认皮肤") : null,
+          ];
+        } else {
+          body = [
+            row("插件", "v" + ((health && health.version) || VERSION)),
+            row("token", (window.__sdtDebug && window.__sdtDebug.mapped) + " / " + (window.__sdtDebug && window.__sdtDebug.total)),
+            row("配置", st.config && st.config.exists ? "sdt.config.json" : "内置默认"),
+            row("模式", (cfg.config && cfg.config.appearance && cfg.config.appearance.mode) || "—"),
+            row("安全模式", health.safeMode ? "已开启" : "关闭"),
+            row("皮肤", activeSkin || "默认"),
+            row("控制台", "/sdt/console"),
+          ];
+        }
+
+        return h("div", {
+          style: { position: "fixed", inset: 0, zIndex: 2147483001, pointerEvents: "auto" },
+        },
+          h("div", {
+            onClick: closePanel,
+            style: { position: "absolute", inset: 0, background: "rgba(4, 10, 18, .38)" },
+          }),
+          h("aside", {
+            style: {
+              position: "absolute", top: 0, right: 0, bottom: 0,
+              width: "min(440px, 94vw)", display: "flex", flexDirection: "column",
+              background: "var(--dsw-alias-bg-l1)",
+              borderLeft: "1px solid var(--dsw-alias-border-l1)",
+              boxShadow: "-18px 0 48px rgba(0,0,0,.18)",
+              fontFamily: "var(--dsh-font-family-text)",
+            },
+          },
+            h("header", {
+              style: {
+                display: "flex", alignItems: "center", gap: 8, padding: "12px 14px",
+                borderBottom: "1px solid var(--dsw-alias-border-l1)",
+              },
+            },
+              h("span", { style: { fontSize: 13, fontWeight: 600, letterSpacing: ".1em", color: "var(--dsw-alias-brand-primary)" } }, "DSH-SDT"),
+              h("span", { style: { flex: 1, fontSize: 10, color: "var(--dsw-alias-label-secondary)" } }, "v" + VERSION),
+              h("button", {
+                type: "button", onClick: closePanel, "aria-label": "关闭",
+                style: { width: 24, height: 24, borderRadius: 6, cursor: "pointer", border: "1px solid var(--dsw-alias-border-l1)", background: "transparent", color: "var(--dsw-alias-label-secondary)" },
+              }, "×")),
+            h("div", { style: { display: "flex", gap: 6, padding: "10px 14px 6px" } },
+              tabBtn("features", "功能矩阵", st.tab === "features"),
+              tabBtn("skins", "皮肤", st.tab === "skins"),
+              tabBtn("status", "状态", st.tab === "status")),
+            h("div", { style: { flex: 1, overflow: "auto", padding: "6px 14px 14px" } },
+              st.loading ? h("div", { style: { fontSize: 12, color: "var(--dsw-alias-label-secondary)" } }, "读取中…") : null,
+              st.error ? h("div", { style: { fontSize: 12, color: "#c0504d" } }, st.error) : null,
+              body),
+            h("footer", {
+              style: { padding: "10px 14px", borderTop: "1px solid var(--dsw-alias-border-l1)", display: "flex", justifyContent: "space-between", alignItems: "center" },
+            },
+              h("span", { style: { fontSize: 10, color: "var(--dsw-alias-label-secondary)" } }, "Esc 关闭"),
+              h("button", {
+                type: "button",
+                onClick: () => window.open("/sdt/console", "_blank", "noopener"),
+                style: { fontSize: 11, padding: "4px 9px", borderRadius: 6, cursor: "pointer", border: "1px solid var(--dsw-alias-border-l1)", background: "transparent", color: "var(--dsw-alias-label-secondary)" },
+              }, "浏览器打开完整控制台"))));
+      };
+    }
+
     /* ---------------- M4b：侧栏控制台入口 ---------------- */
     function makeConsoleButton() {
       let React = null;
@@ -642,20 +840,13 @@ ${surfaceCss(colors, surface)}
       const h = React.createElement;
       return function SdtConsoleButton() {
         const open = () => {
-          try {
-            const win = window.open("/sdt/console", "_blank", "noopener");
-            if (!win) {
-              // 弹窗被拦时退化为复制地址，绝不改写当前页面
-              navigator.clipboard?.writeText(location.origin + "/sdt/console").catch(() => {});
-            }
-          } catch (error) {
-            console.warn("[dsh-sdt] console open failed:", error && error.message);
-          }
+          if (panelState.open) closePanel();
+          else openPanel("features");
         };
         return h("button", {
           type: "button",
-          title: "打开 DSH-SDT 控制台（/sdt/console）",
-          "aria-label": "打开 DSH-SDT 控制台",
+          title: "打开 DSH-SDT 面板（功能 / 皮肤 / 状态）",
+          "aria-label": "打开 DSH-SDT 面板",
           "data-sdt-console": "",
           onClick: open,
           style: {
@@ -795,7 +986,18 @@ ${surfaceCss(colors, surface)}
           console.warn("[dsh-sdt] settings card unavailable:", error && error.message);
         }
 
-        // 侧栏控制台入口：失败不影响主题
+        // 应用内面板：失败不影响主题
+        try {
+          const Panel = makePanel();
+          if (Panel && ctx.slots?.inject) {
+            ctx.slots.inject("shell.overlay", () =>
+              ctx.slots.register({ name: "shell.overlay", id: "sdt-panel", order: 30 }, Panel));
+          }
+        } catch (error) {
+          console.warn("[dsh-sdt] panel unavailable:", error && error.message);
+        }
+
+        // 侧栏面板入口：失败不影响主题
         try {
           const ConsoleButton = makeConsoleButton();
           if (ConsoleButton && ctx.slots?.inject) {

@@ -17,7 +17,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolveAsset } from './assets.js';
-import { listSkins } from './skins.js';
+import { listSkins, readSkin, isSafeSkinId } from './skins.js';
 
 const SAFE_MODE_FILE = 'disabled';
 
@@ -119,6 +119,33 @@ export function createHandler({ ctx, readConfig, userAssetDir, dshHome }) {
       const route = url.pathname.slice('/sdt'.length) || '/';
 
       if (req.method === 'POST') {
+        if (route === '/skin') {
+          let raw = '';
+          req.on('data', (chunk) => {
+            raw += chunk;
+            if (raw.length > 4096) { raw = ''; req.destroy(); }
+          });
+          req.on('end', () => {
+            try {
+              const body = raw ? JSON.parse(raw) : {};
+              const id = body && body.id;
+              if (id !== null && !isSafeSkinId(id)) throw new Error('皮肤名不合法');
+              if (id !== null && !readSkin(dshHome, id).ok) throw new Error('皮肤不存在或不可用');
+              const file = path.join(dshHome, 'sdt', 'sdt.config.json');
+              let config = {};
+              try { config = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { if (e && e.code !== 'ENOENT') throw new Error('主配置不是合法 JSON，先修好再用面板切换'); }
+              config.appearance = Object.assign({}, config.appearance, { skin: id === null ? null : id });
+              const tmp = file + '.tmp';
+              fs.writeFileSync(tmp, JSON.stringify(config, null, 2) + '\n', 'utf8');
+              fs.renameSync(tmp, file);
+              send(res, 200, { ok: true, skin: id === null ? null : id }, {}, false);
+            } catch (error) {
+              send(res, 400, { ok: false, error: String((error && error.message) || error) }, {}, false);
+            }
+          });
+          req.on('error', () => send(res, 400, { ok: false, error: 'bad_request' }, {}, false));
+          return;
+        }
         if (route !== '/safe-mode') {
           send(res, 405, { ok: false, error: 'method_not_allowed' }, { allow: 'GET, HEAD, POST' }, headOnly);
           return;
