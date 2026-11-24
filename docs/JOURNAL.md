@@ -616,3 +616,38 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 
 **截图**：`docs/preview/v20-pet.png`
 
+
+---
+
+## 2026-11-25 · M15 思考强度滑杆（真机可用）
+
+**机制（不是假 UI）**
+
+- 宿主把「模型目录」作为客户端服务 `ctx.modelDirectories` 暴露；
+  `directoryFor(sessionId)` 给出会话级目录：`.store`（可订阅）/ `.load()` / `.select({provider, model, reasoningEffort})`。
+- 我们注册 `conversation.input.right`（list，会话域），用 describe 的 `inject: (sessionId) => props`
+  把 `store/load/select` 注入组件；`package.json` 的 `client.inject` 增加
+  `@deepseek-ai/dsh-client-ui-model-selection`。
+
+**组件行为**
+
+- 只在「当前模型暴露 ≥2 档」时渲染：读 `groups[].models[].reasoning.efforts`，
+  无档位直接 `return null`（deepseek-chat 这类不会出现空控件）。
+- 丸弹显示「思考 <档位>」；点开是毛玻璃弹层 + 三段/多段滑杆；拖动预览、松手提交；
+  支持方向键/Home/End，Esc 或点外部关闭。
+- 写入走 `directory.select(...)`，与官方 `/model` 选择器共用同一份会话状态，不会各说各话。
+
+**真机实测（桌面端）**
+
+| 项 | 结果 |
+|---|---|
+| 当前模型 | `deepseek-v4.1-flash-1017`，档位 `low / high / max`，默认 `max` |
+| 挂载 | `[data-sdt-effort]` 存在，文案「思考 最高」 |
+| 切档 | 拖到 `low` → 状态 `current=low`、文案「思考 低」；再回 `max` 复原 |
+| 弹层样式 | `background: color(srgb … /0.88)` + `backdrop-filter: blur(16px) saturate(1.15)` |
+| 诊断残留 | `__sdtEffortReg/Why/State` 全部已移除 |
+
+**配置**：`effort.enabled`（默认 true）；关掉即不注册槽位。
+
+**截图**：`docs/preview/v21-effort.png`
+

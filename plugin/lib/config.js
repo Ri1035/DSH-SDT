@@ -18,6 +18,8 @@ export const CONFIG_FILE_NAME = 'sdt.config.json';
 
 export const DEFAULT_CONFIG = Object.freeze({
   pet: { enabled: false, images: [], size: 220 },
+  /** 思考强度滑杆：默认开；模型不暴露档位时自动隐藏 */
+  effort: { enabled: true },
   version: 1,
   colors: {
     brand: '#37a3d6',
@@ -236,6 +238,12 @@ export function validateConfig(raw) {
     }
   }
 
+  const effort = { ...DEFAULT_CONFIG.effort };
+  if (isPlainObject(raw.effort)) {
+    if (typeof raw.effort.enabled === 'boolean') effort.enabled = raw.effort.enabled;
+    else if (raw.effort.enabled !== undefined) warn('effort.enabled', '需为 true | false');
+  }
+
   const pet = { ...DEFAULT_CONFIG.pet };
   if (isPlainObject(raw.pet)) {
     if (typeof raw.pet.enabled === 'boolean') pet.enabled = raw.pet.enabled;
@@ -251,6 +259,7 @@ export function validateConfig(raw) {
     config: {
       version: Number.isInteger(raw.version) ? raw.version : DEFAULT_CONFIG.version,
       pet,
+      effort,
       colors,
       tokens: checkTokens(raw.tokens, warn),
       appearance,

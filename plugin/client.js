@@ -703,6 +703,130 @@ ${surfaceCss(colors, surface)}
       };
     }
 
+    /* ---------------- M15：思考强度滑杆（conversation.input.right） ---------------- */
+    const EFFORT_LABELS = { off: "关", minimal: "极低", low: "低", medium: "中", high: "高", xhigh: "极高", max: "最高" };
+    const effortLabel = (e) => EFFORT_LABELS[e && e.id] || (e && e.name) || String((e && e.id) || "");
+
+    function makeEffortBar() {
+      let React = null;
+      try { React = require("react"); } catch { return null; }
+      if (!React || !React.createElement || !React.useState) return null;
+      const h = React.createElement;
+      const { useState, useEffect, useRef } = React;
+
+      const pickModel = (state) => {
+        if (!state || !state.current || !Array.isArray(state.groups)) return null;
+        const provider = state.current.provider, modelId = state.current.model;
+        for (const group of state.groups) {
+          if (!group || group.id !== provider || !Array.isArray(group.models)) continue;
+          const model = group.models.find((m) => m && m.id === modelId);
+          if (model) return { current: state.current, model };
+        }
+        return null;
+      };
+
+      return function SdtEffortBar(props) {
+        const store = props && props.store;
+        const select = props && props.select;
+        const [snap, setSnap] = useState(() => { try { return store ? store.getSnapshot() : null; } catch { return null; } });
+        const [open, setOpen] = useState(false);
+        const [pending, setPending] = useState(null);
+        const [hover, setHover] = useState(false);
+        const rootRef = useRef(null);
+
+        useEffect(() => {
+          if (!store) return undefined;
+          let stop = null;
+          try {
+            setSnap(store.getSnapshot());
+            stop = store.subscribe(() => setSnap(store.getSnapshot()));
+          } catch { /* 忽略：只读失败就整块不显示 */ }
+          return () => { if (typeof stop === "function") stop(); };
+        }, [store]);
+
+        useEffect(() => {
+          if (props && typeof props.load === "function") props.load();
+        }, []);
+
+        useEffect(() => {
+          if (!open) return undefined;
+          const onDown = (e) => { if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false); };
+          const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+          document.addEventListener("pointerdown", onDown, true);
+          document.addEventListener("keydown", onKey);
+          return () => {
+            document.removeEventListener("pointerdown", onDown, true);
+            document.removeEventListener("keydown", onKey);
+          };
+        }, [open]);
+
+        const hit = pickModel(snap);
+        const reasoning = hit && hit.model && hit.model.reasoning;
+        const efforts = reasoning && Array.isArray(reasoning.efforts) ? reasoning.efforts : [];
+        if (!store || !hit || efforts.length < 2) return null;
+
+        const fallback = reasoning.defaultEffort || efforts[Math.floor(efforts.length / 2)].id;
+        const currentId = pending || (snap.current && snap.current.reasoningEffort) || fallback;
+        const index = Math.max(0, efforts.findIndex((e) => e.id === currentId));
+        const active = efforts[index];
+
+        const commit = (rawIndex) => {
+          const target = efforts[Math.max(0, Math.min(efforts.length - 1, rawIndex))];
+          if (!target || !snap.current) return;
+          setPending(target.id);
+          try {
+            Promise.resolve(select({ provider: snap.current.provider, model: snap.current.model, reasoningEffort: target.id }))
+              .catch(() => {}).then(() => setPending(null));
+          } catch { setPending(null); }
+        };
+
+        const btn = {
+          display: "inline-flex", alignItems: "center", gap: 6, height: 26, padding: "0 9px",
+          borderRadius: 8, border: "1px solid var(--dsw-alias-border-l1)",
+          background: open ? "color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent)" : "transparent",
+          color: "var(--dsw-alias-label-secondary)", fontSize: 11, cursor: "pointer", whiteSpace: "nowrap",
+        };
+
+        return h("div", { ref: rootRef, "data-sdt-effort": "", style: { position: "relative", display: "inline-flex" } },
+          h("button", {
+            type: "button", style: btn, title: "思考强度：" + effortLabel(active),
+            "aria-label": "思考强度 " + effortLabel(active),
+            onClick: () => setOpen((v) => !v),
+            onMouseEnter: () => setHover(true),
+            onMouseLeave: () => setHover(false),
+          },
+            h("svg", { viewBox: "0 0 16 16", width: 12, height: 12, "aria-hidden": true, style: { flex: "0 0 12px" } },
+            h("path", { d: "M3 12V8M8 12V4M13 12V6", stroke: "var(--dsw-alias-brand-primary)", strokeWidth: 1.8, strokeLinecap: "round", fill: "none" })),
+            h("span", null, "思考 " + effortLabel(active))),
+          open ? h("div", {
+            style: {
+              position: "absolute", bottom: "calc(100% + 8px)", right: 0, width: 208,
+              padding: "10px 12px 8px", borderRadius: 10,
+              border: "1px solid color-mix(in srgb,var(--dsw-alias-brand-primary) 22%,var(--dsw-alias-border-l1))",
+              background: "color-mix(in srgb,var(--dsw-alias-bg-l1) 88%,transparent)",
+              backdropFilter: "blur(16px) saturate(1.15)", WebkitBackdropFilter: "blur(16px) saturate(1.15)",
+              boxShadow: "0 14px 34px rgba(0,0,0,.32)", zIndex: 60,
+            },
+          },
+            h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--dsw-alias-label-secondary)", marginBottom: 6 } },
+              h("span", null, "思考强度"),
+              h("span", { style: { color: "var(--dsw-alias-brand-primary)", fontWeight: 600 } }, effortLabel(active))),
+            h("input", {
+              type: "range", min: 0, max: efforts.length - 1, step: 1, value: index,
+              "data-sdt-effort-range": "",
+              style: { width: "100%", accentColor: "var(--dsw-alias-brand-primary)", cursor: "pointer" },
+              onChange: (e) => setPending(efforts[Number(e.target.value)]?.id || null),
+              onPointerUp: (e) => commit(Number(e.currentTarget.value)),
+              onKeyUp: (e) => { if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Home" || e.key === "End") commit(Number(e.currentTarget.value)); },
+              onBlur: (e) => commit(Number(e.currentTarget.value)),
+            }),
+            h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--dsw-alias-label-secondary)", marginTop: 2 } },
+              h("span", null, effortLabel(efforts[0])),
+              h("span", null, effortLabel(efforts[efforts.length - 1]))))
+          : null);
+      };
+    }
+
     /* ---------------- M14：大面板毛玻璃 ---------------- */
     function syncGlassDom(enabled) {
       const marked = document.querySelectorAll('[data-sdt-glass]');
@@ -1124,7 +1248,7 @@ ${surfaceCss(colors, surface)}
     }
 
     return {
-      inject: ["theme", "slots"],
+      inject: ["theme", "slots", "modelDirectories"],
       apply(ctx) {
         // M8 安全模式：首帧注入的标记，存在即完全不接管（卸载/排障用）
         if (window.__sdtSafeMode) return;
@@ -1141,6 +1265,7 @@ ${surfaceCss(colors, surface)}
         let heroMarkRegistered = false;
         let wallTimer = 0;
         let wallInterval = 0;
+        let effortRegistered = false;
         window.addEventListener("resize", () => {
           if (!wallpaperOn) return;
           clearTimeout(wallTimer);
@@ -1297,6 +1422,31 @@ ${surfaceCss(colors, surface)}
                 syncWallpaperDom(true, currentWallpaper);
                 syncGlassDom(Boolean(appearance.glass));
               }, 3000);
+            }
+
+            // M15 思考强度滑杆：模型暴露多档时才显示（组件内部自判，无档位不渲染）
+            try {
+              if (!effortRegistered && (!payload.config.effort || payload.config.effort.enabled !== false)) {
+                const EffortBar = makeEffortBar();
+                if (EffortBar && ctx.modelDirectories && ctx.slots?.inject) {
+                  ctx.slots.inject("conversation.input.right", () => ctx.slots.register({
+                    name: "conversation.input.right",
+                    id: "sdt-effort",
+                    order: 30,
+                    inject: (sessionId) => {
+                      const directory = ctx.modelDirectories.directoryFor(sessionId);
+                      return {
+                        store: directory.store,
+                        load: () => { try { directory.load().catch(() => {}); } catch { /* ignore */ } },
+                        select: (selection) => directory.select(selection),
+                      };
+                    },
+                  }, EffortBar));
+                  effortRegistered = true;
+                }
+              }
+            } catch (error) {
+              console.warn("[dsh-sdt] effort bar unavailable:", error && error.message);
             }
 
             // 桌宠：配置开启且有素材时挂到 overlay

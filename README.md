@@ -22,6 +22,7 @@
 | 壁纸 / 玻璃 | `appearance.wallpaper` 支持图片或 **mp4/webm 视频**；`appearance.glass` 磨砂半透明 |
 | 英雄区 | `appearance.heroTitle` / `heroMark`：改标题与图标（如「迦勒底亚斯」+ FGO 图标） |
 | 皮肤包 | `skins/<id>.json` + `appearance.skin` 切换；坏包自动回退；控制台列出已装皮肤 |
+| 思考强度 | 输入区右侧「思考 中」丸弹 + 滑杆；`effort.enabled` 可关；模型无档位时自动隐藏 |
 | 桌宠 | 静态立绘（可拖、点击换装、位置记忆）；Live2D 待 Cubism 运行时素材 |
 | 毛玻璃 | 侧栏/顶栏/输入卡 `backdrop-filter`；视频壁纸下统一遮罩与文字投影 |
 | 应用内面板 | 侧栏列表「DSH-SDT」或顶部品牌名打开：功能矩阵 / 皮肤切换 / 状态 |

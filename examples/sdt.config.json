@@ -26,6 +26,14 @@
       "scale": 1
     }
   },
+  "pet": {
+    "enabled": false,
+    "images": [],
+    "size": 220
+  },
+  "effort": {
+    "enabled": true
+  },
   "assets": {
     "logo": "logo.svg",
     "texture": null
@@ -34,6 +42,8 @@
     "mode": "dark",
     "overlay": false,
     "wallpaper": null,
-    "glass": false
+    "glass": false,
+    "heroTitle": null,
+    "heroMark": null
   }
 }

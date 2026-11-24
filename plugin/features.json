@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "product": "DSH-SDT",
-  "updated": "2026-11-24",
+  "updated": "2026-11-25",
   "stats": {
     "tokens": {
       "mapped": 133,
@@ -212,12 +212,11 @@
       "id": "M15",
       "name": "推理强度滑杆",
       "slots": "conversation.input.right + llm-pi-ai settings",
-      "status": "planned",
-      "since": "v2.1",
-      "detail": "参考 dsh-reasoning-effort：host 补 provider efforts，client 滑杆；先只读探测",
-      "evidence": "调研完成，见 docs/PLAN-PET-EFFORT.md",
-      "placeholder": true,
-      "placeholderNote": "需先只读探测本机 provider 配置"
+      "status": "done",
+      "since": "v2.0",
+      "detail": "输入区右侧「思考 中/高/最高」丸弹 + 滑杆；经 modelDirectories 写 reasoningEffort；无档位自动隐藏",
+      "evidence": "桌面实测 deepseek-v4.1-flash-1017：low/high/max，max→low→max 均生效",
+      "placeholder": false
     },
     {
       "id": "M16",
