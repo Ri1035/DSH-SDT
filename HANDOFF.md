@@ -135,7 +135,7 @@ plugin/
 | M2 输入 dock（v1.8） | ✅ | 桌面 / 宿主 web 均挂载，16px，点击穿透 |
 | M1 覆盖层骨架（v1.8） | 🟡 | 配置 `appearance.overlay` 默认关；开启后四角标，`pointer-events:none` |
 | 桌面端（v1.8） | ✅ 已安装 | 133/133、菱形字标 + `DSH-SDT`、dock、**首帧注入已验证** |
-| M1b 点击特效（v1.9） | ✅ | canvas 菱形爆发，260ms 43k 亮像素 / 900ms 清零；`motion.click.enabled` 可关 |
+| M1b 点击特效（v1.9） | ✅ | canvas 菱形爆发，260ms 43k 亮像素 / 900ms 清零；`motion.click.enabled` / `.scale`(0.5–3) 可调 |
 | 控制台入口（v1.9） | ✅ | 侧栏按钮 + 设置卡「控制台」行 |
 | 插件图标（v1.9） | ✅ | 金色菱形格矢量；`fgo.png` 只作参考不入库 |
 

@@ -366,10 +366,17 @@ body[data-ds-dark-theme]{
         { h: 207, s: 96, l: 58 }, { h: 230, s: 94, l: 62 }, { h: 273, s: 88, l: 66 },
       ];
       const LIFE = 900;
+      let scale = 1; // 1 = 原始大小；由 motion.click.scale 驱动（0.5–3）
       const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
       const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
       const easeOutQuad = (t) => 1 - (1 - t) * (1 - t);
       const now = () => performance.now();
+      const mulberry32 = (a) => () => {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
       const hsl = (c, a, dl, ds) =>
         `hsla(${c.h},${clamp(c.s + (ds || 0), 0, 100)}%,${clamp(c.l + (dl || 0), 0, 96)}%,${a})`;
       const R = Math.random;
@@ -407,12 +414,13 @@ body[data-ds-dark-theme]{
         else { bx = -hw + hw * t; by = -radius * t; }
         return { x: bx * Math.cos(rot) - by * Math.sin(rot), y: bx * Math.sin(rot) + by * Math.cos(rot) };
       }
-      function makeBurst(x, y) {
+      function makeBurst(x, y, seed) {
+        const R = seed === undefined ? Math.random : mulberry32(seed);
         const pi = R() < 0.55 ? 0 : R() < 0.62 ? 1 : R() < 0.55 ? 2 : R() < 0.6 ? 3 : R() < 0.6 ? 4 : 5;
         const ci = R() < 0.5 ? clamp(pi + 1 + Math.floor(R() * 3), 0, 5) : Math.floor(R() * 6);
         const hues = [HUES[pi], HUES[ci]];
         if (R() < 0.45) hues.push(HUES[(ci + 2) % 6]);
-        const maxR = 72 + R() * 50;
+        const maxR = (72 + R() * 50) * scale;
         const ratioA = 0.68 + R() * 0.12;
         const bStart = 132 + R() * 42;
         const bDur = 118 + R() * 52;
@@ -452,7 +460,7 @@ body[data-ds-dark-theme]{
           const er = bR * (0.98 + R() * 0.62);
           sparks.push({
             x: Math.cos(ea) * er, y: Math.sin(ea) * er,
-            sz: 4 + R() * 8, delay: R() * 150, life: 150 + R() * 230,
+            sz: (4 + R() * 8) * scale, delay: R() * 150, life: 150 + R() * 230,
             col: hues[Math.floor(R() * hues.length)],
           });
         }
@@ -515,6 +523,8 @@ body[data-ds-dark-theme]{
           if (age > LIFE) { bursts.splice(i, 1); continue; }
           drawA(b, age); drawB(b, age); drawDebris(b, age);
         }
+        canvas.dataset.bursts = String(bursts.length);
+        canvas.dataset.running = running ? "1" : "0";
         if (bursts.length) raf = requestAnimationFrame(frame);
         else { running = false; }
       }
@@ -527,11 +537,26 @@ body[data-ds-dark-theme]{
       window.addEventListener("pointerdown", onDown, true);
       window.addEventListener("resize", resize);
       document.documentElement.appendChild(canvas);
-      return () => {
-        window.removeEventListener("pointerdown", onDown, true);
-        window.removeEventListener("resize", resize);
-        cancelAnimationFrame(raf);
-        canvas.remove();
+      return {
+        dispose: () => {
+          window.removeEventListener("pointerdown", onDown, true);
+          window.removeEventListener("resize", resize);
+          cancelAnimationFrame(raf);
+          canvas.remove();
+        },
+        setScale: (value) => {
+          if (typeof value === "number" && value >= 0.5 && value <= 3) scale = value;
+        },
+        /* 确定性静帧：同一 (seed, age) 在任何 scale 下可复现、可对比（rAF 节流环境下也能验证） */
+        preview: (opts = {}) => {
+          const { x, y, seed = 21, age = 430 } = opts;
+          ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+          ctx.clearRect(0, 0, W, H);
+          const b = makeBurst(x === undefined ? W * 0.5 : x, y === undefined ? H * 0.46 : y, seed);
+          const a = Math.max(0, Math.min(age, LIFE));
+          drawA(b, a); drawB(b, a); drawDebris(b, a);
+          canvas.dataset.preview = "1";
+        },
       };
     }
 
@@ -615,15 +640,22 @@ body[data-ds-dark-theme]{
         ctx.effect(() => () => { if (typeof disposeStyle === "function") disposeStyle(); });
 
         // 点击特效：默认开，配置可关；失败/减动效时静默不启用
-        let disposeClick = null;
-        const syncClickEffect = (enabled) => {
-          if (enabled && !disposeClick) {
-            try { disposeClick = makeClickEffect(); } catch (error) { console.warn("[dsh-sdt] click effect unavailable:", error && error.message); }
-          } else if (!enabled && disposeClick) {
-            disposeClick();
-            disposeClick = null;
+        let fxHandle = null; // { dispose, setScale }
+        const syncClickEffect = (enabled, scale) => {
+          if (enabled && !fxHandle) {
+            try {
+              fxHandle = makeClickEffect();
+              window.__sdtFx = { preview: fxHandle.preview, setScale: fxHandle.setScale };
+            } catch (error) { console.warn("[dsh-sdt] click effect unavailable:", error && error.message); }
+          } else if (!enabled && fxHandle) {
+            fxHandle.dispose();
+            fxHandle = null;
+            if (window.__sdtFx) delete window.__sdtFx;
           }
+          if (fxHandle && typeof scale === "number") fxHandle.setScale(scale);
         };
+        syncClickEffect(true);
+        ctx.effect(() => () => { if (fxHandle) fxHandle.dispose(); });
         syncClickEffect(true);
         ctx.effect(() => () => { if (typeof disposeClick === "function") disposeClick(); });
         ctx.effect(() => () => { if (typeof disposeTokens === "function") disposeTokens(); });
@@ -727,9 +759,12 @@ body[data-ds-dark-theme]{
             };
             document.documentElement.dataset.sdtSource = payload.exists ? "file" : "defaults";
 
-            // 点击特效：配置显式关闭时停掉
+            // 点击特效：配置显式关闭时停掉；scale 热更新
             const clickCfg = payload.config.motion && payload.config.motion.click;
-            syncClickEffect(!(clickCfg && clickCfg.enabled === false));
+            syncClickEffect(
+              !(clickCfg && clickCfg.enabled === false),
+              clickCfg && typeof clickCfg.scale === "number" ? clickCfg.scale : undefined,
+            );
 
             // M1 覆盖层骨架：仅在配置显式开启时注册，默认零影响
             if (payload.config.appearance && payload.config.appearance.overlay === true) {

@@ -34,7 +34,7 @@ export const DEFAULT_CONFIG = Object.freeze({
   motion: {
     splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true, video: null },
     ambience: { enabled: true, intensity: 0.4 },
-    click: { enabled: true },
+    click: { enabled: true, scale: 1 },
   },
   assets: {
     logo: 'logo.svg',
@@ -170,6 +170,8 @@ export function validateConfig(raw) {
       const c = raw.motion.click;
       if (typeof c.enabled === 'boolean') click.enabled = c.enabled;
       else if (c.enabled !== undefined) warn('motion.click.enabled', '需为 true | false');
+      if (typeof c.scale === 'number' && c.scale >= 0.5 && c.scale <= 3) click.scale = c.scale;
+      else if (c.scale !== undefined) warn('motion.click.scale', '需为 0.5–3 的数字（1 为原始大小）');
     }
   } else if (raw.motion !== undefined) {
     warn('motion', '必须是对象');

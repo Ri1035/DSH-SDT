@@ -18,7 +18,7 @@
 | 品牌 | 自绘 SVG 字标替换 `sidebar.brand.mark` |
 | 素材 | `/sdt/asset/<name>` 提供 logo、纹理、字体，用户目录优先、内置回退 |
 | 开屏 | `motion.splash.video` 指定用户素材名（如 `fgo.mp4`）；缺省纯 CSS；可跳过、每会话一次 |
-| 点击特效 | canvas 菱形爆发（默认开）；`motion.click.enabled` 可关；reduced-motion 不启动 |
+| 点击特效 | canvas 菱形爆发（默认开）；`motion.click.scale` 0.5–3 调大小；`motion.click.enabled` 可关；reduced-motion 不启动 |
 | 结论 | DSH 能改什么、改到什么程度，写进 [`docs/MODULARITY.md`](./docs/MODULARITY.md) |
 
 ## 安装

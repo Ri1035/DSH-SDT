@@ -20,6 +20,10 @@
     "ambience": {
       "enabled": true,
       "intensity": 0.4
+    },
+    "click": {
+      "enabled": true,
+      "scale": 1
     }
   },
   "assets": {

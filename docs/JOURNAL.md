@@ -353,3 +353,29 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 - 四条接缝实测、14 token 白名单、插件契约（bundle/patch/host/client/locale/icon）、生态调研 170 项目。
 - 建立版本规则（`vX.Y` 逢 10 进 1）、`VERSION`、`CHANGELOG`、自验证脚本。
 - 回滚点：`stage-01-v1.0`
+---
+
+## 2026-11-24 · v2.0 开工 —— 点击特效尺寸可调
+
+**做了什么**
+
+- `motion.click.scale`（0.5–3，默认 1）：作用于主菱形半径与碎屑尺寸，碎片/残影随比例缩放；
+  非法值告警并回落 1。
+- `window.__sdtFx`：`setScale` 热更新 + `preview({x,y,seed,age})` 确定性静帧 ——
+  原本只为绕开无头环境 rAF 节流（实测 ~10fps），顺带成为以后控制台预览/文档截图的底座。
+- `makeBurst` 支持种子（mulberry32，同原版实现）。
+
+**验证**
+
+| 项 | 结果 |
+|---|---|
+| scale=1 vs 2（同 seed/age） | 外接框 1.96x / 1.92x，像素 3.65x（≈菱形面积的 4x） |
+| scale=9 | `warnings: ['motion.click.scale: 需为 0.5–3…']`，回落 1 |
+| 回退 | scale 2→1 后静帧与基线一致 |
+| 截图 | `docs/preview/v20-click-scale{1,2}.png` |
+
+**说明**
+
+- 改配置后需刷新页面（client 启动时读取）；桌面端重启生效。
+- rAF 节流仅存在于无头验证环境；真实窗口（桌面端/浏览器前台）为正常 60fps。
+

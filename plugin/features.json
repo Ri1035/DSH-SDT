@@ -83,8 +83,8 @@
       "status": "done",
       "since": "v1.8–v1.9",
       "seam": "slots: shell.overlay",
-      "detail": "覆盖层骨架（默认关）+ 点击特效 canvas（默认开，reduced-motion 跳过）",
-      "evidence": "点击后画布 43k 亮像素、900ms 清零；卸载即移除",
+      "detail": "覆盖层骨架（默认关）+ 点击特效 canvas（默认开，scale 0.5–3 可调，reduced-motion 跳过）",
+      "evidence": "静帧对比：scale2 边框 ~1.9x / 像素 ~3.65x；点击后 900ms 清零",
       "placeholder": false,
       "placeholderNote": "视觉与点击特效待后续版本"
     },
