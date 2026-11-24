@@ -244,8 +244,6 @@ window.__ModuleLoader__.load({
       video.play().catch(() => {});
     }
     function syncWallpaperDom(enabled, wallpaper) {
-      window.__sdtWallPass = (window.__sdtWallPass || 0) + 1;
-      window.__sdtWallArgs = { enabled: !!enabled, wallpaper: wallpaper || null };
       const isVideo = !!wallpaper && /\.(mp4|webm)$/i.test(wallpaper);
       if (!enabled) {
         clearWallVideo();
@@ -262,18 +260,16 @@ window.__ModuleLoader__.load({
       else clearWallVideo();
       const vw = window.innerWidth, vh = window.innerHeight;
       let walled = false;
-      window.__sdtWallSeen = 0; window.__sdtWallHit = 0; window.__sdtWallHits = [];
       try {
       for (const el of document.querySelectorAll("div,main")) {
-        window.__sdtWallSeen += 1;
+
         if (el.id === "sdt-splash") continue;
         const cs = getComputedStyle(el);
         if (cs.position === "fixed") continue;
         const r = el.getBoundingClientRect();
         if (r.width < vw * 0.8 || r.height < vh * 0.8) continue;
         if (cs.backgroundColor === "rgba(0, 0, 0, 0)" && cs.backgroundImage === "none" && walled) continue;
-        window.__sdtWallHit += 1;
-        (window.__sdtWallHits = window.__sdtWallHits || []).push((el.className || "").toString().slice(0, 30));
+
         el.style.setProperty("background-color", "transparent", "important");
         if (isVideo) el.style.setProperty("z-index", "1", "important");
         if (!walled && !isVideo) {
@@ -1202,7 +1198,10 @@ ${surfaceCss(colors, surface)}
             if (wallpaperOn) setTimeout(() => syncWallpaperDom(true, currentWallpaper), 800);
             clearInterval(wallInterval);
             if (wallpaperOn) {
-              wallInterval = setInterval(() => syncWallpaperDom(true, currentWallpaper), 2500);
+              wallInterval = setInterval(() => {
+                if (document.hidden) return;
+                syncWallpaperDom(true, currentWallpaper);
+              }, 3000);
             }
 
             // 英雄区：标题改写 + 图标替换（均配置驱动，缺省不动宿主）

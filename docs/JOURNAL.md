@@ -560,3 +560,31 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
 
 **截图**：`docs/preview/v20-chaldeas.png`
 
+
+---
+
+## 2026-11-24 · 图标白底修复 + 优化 + 阶段审查
+
+**白底原因**：用户给的文件实际是 JPEG（不是透明 PNG），白底随图像一起进了英雄区。
+
+**修复**
+
+- 用无头 Edge + canvas 做「白底阈值 + 软边缘」抠图，导出透明 PNG；
+- 再缩到 256px 长边：390KB → **40KB**，英雄区 34px 显示无可见损失；
+- `heroMark` 改为 `fgo-icon.png`，桌面端截图确认与视频背景融合、无白框。
+
+**优化**
+
+- 移除清底循环里的诊断计数（`__sdtWallPass/Seen/Hit/Hits`），只保留错误捕获；
+- 壁纸重扫 2.5s → **3s**，且 `document.hidden` 时跳过，降低后台开销。
+
+**阶段审查**
+
+| 项 | 结果 |
+|---|---|
+| 自验证 | 8/8 |
+| 文档扫描 | 无「待 v1.9 / 待真机」等过期表述（JOURNAL 历史条目保留原貌） |
+| 调试残留 | `client.js` 无诊断全局变量 |
+| 配置 | `heroTitle/heroMark/wallpaper/glass` 均生效，`skin: null` |
+| 截图 | `docs/preview/v20-hero-icon.png` |
+
