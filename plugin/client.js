@@ -218,8 +218,64 @@ window.__ModuleLoader__.load({
       return { pairs, stats };
     }
 
+    /* ---------------- M6：壁纸 / 玻璃（配置驱动，默认关） ---------------- */
+    const WALL_ATTR = "data-sdt-wall";
+    const WALL_CLEAR = "data-sdt-wall-clear";
+    /** 壁纸开时：挑一个「全屏、非 fixed」的宿主容器挂壁纸，其余全屏层清底。
+     *  避免依赖 body/伪元素（实测宿主自己的全屏 frame 才是实际绘制面）。 */
+    function syncWallpaperDom(enabled) {
+      if (!enabled) {
+        for (const el of document.querySelectorAll(`[${WALL_ATTR}],[${WALL_CLEAR}]`)) {
+          el.style.removeProperty("background-color");
+          el.style.removeProperty("background-image");
+          el.removeAttribute(WALL_ATTR);
+          el.removeAttribute(WALL_CLEAR);
+        }
+        return;
+      }
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let walled = false;
+      for (const el of document.querySelectorAll("div,main")) {
+        if (el.id === "sdt-splash") continue;
+        const cs = getComputedStyle(el);
+        if (cs.position === "fixed") continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < vw * 0.8 || r.height < vh * 0.8) continue;
+        if (cs.backgroundColor === "rgba(0, 0, 0, 0)" && cs.backgroundImage === "none" && walled) continue;
+        el.style.setProperty("background-color", "transparent", "important");
+        if (!walled) {
+          el.removeAttribute(WALL_CLEAR);
+          el.setAttribute(WALL_ATTR, "1");
+          walled = true;
+        } else {
+          el.style.setProperty("background-image", "none", "important");
+          el.setAttribute(WALL_CLEAR, "1");
+        }
+      }
+    }
+
+    function surfaceCss(colors, surface) {
+      if (!surface) return "";
+      const rules = [];
+      if (surface.wallpaper) {
+        const url = `/sdt/asset/${encodeURIComponent(surface.wallpaper)}`;
+        rules.push(`:root{--sdt-wall:url("${url}")}`);
+        rules.push(`[data-sdt-wall]{background-image:linear-gradient(${rgba(colors.bgLight, 0.55)},${rgba(colors.bgLight, 0.55)}),var(--sdt-wall)!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;}`);
+        rules.push(`body[data-ds-dark-theme] [data-sdt-wall]{background-image:linear-gradient(${rgba(colors.bgDark, 0.50)},${rgba(colors.bgDark, 0.50)}),var(--sdt-wall)!important;}`);
+        // 双保险：body 也铺一份（部分构建里 body 才是画布层）
+        rules.push(`html body{background-image:linear-gradient(${rgba(colors.bgLight, 0.55)},${rgba(colors.bgLight, 0.55)}),var(--sdt-wall)!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;}`);
+        rules.push(`html body[data-ds-dark-theme]{background-image:linear-gradient(${rgba(colors.bgDark, 0.50)},${rgba(colors.bgDark, 0.50)}),var(--sdt-wall)!important;}`);
+      }
+      if (surface.glass) {
+        rules.push(`[data-slot="sidebar"]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 62%,transparent)!important;backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);}`);
+        rules.push(`[data-composer-card]{background:color-mix(in srgb,var(--dsw-alias-bg-l1) 58%,transparent)!important;backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);}`);
+        rules.push(`@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){[data-slot="sidebar"],[data-composer-card]{background:var(--dsw-alias-bg-l1)!important;}}`);
+      }
+      return rules.join("\n");
+    }
+
     /* ---------------- L2：语法 CSS（只用稳定锚点） ---------------- */
-    function buildCss(colors) {
+    function buildCss(colors, surface) {
       return `:root{
   --bj-gold: ${colors.brand};
   --bj-gold-line: ${rgba(colors.brand, 0.45)};
@@ -255,6 +311,7 @@ body[data-ds-dark-theme]{
 [data-slot="sidebar"]{ box-shadow: inset -1px 0 0 var(--bj-gold-line); }
 [data-slot="shell.overlay"] > *{ --bj-in-overlay: 1; }
 ::selection{ background: var(--bj-gold-glow); color: inherit; }
+${surfaceCss(colors, surface)}
 `;
     }
 
@@ -636,12 +693,18 @@ body[data-ds-dark-theme]{
         let disposeTokens = null;
         let currentColors = DEFAULTS;
         const initial = buildPairs(currentColors);
-        let disposeStyle = injectStyle(buildCss(currentColors));
+        let disposeStyle = injectStyle(buildCss(currentColors, { wallpaper: null, glass: false }));
         ctx.effect(() => () => { if (typeof disposeStyle === "function") disposeStyle(); });
 
         // 点击特效：默认开，配置可关；失败/减动效时静默不启用
         let fxHandle = null; // { dispose, setScale }
-        const syncClickEffect = (enabled, scale) => {
+        let wallpaperOn = false;
+        let wallTimer = 0;
+        window.addEventListener("resize", () => {
+          if (!wallpaperOn) return;
+          clearTimeout(wallTimer);
+          wallTimer = setTimeout(() => syncWallpaperDom(true), 200);
+        });        const syncClickEffect = (enabled, scale) => {
           if (enabled && !fxHandle) {
             try {
               fxHandle = makeClickEffect();
@@ -732,7 +795,7 @@ body[data-ds-dark-theme]{
             currentColors = colors;
             // 配置颜色必须同步进 --bj-* / 底纹 / 选区，否则改色后只有 token 变、装饰仍是默认色
             if (typeof disposeStyle === "function") disposeStyle();
-            disposeStyle = injectStyle(buildCss(colors));
+            disposeStyle = injectStyle(buildCss(colors, payload.config.appearance || {}));
             const built = buildPairs(colors);
             const mode = (payload.config.appearance && payload.config.appearance.mode) || 'auto';
             if (mode === 'dark' || mode === 'light') {
@@ -765,6 +828,11 @@ body[data-ds-dark-theme]{
               !(clickCfg && clickCfg.enabled === false),
               clickCfg && typeof clickCfg.scale === "number" ? clickCfg.scale : undefined,
             );
+
+            // 壁纸：清全屏容器底色（晚挂载再补一次）
+            wallpaperOn = Boolean(payload.config.appearance && payload.config.appearance.wallpaper);
+            syncWallpaperDom(wallpaperOn);
+            if (wallpaperOn) setTimeout(() => syncWallpaperDom(true), 800);
 
             // M1 覆盖层骨架：仅在配置显式开启时注册，默认零影响
             if (payload.config.appearance && payload.config.appearance.overlay === true) {

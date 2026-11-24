@@ -116,12 +116,12 @@
       "id": "M6",
       "name": "壁纸 / 玻璃",
       "layer": "L4",
-      "status": "planned",
-      "since": "v1.9",
+      "status": "partial",
+      "since": "v2.0",
       "seam": "自有背景层 + backdrop-filter",
-      "detail": "静态图 / 视频 / 磨砂；默认关闭",
-      "evidence": "—",
-      "placeholder": true,
+      "detail": "壁纸（用户素材）+ 玻璃质感，默认关；@supports 降级",
+      "evidence": "计算样式：frame/body 均带 scrim+url，backdrop-filter 生效；视觉待真机",
+      "placeholder": false,
       "placeholderNote": "需先做性能与 reduced-motion 降级"
     },
     {

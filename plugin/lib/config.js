@@ -30,6 +30,10 @@ export const DEFAULT_CONFIG = Object.freeze({
     mode: 'auto',
     /** M1 覆盖层骨架：默认关闭，开启后只渲染无交互的角标，验证接缝用 */
     overlay: false,
+    /** M6 壁纸：用户素材目录里的图片文件名；null = 不启用 */
+    wallpaper: null,
+    /** M6 玻璃质感：半透明 + backdrop-filter；默认关闭，避免低配掉帧 */
+    glass: false,
   },
   motion: {
     splash: { enabled: true, duration: 2200, skippable: true, oncePerSession: true, video: null },
@@ -185,6 +189,17 @@ export function validateConfig(raw) {
     const overlay = raw.appearance.overlay;
     if (typeof overlay === 'boolean') appearance.overlay = overlay;
     else if (overlay !== undefined) warn('appearance.overlay', '需为 true | false');
+
+    const wallpaper = raw.appearance.wallpaper;
+    if (wallpaper === null) appearance.wallpaper = null;
+    else if (typeof wallpaper === 'string' && wallpaper.length > 0 && wallpaper.length <= 120 &&
+      !wallpaper.includes('..') && !path.isAbsolute(wallpaper) && !/[\\/]/.test(wallpaper)) {
+      appearance.wallpaper = wallpaper;
+    } else if (wallpaper !== undefined) warn('appearance.wallpaper', '需为素材目录内的图片文件名（不含路径分隔符与 ..）');
+
+    const glass = raw.appearance.glass;
+    if (typeof glass === 'boolean') appearance.glass = glass;
+    else if (glass !== undefined) warn('appearance.glass', '需为 true | false');
   }
 
   const assets = { ...DEFAULT_CONFIG.assets };

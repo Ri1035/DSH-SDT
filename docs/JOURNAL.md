@@ -414,3 +414,32 @@ VERSION+CHANGELOG=版本），并把 `client.js` 的 `VERSION` 提到 `1.5`。
   （`readyState=4`、1280×720）。
 - 夹具与探针放在 `tools/_splash_test/`（gitignored），不入库。
 
+
+---
+
+## 2026-11-24 · M6 壁纸 / 玻璃（实现完成，视觉待真机）
+
+**做了什么**
+
+- 配置：`appearance.wallpaper`（用户素材图片名，默认 null）、`appearance.glass`（默认 false）；
+  非法文件名/非布尔值告警回落。
+- 壁纸：`--sdt-wall` + 两处落点 —— 宿主「全屏非 fixed」frame 打 `data-sdt-wall`，body 同规则双保险；
+  其余全屏层用 `data-sdt-wall-clear` 清底（只清 ≥80% 视口的层）。
+- 玻璃：侧栏 / 输入卡 `color-mix(... , transparent)` + `backdrop-filter`；`@supports` 不支持时回落实色。
+- 明暗两套 scrim 分别用 `body[data-ds-dark-theme]` 覆盖。
+
+**验证**
+
+| 项 | 结果 |
+|---|---|
+| 计算样式 | `[data-sdt-wall]` 存在，`background-image` = scrim + url，`background-size: cover, cover` |
+| 清底层 | 1 个全屏层被标记清除 |
+| 玻璃 | 侧栏 `blur(16px) saturate(1.15)`；输入卡 `blur(18px)` |
+| 视觉 | **未验收**：headless 的 `captureScreenshot`/screencast 返回陈旧或空白帧，不可信 |
+
+**待办**
+
+- 真实窗口（桌面端或前台浏览器）打开壁纸，确认无遮挡、对比度可读；若仍有宿主层盖住，
+  把该层加入清理选择器（而不是继续猜 body）。
+- 测试素材 `test-wall.png` 留在用户目录，配置已恢复 `wallpaper: null, glass: false`。
+

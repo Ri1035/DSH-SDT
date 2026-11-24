@@ -32,6 +32,8 @@
   },
   "appearance": {
     "mode": "dark",
-    "overlay": false
+    "overlay": false,
+    "wallpaper": null,
+    "glass": false
   }
 }

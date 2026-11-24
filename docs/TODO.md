@@ -127,7 +127,9 @@ M9 开屏、M6 壁纸/玻璃、M7 皮肤中心、M8 安全模式、P5 对话动�
 
 ## 📋 下一步（v2.0 剩余）
 
-- [ ] **T10.3** M6 壁纸/玻璃（默认关闭 + 性能降级）
+- [~] **T10.3** M6 壁纸/玻璃：配置 `appearance.wallpaper` / `glass` 已落地，
+      壁纸挂宿主全屏 frame + body 双保险，玻璃用 color-mix + backdrop-filter（含 @supports 降级）；
+      **真实窗口视觉待验收**（headless 合成帧不可信）
 - [ ] **T10.4** M7 皮肤中心 + M8 安全模式
 - [ ] **T10.5** 回归：三模式 / 980×640 / 卸载残留 / reduced-motion
 - [ ] **T12.1** 发布清单：双语 README、演示 GIF、`private:false`、市场元数据
